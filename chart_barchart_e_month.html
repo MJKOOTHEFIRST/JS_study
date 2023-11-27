@@ -40,7 +40,7 @@
                 const parts = line.split('=');
                 if (parts.length === 2) {
                     result.push({
-                        month: '월 ' + parts[0].trim().split('_')[1], // "e_production_01"에서 월 부분만 추출
+                        month: '월 ' + parts[0].trim().split('_')[2], // "e_production_01"에서 월 부분만 추출
                         value: parseFloat(parts[1].trim())
                     });
                 }
