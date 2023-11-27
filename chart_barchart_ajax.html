@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chart.js로 barchart ajax</title>
+    <style>
+        .myChartDiv{
+            width: 800px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="myChartDiv">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <!-- CDN으로 chart.js include하기 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      
+    <script>
+        // CSV 파일에서 데이터 불러오는 함수
+        /*
+        callback 함수의 역할 : 
+            1. 비동기 처리 : 'fetch' 사용하여 데이터 불러오면 비동기적으로 진행된다.
+                즉, 데이터 로딩이 완료되기 전에 다음 코드 줄이 실행될 수 있다. 
+                `callback`함수를 사용하면 데이터 로딩이 완료된 후에 특정 작업을 수행할 수 있다.
+            2. 데이터 처리  : `loadCSVData` 함수는 CSV 파일을 불러오고 파싱하는 작업을 수행한 후, 
+                결과 데이터를 `callback` 함수에 전달한다. 이를 통해 CSV 파일에서 추출한 데이터를
+                차트 생성 등의 추가 작업에 사용한다.
+            3. 유연성과 재사용성 : `callback` 함수를 사용하면 `loadCSVData` 함수가 더 유연하고 재사용 가능하다.
+                같은 데이터 로딩 로직을 사용하면서, 다른 `callback` 함수를 전달함으로써 다양한 후처리 작업 수행할 수 있다.
+        */
+        function loadCSVData(callback){ 
+            fetch('data.csv')
+            .then(response => response.text())
+            .then(csv=> {
+                const data  = parseCSV(csv);
+                callback(data);
+            })
+            .catch(error => {
+                console.error('CSV 파일을 불러오는 데 실패했습니다.' ,error);
+            });
+        }
+
+        // CSV 데이터를 파싱하는 함수
+        function parseCSV(csv){
+            const lines = csv.split('\n');
+            const result = [];
+            lines.array.forEach(line => {
+                const columns = line.split(',');
+                result.push({
+                    date : columns[0],
+                    value : columns[1] 
+                });
+            });
+            return result;
+        }
+
+        // CSV 데이터를 불러온 후 차트를 생성하는 로직
+        loadCSVData(data => {
+            const labels = data.map(item => new Data(item.date).getData());
+            const values = data.map(item => item.value);
+        })
+
+        // 차트 생성 로직
+        const ctx = document.getElementById('myChart').getContext('2d');
+        new Chart(ctx, {
+            type : 'bar',
+            data : {
+                labels : labels,
+                datasets : [{
+                    label : '데이터',
+                    data : values,
+                    borderWidth : 1,
+                    barThickness: 20
+                }]
+            },
+            options:{
+                maintainAspectRatio : true,
+                responsive: true,
+                scales : {
+                    y: {
+                        beginAtZero : true
+                    }
+                },
+                tooltips:{
+                    callbacks:{
+                        title : function(tooltipItems, data){
+                            return `${tolltipItems[0].label}일 데이터`;
+                        }
+                    }
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>

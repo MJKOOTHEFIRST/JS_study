@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chart.js로 barchart 만들기</title>
+    <style>
+        .myChartDiv{
+            width: 800px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="myChartDiv">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <!-- CDN으로 chart.js include하기 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      
+    <script>
+        // 현재 날짜와 월 가져오기
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1; // getMonth()는 0부터 시작하므로 1을 더한다.
+        const lastDayOfMonth = new Date(year, month, 0).getDate();
+
+        // 월 이름 가져오기
+        const monthName = `${month}월`;
+        
+        // Labels 생성 (1일부터 마지막 날짜까지)
+        const labels = Array.from({ length: lastDayOfMonth }, (_, i) => i + 1);
+
+        // 랜덤 데이터 생성
+        const data = labels.map(() => Math.floor(Math.random() * 100));
+
+        // 차트 생성
+        const ctx = document.getElementById('myChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: monthName,
+              data: data,
+              borderWidth: 1,
+              barThickness: 20 // 막대두께 20px로 조정
+            }]
+          },
+          options: {
+            maintainAspectRatio: true, // 차트의 가로 세로 비율을 유지하지 않음
+            responsive: true, // 차트가 부모 요소의 크기에 반응적으로 조정됨
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            tooltips: {
+                callbacks: {
+                    // 툴팁에 표시될 텍스트를 사용자 정의합니다.
+                    title: function(tooltipItems, data) {
+                        // 올바른 변수 이름을 사용합니다.
+                        return `${monthName} ${tooltipItems[0].label}일`;
+                    }
+                }
+            }
+        }
+        });
+    </script>
+</body>
+</html>

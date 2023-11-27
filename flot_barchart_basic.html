@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>flot.js로 bar chart 만들기</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery.flot@0.8.3/jquery.flot.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.time.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltip.js/1.3.3/tooltip.min.js" integrity="sha512-ql/3IzUzLuFdkLA2w9moj4ssGDZuvRTjRDeSEX+MnjrzjRpy1COnClBDprSR0KPWbpyxVMvjiLHgv0KFa+H8vw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+    <div id="chartTitle" style="text-align: left; font-size:20px; margin: 10px 0 10px 250px"></div>
+    <div id="placeholder" style="width: 600px; height: 300px;"></div>
+    
+    <script type="text/javascript">
+          $(function() {
+            // 현재 날짜 정보를 가져와서 이번 달을 표시
+            var today = new Date();
+            var year = today.getFullYear();
+            var month = today.getMonth()+1;
+            var chartTitle = year + "년" + month + "월";
+            $("#chartTitle").text(chartTitle);
+
+            // 이번 달의 마지막 날짜를 구하는 함수
+            function getLastDayOfMonth(year, month){
+                return new Date(year, month +1 , 0).getDate();
+            }
+
+            // 현재 연도와 달
+            var today = new Date();
+            var year = today.getFullYear();
+            var month = today.getMonth(); // 월은 0부터 시작
+
+            // 이번 달의 일수 계산
+            var daysInMonth = getLastDayOfMonth(year, month);
+
+            // 랜덤 데이터 생성
+            var data = [];
+            for (var day = 1 ; day <= daysInMonth; day++){
+                data.push([day, Math.random() * 1000]); //  랜덤 전기 사용량
+            }
+
+            // Flot 차트 옵션
+            var options = {
+                series: {
+                    bars: {
+                        show: true,
+                        barWidth: 0.6,
+                        align: "center",
+                        fill: true,
+                        fillColor: "#E5D4FF"
+                    }
+                },
+                xaxis: {
+                    tickSize : 1,
+                    tickDecimals : 0
+                },
+                yaxis: {
+                    min: 0,
+                    tickFormatter: function(val,axis){
+                        return val.toFixed(axis.tickDemicals) + "W";
+                    }
+                }
+            };
+
+            // 차트 생성            
+            $.plot($('#placeholder'), [data], options);
+
+            // 툴팁을 위한 이벤트 핸들러
+            $("#placeholder").bind("plothover", function ( event, pos, iem) {
+                if(item){
+                    var x = item.datapoint[0].toFixed(2),
+                          y = item.datapoint[1].toFixed(2);
+
+                          $("#tooltip").html(item.series.label + "of" + x + " =" + y)
+                          .css({top: item.pageY+5, left: item.pageX+5})
+                          .fadeIn(200);
+                }else{
+                    $("#tooltip").hide();
+                }
+            })
+        });
+
+    </script>
+    
+</body>
+</html>

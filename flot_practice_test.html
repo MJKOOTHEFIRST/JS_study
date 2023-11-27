@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>수소전지 그래프1</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+
+  <div class="card">
+    <h5 class="card-header">
+      <i class="far fa-chart-bar"></i>
+      FuelCellDr.
+    </h5>
+    <div class="card-body">
+      <div id="line-chart" style="height: 300px;"></div>
+    </div>
+  </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.flot@0.8.3/jquery.flot.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flot/4.2.6/jquery.flot.js" integrity="sha512-b0/xA9839WwDovAHA0nMyu/6/Vtd58xyMub+i9MRpz7Lv6PbeasD5Ww4SB3QEZHC/KZTsj1+cJFJY9Ivei1wfQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+  /*******************************************************/
+  /*테스트 데이터*/
+  // 테스트 데이터 생성
+  // /*
+  const temperatureData = [
+    [10 * 60 + 30, 20],
+    [11 * 60, 25],
+    [11 * 60 + 30, 30],
+    [12 * 60, 35]
+  ];
+
+  const humidityData = [
+    [10 * 60 + 30, 50],
+    [11 * 60, 55],
+    [11 * 60 + 30, 60],
+    [12 * 60, 65]
+  ];
+
+// */
+
+/*******************************************************/
+
+const data = [];
+
+// X축 tick 배열 생성
+const tick = [];
+for (let hour = 10; hour <= 19; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+       // 10:00은 제외
+       if (hour === 10 && minute === 0) {
+            continue;
+        }
+
+        let time = hour + ":" + (minute < 10 ? "0" : "") + minute;
+        let tickValue = hour * 60 + minute; // 10:30은 630, 11:00은 660 등으로 변환
+        tick.push([tickValue, time]);
+    }
+}
+
+// Y축 설정
+const yaxisTicks = [];
+for (let i = 0; i <= 100; i += 20) {
+    yaxisTicks.push([i, i + "°C"]); // °C 단위 추가
+}
+
+/*
+const dataset = {
+  // label: "1번 그래프",
+  data : data,
+  color: '#3c8dbc'
+}
+*/
+
+$.plot('#line-chart', [dataset], {
+  grid : {
+    hoverable  : true,
+    borderColor: '#f3f3f3',
+    borderWidth: 1,
+    tickColor  : '#f3f3f3',
+  },
+  series: {
+    shadowSize: 0,
+    lines: { show: true, fill: true, fillColor: "rgba(255, 255, 255, 0.8)" },
+    points: { show: true, fill: false }
+  },
+  yaxis : {
+    show: true,
+    ticks: yaxisTicks,
+    min: 0,
+    max: 100
+  },
+  xaxis : {
+    show: true,
+    ticks: tick,
+    min: 10 * 60, // 10:00
+    max: 19 * 60 + 30 // 19:30
+  }
+});
+
+/*
+X축 Ticks: 10:30부터 19:00까지 30분 간격으로 tick 배열을 생성합니다. 각 tick의 값은 분으로 계산되며, 레이블은 시간 형식(HH:MM)으로 설정됩니다.
+Y축 Ticks: 0°C부터 100°C까지 20°C 간격으로 yaxisTicks 배열을 생성합니다.
+yaxis 설정: yaxis 설정에 ticks, min, max 옵션을 추가하여 Y축의 범위와 틱을 정의합니다.
+xaxis 설정: xaxis 설정에 min과 max 옵션을 추가하여 X축의 시작 및 종료 시간을 정의합니다.
+*/
+
+
+//Initialize tooltip on hover
+$('<div class="tooltip-inner" id="line-chart-tooltip"></div>').css({
+  position: 'absolute',
+  display : 'none',
+  opacity : 0.8
+}).appendTo('body')
+$('#line-chart').bind('plothover', function (event, pos, item) {
+
+  if (item) {
+    const y = item.datapoint[1].toFixed(0)
+    $('#line-chart-tooltip').html(item.series.label + ' : ' + y)
+      .css({
+        top : item.pageY + 5,
+        left: item.pageX + 5
+      })
+      .fadeIn(200)
+  } else {
+    $('#line-chart-tooltip').hide()
+  }
+
+})
+
+/* ajax로 그래프 요청 후 받기 */
+$.ajax({
+  url: 'result_of_20231004_ma.csv', // 서버의 CSV 파일 경로
+  type: 'GET',
+  dataType: 'text', // CSV 파일은 텍스트 형식으로 받습니다.
+  success: function(data) {
+    var jsonData = csvToJson(data); // CSV 데이터를 JSON으로 변환
+    drawChart(jsonData); // 차트 그리기
+  },
+  error: function(xhr, status, error) {
+    console.error("Data loading error:", error);
+  }
+});
+
+/* CSV를 JSON으로 변환*/
+// CSV 데이터를 JSON 형식으로 변환하는 함수를 작성합니다. 이 함수는 CSV 문자열을 받아 JSON 객체로 변환;
+function csvToJson(csv) {
+  var lines = csv.split("\n");
+  var result = [];
+  var headers = lines[0].split(",");
+
+  for (var i = 1; i < lines.length; i++) {
+    var obj = {}; //각 행을 나타내는 새로운 객체 생성
+    var currentline = lines[i].split(",");
+
+    for (var j = 0; j < headers.length; j++) {
+      obj[headers[j]] = currentline[j]; //현재 행의 각 데이터를 헤더를 키로 하는 객체의 속성으로 할당.
+    }
+    result.push(obj);
+  }
+  // console.log(result); //디버깅 OK
+  return result; // JSON 객체 반환
+}
+
+
+/* 차트 그리기*/
+// 변환된 JSON 데이터를 받아서 Flot 차트에 필요한 형식으로 처리하고 차트를 그리기.
+
+// 차트 그리기 함수를 테스트 데이터로 호출
+function drawMultipleLinesChart() {
+  // 여러 데이터 세트를 포함한 차트 데이터셋 준비
+  var datasets = [
+    { label: "Temperature", data: temperatureData },
+    { label: "Humidity", data: humidityData}
+  ];
+
+  // 차트 옵션 설정
+  var options = {
+    // grid, series, lines, yaxis, xaxis 설정
+    grid: {
+      hoverable: true,
+      borderColor: '#f3f3f3',
+      borderWidth: 1,
+      tickColor: '#f3f3f3'
+    },
+    series: {
+      shadowSize: 0,
+      lines: {
+        show: true,
+        fill: true
+      },
+      points: {
+        show: true
+      }
+    },
+    yaxis: {
+      min: 0,
+      max: 100
+    },
+    xaxis: {
+      show: true,
+      ticks: tick,
+      min: 10 * 60, // 10:00
+      max: 19 * 60 + 30 // 19:30
+    }
+  };
+
+  // 차트 생성
+  $.plot('#line-chart', datasets, options);
+}
+
+// 함수 호출
+drawMultipleLinesChart();
+
+
+
+
+
+</script>
+</body>
+</html>
