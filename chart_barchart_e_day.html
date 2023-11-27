@@ -44,15 +44,16 @@
             });
     }
 
+    // conf 파일의 데이터는 e_production_00=7.4 e_production_01=7.4 e_production_02=7.4 ... 각 줄마다 이렇게 되어있다. 시간당. key값이 02, value값이 7.4인 것.
     function parseConf(conf) {
-        const lines = conf.split('\n');
+        const lines = conf.split('\n'); 
         const result = [];
         lines.forEach(line => {
-            const parts = line.split('=');
-            if (parts.length === 2) {
+            const parts = line.split('='); //각 행을 `=` 기호 기준으로 분리, 그러면 parts[0], parts[1]로 분리된다. 
+            if (parts.length === 2) { // parts가 2개가 나오면 
                 result.push({
-                    time: parts[0].trim().split('_')[1], // "e_production_00"에서 시간 부분만 추출
-                    value: parseFloat(parts[1].trim())
+                    time: parts[0].trim().split('_')[2], // "e_production_00"에서 시간 부분만 추출(parts[0]인 key 부분에서 공백을 제거(`trim()` 한 후, `_` 기준으로 다시 분리)) , 이 분리된 배열에서 두번째 요소(parts[2]) 추출해서 시간값 가져옴.
+                    value: parseFloat(parts[1].trim()) //  value에서 공백 제거하고 실수로 변환.
                 });
             }
         });
