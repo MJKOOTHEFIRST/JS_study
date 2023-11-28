@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실시간 생산량</title>
+
+    <style>
+        .myChartDiv{
+            width: 150px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="myChartDiv">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <!-- CDN으로 chart.js include하기 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      
+    <script>
+       const ctx = document.getElementById('myChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [60, 40], // 60%가 게이지 값, 40%는 빈 공간
+                    backgroundColor: ['blue', 'red'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                circumference: 180, // 180도 도넛 차트
+                rotation: 270, // 시작 각도 조정
+                cutoutPercentage: 80, // 중앙 빈 공간의 비율
+                tooltips: { enabled: false },
+                hover: { mode: null },
+                // 기타 옵션...
+            }
+        });
+
+    </script>
+</body>
+</html>
