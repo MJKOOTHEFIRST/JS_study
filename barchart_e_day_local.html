@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>금일 전기생산량</title>
+    <title>금일 전기생산량(kW)</title>
 
     <style>
         .myChartDiv{
@@ -63,7 +63,7 @@
 
     loadConfData(data => {
         const labels = data.map(item => item.time + '시'); // "00시", "01시", ...
-        const values = data.map(item => item.value);
+        const values = data.map(item => item.value) ;
 
         // 차트 생성 로직
         const ctx = document.getElementById('myChart').getContext('2d');
@@ -72,7 +72,7 @@
             data : {
                 labels : labels,
                 datasets : [{
-                    label : '금일 전기생산량',
+                    label : '금일 전기생산량(kW)',
                     data : values,
                     borderWidth : 1,
                     barThickness: 10
@@ -83,7 +83,26 @@
                 responsive: true,
                 scales : {
                     y: {
-                        beginAtZero : true
+                    beginAtZero: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'kW',
+                        position: 'top' // y축 레이블을 상단에 표시
+                    }
+                },
+                x: {
+                scaleLabel: {
+                    display: true,
+                    labelString: '시',
+                    position: 'right' // x축 레이블을 오른쪽에 표시
+                },
+                    ticks: {
+                            maxRotation: 0,
+                            minRotation: 0,
+                            font: {
+                                size: 10
+                            }
+                        }
                     }
                 },
                 tooltips:{
