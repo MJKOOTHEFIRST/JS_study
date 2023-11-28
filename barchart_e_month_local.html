@@ -60,7 +60,7 @@
                 data : {
                     labels : labels,
                     datasets : [{
-                        label : '금월 전기생산량',
+                        label : '금월 전기생산량(kW)',
                         data : values,
                         borderWidth : 1,
                         barThickness: 20
@@ -72,6 +72,15 @@
                     scales : {
                         y: {
                             beginAtZero : true
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 0,
+                                minRotation: 0,
+                                font:{
+                                    size: 10
+                                }
+                            },
                         }
                     },
                     tooltips:{
