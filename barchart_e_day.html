@@ -52,20 +52,20 @@
 //파일위치 변수 전역적으로 선언
 var base_data_url = "/conf_data/"
 
-function loadConfData(callback) {
+function loadConfData(callback) { //
     // base_data_url 전역 변수를 사용하여 URL 구성
-    fetch(base_data_url + 'e_day.conf')
-        .then(response => response.text())
-        .then(conf => {
-            const data = parseConf(conf);
-            callback(data);
+    fetch(base_data_url + 'e_day.conf') // 데이터 요청
+        .then(response => response.text()) // 요청 완료시(then)-> 응답 텍스트 형식으로 변환
+        .then(conf => { // text로 응답된 데이터를 conf로 처리하고 파일의 내용이 문자열 형태로 들어가있다.
+            const data = parseConf(conf); // parseConf로 conf 문자열을 파싱하고, 파일의 내용 분석하고 필요한 형식의 데이터로 변환, 데이터에 저장
+            callback(data); // 파싱된 data를 callback 함수에 전달하고, 이 callback 함수 실행
         })
         .catch(error => {
             console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
         });
 }
 
-// conf 파일의 데이터는 e_production_00=7.4 e_production_01=7.4 e_production_02=7.4 ... 각 줄마다 이렇게 되어있다. 시간당. key값이 02, value값이 7.4인 것.
+// conf 파일의 데이터는 e_production_00=7.4 \n e_production_01=7.4 \n e_production_02=7.4 ... 각 줄마다 이렇게 되어있다. 시간당. key값이 02, value값이 7.4인 것.
 function parseConf(conf) {
     const lines = conf.split('\n'); 
     const result = [];
