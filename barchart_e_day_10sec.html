@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>금일 전기생산량(kW)</title>
+    <title>금일 전기생산량</title>
 
     <style>
         .myChartDiv{
@@ -21,51 +21,36 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
       
     <script>
-        /*
-        callback 함수의 역할 : 
-            1. 비동기 처리 : 'fetch' 사용하여 데이터 불러오면 비동기적으로 진행된다.
-                즉, 데이터 로딩이 완료되기 전에 다음 코드 줄이 실행될 수 있다. 
-                `callback`함수를 사용하면 데이터 로딩이 완료된 후에 특정 작업을 수행할 수 있다.
-            2. 데이터 처리  : `loadCSVData` 함수는 CSV 파일을 불러오고 파싱하는 작업을 수행한 후, 
-                결과 데이터를 `callback` 함수에 전달한다. 이를 통해 CSV 파일에서 추출한 데이터를
-                차트 생성 등의 추가 작업에 사용한다.
-            3. 유연성과 재사용성 : `callback` 함수를 사용하면 `loadCSVData` 함수가 더 유연하고 재사용 가능하다.
-                같은 데이터 로딩 로직을 사용하면서, 다른 `callback` 함수를 전달함으로써 다양한 후처리 작업 수행할 수 있다.
-      
-        */
-    // node.js를 사용할 때 방식 --> chart_server.js라는 서버로 요청하는 것
     /*
-    function loadConfData(callback) {
-        // fetch 함수를 사용하여 
-    fetch('http://localhost:3000/e_day') // API 서버 주소로 변경해야함
-        .then(response => response.text())
-        .then(conf => {
-            const data = parseConf(conf);
-            callback(data);
-        })
-        .catch(error => {
-            console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
-        });
-}
-*/ 
+    callback 함수의 역할 : 
+        1. 비동기 처리 : 'fetch' 사용하여 데이터 불러오면 비동기적으로 진행된다.
+            즉, 데이터 로딩이 완료되기 전에 다음 코드 줄이 실행될 수 있다. 
+            `callback`함수를 사용하면 데이터 로딩이 완료된 후에 특정 작업을 수행할 수 있다.
+        2. 데이터 처리  : `loadCSVData` 함수는 CSV 파일을 불러오고 파싱하는 작업을 수행한 후, 
+            결과 데이터를 `callback` 함수에 전달한다. 이를 통해 CSV 파일에서 추출한 데이터를
+            차트 생성 등의 추가 작업에 사용한다.
+        3. 유연성과 재사용성 : `callback` 함수를 사용하면 `loadCSVData` 함수가 더 유연하고 재사용 가능하다.
+            같은 데이터 로딩 로직을 사용하면서, 다른 `callback` 함수를 전달함으로써 다양한 후처리 작업 수행할 수 있다.
+    
+    */
 
 //파일위치 변수 전역적으로 선언
 var base_data_url = "/conf_data/"
 
-function loadConfData(callback) {
+function loadConfData(callback) { //
     // base_data_url 전역 변수를 사용하여 URL 구성
-    fetch(base_data_url + 'e_day.conf')
-        .then(response => response.text())
-        .then(conf => {
-            const data = parseConf(conf);
-            callback(data);
+    fetch(base_data_url + 'e_day.conf') // 데이터 요청
+        .then(response => response.text()) // 요청 완료시(then)-> 응답 텍스트 형식으로 변환
+        .then(conf => { // text로 응답된 데이터를 conf로 처리하고 파일의 내용이 문자열 형태로 들어가있다.
+            const data = parseConf(conf); // parseConf로 conf 문자열을 파싱하고, 파일의 내용 분석하고 필요한 형식의 데이터로 변환, 데이터에 저장
+            callback(data); // 파싱된 data를 callback 함수에 전달하고, 이 callback 함수 실행
         })
         .catch(error => {
             console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
         });
 }
 
-// conf 파일의 데이터는 e_production_00=7.4 e_production_01=7.4 e_production_02=7.4 ... 각 줄마다 이렇게 되어있다. 시간당. key값이 02, value값이 7.4인 것.
+// conf 파일의 데이터는 e_production_00=7.4 \n e_production_01=7.4 \n e_production_02=7.4 ... 각 줄마다 이렇게 되어있다. 시간당. key값이 02, value값이 7.4인 것.
 function parseConf(conf) {
     const lines = conf.split('\n'); 
     const result = [];
@@ -81,12 +66,13 @@ function parseConf(conf) {
     return result;
 }
 
-loadConfData(data => {
-    const labels = data.map(item => item.time + '시'); // "00시", "01시", ...
-    const values = data.map(item => item.value) ;
+// 10초에 한번씩 데이터 업데이트
+function updateChart(data) {
+    const labels = data.map(item => item.time + '시');
+    const values = data.map(item => item.value);
 
-    // 차트 생성 로직
-    const ctx = document.getElementById('myChart').getContext('2d');
+     // 차트 생성 로직
+     const ctx = document.getElementById('myChart').getContext('2d');
     new Chart(ctx, {
         type : 'bar',
         data : {
@@ -139,7 +125,20 @@ loadConfData(data => {
             }
         }
     });
-});
+}
+
+// 10초에 한번씩 데이터 업데이트를 위한 함수
+function reloadData() {
+    loadConfData(updateChart); // updateChart를 콜백으로 전달
+}
+
+// 최초 데이터 로드 및 차트 생성
+loadConfData(updateChart);
+
+// 10초마다 데이터 재로드
+setInterval(loadConfData, 10000);
+
+   
 
     </script>
 </body>
