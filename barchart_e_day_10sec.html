@@ -22,20 +22,20 @@
       
     <script>
     /*
-    callback 함수의 역할 : 
+    callback 함수의 역할 : 다른 함수의 인자로서 이용되는 함수, 어떤 이벤트에 의해 호출되어지는 함수.
         1. 비동기 처리 : 'fetch' 사용하여 데이터 불러오면 비동기적으로 진행된다.
             즉, 데이터 로딩이 완료되기 전에 다음 코드 줄이 실행될 수 있다. 
             `callback`함수를 사용하면 데이터 로딩이 완료된 후에 특정 작업을 수행할 수 있다.
-        2. 데이터 처리  : `loadCSVData` 함수는 CSV 파일을 불러오고 파싱하는 작업을 수행한 후, 
-            결과 데이터를 `callback` 함수에 전달한다. 이를 통해 CSV 파일에서 추출한 데이터를
+        2. 데이터 처리  : `loadCSVData` 함수는 데이터가 있는 파일을 불러오고 파싱하는 작업을 수행한 후, 
+            결과 데이터를 `callback` 함수에 전달한다. 이를 통해 파일에서 추출한 데이터를
             차트 생성 등의 추가 작업에 사용한다.
-        3. 유연성과 재사용성 : `callback` 함수를 사용하면 `loadCSVData` 함수가 더 유연하고 재사용 가능하다.
+        3. 유연성과 재사용성 : `callback` 함수를 사용하면 데이터를 로드하는 함수가 더 유연하고 재사용 가능하다.
             같은 데이터 로딩 로직을 사용하면서, 다른 `callback` 함수를 전달함으로써 다양한 후처리 작업 수행할 수 있다.
-    
     */
 
 //파일위치 변수 전역적으로 선언
 var base_data_url = "/conf_data/"
+var currentChart; // 전역 변수로 현재 차트 저장
 
 function loadConfData(callback) { //
     // base_data_url 전역 변수를 사용하여 URL 구성
@@ -44,6 +44,7 @@ function loadConfData(callback) { //
         .then(conf => { // text로 응답된 데이터를 conf로 처리하고 파일의 내용이 문자열 형태로 들어가있다.
             const data = parseConf(conf); // parseConf로 conf 문자열을 파싱하고, 파일의 내용 분석하고 필요한 형식의 데이터로 변환, 데이터에 저장
             callback(data); // 파싱된 data를 callback 함수에 전달하고, 이 callback 함수 실행
+            console.log("데이터 로딩 완료", data)//디버깅
         })
         .catch(error => {
             console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
@@ -68,12 +69,17 @@ function parseConf(conf) {
 
 // 10초에 한번씩 데이터 업데이트
 function updateChart(data) {
+    // 기존 차트가 있으면 파괴
+    if (currentChart) {
+        currentChart.destroy();
+    }
+
     const labels = data.map(item => item.time + '시');
     const values = data.map(item => item.value);
 
      // 차트 생성 로직
      const ctx = document.getElementById('myChart').getContext('2d');
-    new Chart(ctx, {
+    currentChart = new Chart(ctx, {
         type : 'bar',
         data : {
             labels : labels,
@@ -129,14 +135,16 @@ function updateChart(data) {
 
 // 10초에 한번씩 데이터 업데이트를 위한 함수
 function reloadData() {
-    loadConfData(updateChart); // updateChart를 콜백으로 전달
+    loadConfData(updateChart); // updateChart 함수를를 콜백으로 전달(데이터 로딩이 완료된 후 차트를 업데이트하는데 사용)
 }
 
-// 최초 데이터 로드 및 차트 생성
-loadConfData(updateChart);
+// 최초 데이터 로드 및 차트 생성(프로그램 시작 시 데이터를 처음 로딩하고 차트를 생성하기 위해 호출.)
+loadConfData(updateChart); // updateChart 함수가 다시 차트를 업데이트하는데 사용
 
-// 10초마다 데이터 재로드
-setInterval(loadConfData, 10000);
+// 10초마다 데이터 재로드(millisecond는 1/1000초)
+setInterval(function() {
+    loadConfData(updateChart);
+}, 10000);
 
    
 
