@@ -90,6 +90,16 @@
                                 size: 10
                             }
                         },
+            animation:{
+                onComplete: function() {
+                    var centerX = (ctx.canvas.width - this.chart.width) / 2 + this.chart.width / 2;
+                    var centerY = (ctx.canvas.height - this.chart.height) / 2 + this.chart.height / 2;
+                    ctx.font = '20px Arial';
+                    ctx.fillStyle = color;
+                    ctx.textAlign = 'center';
+                    ctx.fillText(productionPercent.toFixed(1) + '%', centerX, centerY);
+                }
+            }
                     }
                 },
                 tooltips:{

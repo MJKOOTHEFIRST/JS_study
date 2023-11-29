@@ -1,0 +1,32 @@
+SELECT 
+    s.SALE_ID as SALE_ID,
+    v.NAME as V_NAME,
+    c.NAME as C_NAME,
+    cbiz.NAME as CBIZ_NAME,
+    b.NAME as BIZ_NAME,
+    s.TOT_PRICE as TOT_PRICE,
+    s.DELIVER_DATE as DELIVER_DATE,
+    s.S_DATE as S_DATE,
+    s.D_DATE as D_DATE,
+    s.WARRANTY as WARRANTY,
+    s.ORDER_NO as ORDER_NO,
+    s.REF as REF,
+    GROUP_CONCAT(d.SN) as SN_LIST
+FROM 
+    SALES as s
+LEFT JOIN 
+    VENDOR AS v ON s.V_ID = v.V_ID
+LEFT JOIN 
+    CUSTOMER AS c ON s.C_ID = c.C_ID
+LEFT JOIN 
+    CUSTOMER AS cbiz ON s.CBIZ_ID = cbiz.C_ID
+LEFT JOIN 
+    BUSINESS AS b ON s.BIZ_ID = b.BIZ_ID
+LEFT JOIN 
+    DEVICE AS d ON s.ORDER_NO = d.ORDER_NO
+WHERE 
+    s.SALE_ID = '17/10/27-2'
+GROUP BY 
+    s.SALE_ID
+ORDER BY 
+    s.SALE_ID DESC;
