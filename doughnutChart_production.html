@@ -10,7 +10,7 @@
             display: flex;
             justify-content: space-around;
             align-items: center; /* 중앙 정렬을 위해 추가 */
-            width: 30%;
+            width: 50%;
         }
 
         .myChartDiv {
@@ -40,21 +40,44 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
       
     <script>
-   // 차트 데이터를 로드하는 함수
-function loadChartData() {
-    const e_production = 1.1; // 전기발전량 데이터
-    const t_production = 0.7; // 열 발전량 데이터
+   // 파일위치 변수 전역적으로 선언
+var base_data_url = "/conf_data/";
 
-    const eProductionPercent = e_production * 100;
-    const tProductionPercent = t_production * 100;
-
-    // 왼쪽 차트 (하늘색)
-    createDoughnutChart('eProductionChart', eProductionPercent, '전기발전량', 'skyblue');
-    // 오른쪽 차트 (핑크색)
-    createDoughnutChart('tProductionChart', tProductionPercent, '열 발전량', 'pink');
+function loadConfData(callback) {
+    fetch(base_data_url + 'production.conf')
+        .then(response => response.text())
+        .then(conf => {
+            const data = parseConf(conf);
+            callback(data);
+        })
+        .catch(error => {
+            console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
+        });
 }
 
-// 도넛 차트 생성 함수
+function parseConf(conf) {
+    const lines = conf.split('\n');
+    const result = { e_production: 0, t_production: 0 };
+    lines.forEach(line => {
+        const parts = line.split('=');
+        if (parts.length === 2) {
+            if (parts[0].trim() === 'e_production') {
+                result.e_production = parseFloat(parts[1].trim());
+            } else if (parts[0].trim() === 't_production') {
+                result.t_production = parseFloat(parts[1].trim());
+            }
+        }
+    });
+    return result;
+}
+
+loadConfData(data => {
+    // eProductionChart 도넛 차트 생성
+    createDoughnutChart('eProductionChart', data.e_production * 100, '전기발전량', 'skyblue');
+    // tProductionChart 도넛 차트 생성
+    createDoughnutChart('tProductionChart', data.t_production * 100, '열 발전량', 'pink');
+});
+
 function createDoughnutChart(canvasId, productionPercent, label, color) {
     const ctx = document.getElementById(canvasId).getContext('2d');
     new Chart(ctx, {
@@ -62,7 +85,7 @@ function createDoughnutChart(canvasId, productionPercent, label, color) {
         data: {
             datasets: [{
                 data: [productionPercent, 100 - productionPercent],
-                backgroundColor: [color, 'lightgrey'], // 게이지 색상과 나머지 부분 색상
+                backgroundColor: [color, 'lightgrey'],
                 borderWidth: 0
             }]
         },
@@ -79,9 +102,6 @@ function createDoughnutChart(canvasId, productionPercent, label, color) {
         }
     });
 }
-
-// 차트 데이터 로드
-loadChartData();
 
 
     </script>
