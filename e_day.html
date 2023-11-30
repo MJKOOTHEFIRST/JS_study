@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>금일 전기 생산량</title>
+    <style>
+        .myChartDiv{
+            width: 400px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="myChartDiv">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="_day.js"></script>
+    <script>
+        ChartManager.loadConfData('myChart', 'e_day');
+    </script>
+</body>
+</html>
