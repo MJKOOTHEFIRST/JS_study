@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>월별 전기생산량</title>
+
+    <style>
+        .myChartDiv{
+            width: 400px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="myChartDiv">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <!-- CDN으로 chart.js include하기 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js" integrity="sha512-7U4rRB8aGAHGVad3u2jiC7GA5/1YhQcQjxKeaVms/bT66i3LVBMRcBI9KwABNWnxOSwulkuSXxZLGuyfvo7V1A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+      
+    <script>
+    //파일위치 변수 전역적으로 선언
+    var base_data_url = "/conf_data/"
+    var currentChart; //전역 변수로 현재 차트 저장 
+
+    function loadConfData() {
+        fetch(base_data_url + 'total_data.conf')
+            .then(response => response.text())
+            .then(conf => {
+                const data = parseConf(conf, 'e_month'); 
+                if(data.length>0){
+                    updateChart(data);
+                } else {
+                    console.log("새로운 데이터가 없습니다.");
+                }
+            })
+            .catch(error => {
+                console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
+            });
+    }
+
+    function parseConf(conf, section) {
+    const lines = conf.split('\n');
+    let sectionFound = false;
+    const result = [];
+
+    lines.forEach(line => {
+        if (line.trim() === `[${section}]`) {
+            sectionFound = true;
+        } else if (sectionFound && line.startsWith('[')) {
+            sectionFound = false;
+        } else if (sectionFound) {
+            const parts = line.split('=');
+            if (parts.length === 2) {
+                result.push({
+                    month: parseInt(parts[0].trim().split('_')[2], 10) + '월',
+                    value: parseFloat(parts[1].trim())
+                });
+            }
+        }
+    });
+    return result;
+}
+
+
+    function updateChart(data){
+        console.log("현재 차트 상태:", currentChart); // 디버깅
+
+        //기존 차트가 있으면 붕괴
+        if(currentChart){
+            currentChart.destroy();
+        }
+        const labels = data.map(item => item.month); // "월 1", "월 2", ...
+        const values = data.map(item => item.value);
+    
+        // 차트 생성 로직
+        const ctx = document.getElementById('myChart').getContext('2d');
+        currentChart = new Chart(ctx, { //새 차트의 생성과 동시에 이를 전역 차트 인스턴스로 관리하기 위한 절차
+            type : 'bar',
+            data : {
+                labels : labels,
+                datasets : [{
+                    label : '전기생산량(kW)',
+                    data : values,
+                    borderWidth : 1,
+                    barThickness: 20
+                }]
+            },
+            options:{
+                maintainAspectRatio : true,
+                responsive: true,
+                scales : {
+                    y: {
+                        beginAtZero : true,
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 0,
+                            minRotation: 0,
+                            font:{
+                                size: 10
+                            }
+                        },
+                    }
+                },
+                tooltips:{
+                    callbacks:{
+                        title : function(tooltipItems, data){
+                            return `${tooltipItems[0].label} 데이터`;
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 10초에 한번씩 데이터 업데이트를 위한 함수
+    function reloadData() {
+        loadConfData(updateChart); // updateChart를 콜백으로 전달
+    }
+
+    // 최초 데이터 로드 및 차트 생성
+    loadConfData(updateChart);
+
+    // 10초마다 데이터 재로드
+    setInterval(loadConfData, 10000);
+
+
+    </script>
+</body>
+</html>

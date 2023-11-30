@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>금일 전기생산량</title>
+    <title>전기생산량</title>
 
     <style>
         .myChartDiv{
@@ -36,18 +36,94 @@
 
 //파일위치 변수 전역적으로 선언
 var base_data_url = "/conf_data/"
+var currentChart; //전역 변수로 현재 차트 저장 
 
 function loadConfData() {
         fetch(base_data_url + 'total_data.conf')
             .then(response => response.text())
             .then(conf => {
                 const data = parseConf(conf, 'e_day'); // 'e_day' 섹션의 데이터만 파싱
-                updateChart(data);
+                if(data.length>0){
+                    updateChart(data);
+                } else {
+                    console.log("새로운 데이터가 없습니다.");
+                }
             })
             .catch(error => {
                 console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
             });
     }
+
+    function updateChart(data){
+        console.log("현재 차트 상태:", currentChart); // 디버깅
+
+        //기존 차트가 있으면 붕괴
+        if(currentChart){
+            currentChart.destroy();
+        }
+        
+            // 10초에 한번씩 데이터 업데이트
+            const labels = data.map(item => item.time + '시');
+            const values = data.map(item => item.value);
+        
+            
+             // 차트 생성 로직
+             const ctx = document.getElementById('myChart').getContext('2d');
+            currentChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '전기생산량(kW)',
+                            data: values,
+                            borderWidth: 1,
+                            barThickness: 10
+                        }]
+                    },
+                options:{
+                    maintainAspectRatio : true,
+                    responsive: true,
+                    scales : {
+                        y: {
+                        beginAtZero: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'kW',
+                            position: 'top' // y축 레이블을 상단에 표시
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    x: {
+                    scaleLabel: {
+                        display: true,
+                        labelString: '시',
+                        position: 'right' // x축 레이블을 오른쪽에 표시
+                    },
+                    ticks: {
+                            maxRotation: 0,
+                            minRotation: 0,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    }
+                    },
+                    tooltips:{
+                        callbacks:{
+                            title : function(tooltipItems, data){
+                                return `${tooltipItems[0].label} 데이터`;
+                            }
+                        }
+                    }
+                }
+            });
+    }
+
+
 
     function parseConf(conf, section) {
         const lines = conf.split('\n');
@@ -79,70 +155,8 @@ function loadConfData() {
         return result;
     }
 
-// 10초에 한번씩 데이터 업데이트
-function updateChart(data) {
-    const labels = data.map(item => item.time + '시');
-    const values = data.map(item => item.value);
 
-     // 차트 생성 로직
-     const ctx = document.getElementById('myChart').getContext('2d');
-     if (window.myChart) { // 전역 객체인 window에 차트 인스턴스 저장
-            window.myChart.destroy();
-        }
 
-    window.myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: '전기생산량(kW)',
-                    data: values,
-                    borderWidth: 1,
-                    barThickness: 10
-                }]
-            },
-        options:{
-            maintainAspectRatio : true,
-            responsive: true,
-            scales : {
-                y: {
-                beginAtZero: true,
-                scaleLabel: {
-                    display: true,
-                    labelString: 'kW',
-                    position: 'top' // y축 레이블을 상단에 표시
-                },
-                ticks: {
-                    font: {
-                        size: 10
-                    }
-                }
-            },
-            x: {
-            scaleLabel: {
-                display: true,
-                labelString: '시',
-                position: 'right' // x축 레이블을 오른쪽에 표시
-            },
-            ticks: {
-                    maxRotation: 0,
-                    minRotation: 0,
-                    font: {
-                        size: 10
-                    }
-                }
-            }
-            },
-            tooltips:{
-                callbacks:{
-                    title : function(tooltipItems, data){
-                        return `${tooltipItems[0].label} 데이터`;
-                    }
-                }
-            }
-        }
-    });
-}
 
 // 10초에 한번씩 데이터 업데이트를 위한 함수
 function reloadData() {
