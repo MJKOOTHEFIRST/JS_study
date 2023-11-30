@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>금일 전기 생산량</title>
+    <title>월별 열생산량</title>
     <style>
         .myChartDiv{
             width: 400px;
@@ -17,9 +17,9 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="_day.js"></script>
+    <script src="_month.js"></script>
     <script>
-        DayChartManager.loadDayData('myChart', 'e_day');
+        MonthChartManager.loadMonthData('myChart', 't_month');
     </script>
 </body>
 </html>

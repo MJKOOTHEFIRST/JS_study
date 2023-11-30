@@ -1,14 +1,15 @@
-var DayChartManager = {
+// _month.js
+var MonthChartManager = {
     base_data_url: "/conf_data/",
     currentChart: null,
 
-    loadDayData: function(chartId, section) {
+    loadMonthData: function(chartId, section) {
         fetch(this.base_data_url + 'total_data.conf')
             .then(response => response.text())
             .then(conf => {
-                const data = this.parseDayConf(conf, section);
+                const data = this.parseMonthConf(conf, section);
                 if(data.length>0){
-                    this.updateDayChart(chartId, data, section);
+                    this.updateMonthChart(chartId, data, section);
                 } else {
                     console.log("새로운 데이터가 없습니다.");
                 }
@@ -18,7 +19,7 @@ var DayChartManager = {
             });
     },
 
-    updateDayChart: function(chartId, data, section) {
+    updateMonthChart: function(chartId, data, section) {
         if(this.currentChart){
             this.currentChart.destroy();
         }
@@ -27,20 +28,20 @@ var DayChartManager = {
         this.currentChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: data.map(item => item.time + '시'),
+                labels: data.map(item => item.month),
                 datasets: [{
-                    label: section === 'e_day' ? '전기생산량(kW)' : '열생산량(kW)',
+                    label: section === 'e_month' ? '전기생산량(kW)' : '열생산량(kW)',
                     data: data.map(item => item.value),
                     borderWidth: 1,
-                    barThickness: 10,
-                    backgroundColor: section === 'e_day' ? "rgba(0, 123, 255, 0.5)" : "pink"
+                    barThickness: 20,
+                    backgroundColor: section === 'e_month' ? "rgba(0, 123, 255, 0.5)" : "pink"
                 }]
             },
-            options: this.getDayChartOptions()
+            options: this.getMonthChartOptions()
         });
     },
 
-    parseDayConf: function(conf, section) {
+    parseMonthConf: function(conf, section) {
         const lines = conf.split('\n');
         let sectionFound = false;
         const result = [];
@@ -54,7 +55,7 @@ var DayChartManager = {
                 const parts = line.split('=');
                 if (parts.length === 2) {
                     result.push({
-                        time: parts[0].trim().split('_')[2],
+                        month: parseInt(parts[0].trim().split('_')[2], 10) + '월',
                         value: parseFloat(parts[1].trim())
                     });
                 }
@@ -63,7 +64,7 @@ var DayChartManager = {
         return result;
     },
 
-    getDayChartOptions: function() {
+    getMonthChartOptions: function() {
         return {
             maintainAspectRatio: true,
             responsive: true,
@@ -84,7 +85,7 @@ var DayChartManager = {
                 x: {
                     scaleLabel: {
                         display: true,
-                        labelString: '시',
+                        labelString: '월',
                         position: 'right'
                     },
                     ticks: {
