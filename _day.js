@@ -2,12 +2,56 @@ var DayChartManager = {
     base_data_url: "/conf_data/",
     currentChart: null,
 
+    startAutoRefresh: function(chartId, section, interval) {
+        // console.log(`Auto refresh started for ${section} with interval ${interval} ms`); // 자동 새로고침 시작 로그
+        // console.log(this); // 디버깅
+        this.loadDayData(chartId, section); // 첫 데이터 로드
+        setInterval(() => {
+            // console.log(this); //디버깅 - 현재 컨텍스트 출력
+            // console.log(`Loading data for ${section} at ${new Date().toLocaleTimeString()}`); // 데이터 로딩 로그
+            this.loadDayData(chartId, section);
+        }, interval);
+    },
+
+    parseDayConf: function(conf, section) {
+        console.log(`Parsing data for section: ${section}`);
+        const lines = conf.split('\n');
+        let sectionFound = false;
+        const result = [];
+
+        lines.forEach(line => {
+            if (line.trim() === `[${section}]`) {
+                console.log(`Found section: ${section}`);
+                sectionFound = true;
+            } else if (sectionFound && line.startsWith('[')) {
+                console.log(`End of section: ${section}`);
+                sectionFound = false;
+            } else if (sectionFound) {
+                const parts = line.split('=');
+                if (parts.length === 2) {
+                    console.log(`Parsing line: ${line}`);
+                    result.push({
+                        time: parts[0].trim().split('_')[2],
+                        value: parseFloat(parts[1].trim())
+                    });
+                }
+            }
+        });
+        return result;
+    },
+
     loadDayData: function(chartId, section) {
+        console.log(`loadDayData 호출됨 - section: ${section}, time: ${new Date().toLocaleTimeString()}`); // 디버깅
+        // console.log("Requested section:", section);  // 섹션 이름 출력
         fetch(this.base_data_url + 'total_data.conf')
             .then(response => response.text())
             .then(conf => {
+                // console.log("loaded data :", conf) //디버깅
+                // const data = this.parseDayConf(conf, section);
                 const data = this.parseDayConf(conf, section);
+                console.log("parsed data: ", data); // 디버깅.. 여기서부터 막혔다. 
                 if(data.length>0){
+                    // console.log("updating chart with data")
                     this.updateDayChart(chartId, data, section);
                 } else {
                     console.log("새로운 데이터가 없습니다.");
@@ -38,29 +82,6 @@ var DayChartManager = {
             },
             options: this.getDayChartOptions()
         });
-    },
-
-    parseDayConf: function(conf, section) {
-        const lines = conf.split('\n');
-        let sectionFound = false;
-        const result = [];
-
-        lines.forEach(line => {
-            if (line.trim() === `[${section}]`) {
-                sectionFound = true;
-            } else if (sectionFound && line.startsWith('[')) {
-                sectionFound = false;
-            } else if (sectionFound) {
-                const parts = line.split('=');
-                if (parts.length === 2) {
-                    result.push({
-                        time: parts[0].trim().split('_')[2],
-                        value: parseFloat(parts[1].trim())
-                    });
-                }
-            }
-        });
-        return result;
     },
 
     getDayChartOptions: function() {
@@ -107,7 +128,10 @@ var DayChartManager = {
                         return `${tooltipItems[0].label} 데이터`;
                     }
                 }
-            },
+            }
         };
     }
 };
+
+
+

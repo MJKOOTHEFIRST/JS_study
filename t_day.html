@@ -19,7 +19,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="_day.js"></script>
     <script>
-        DayChartManager.loadDayData('myChart', 't_day');
+           DayChartManager.startAutoRefresh('myChart', 't_day', 10000); // 10초마다 업데이트
     </script>
 </body>
 </html>

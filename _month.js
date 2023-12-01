@@ -3,6 +3,17 @@ var MonthChartManager = {
     base_data_url: "/conf_data/",
     currentChart: null,
 
+    startAutoRefresh: function(chartId, section, interval) {
+        // console.log(`Auto refresh started for ${section} with interval ${interval} ms`); // 자동 새로고침 시작 로그
+        // console.log(this); // 디버깅
+        this.loadMonthData(chartId, section); // 첫 데이터 로드
+        setInterval(() => {
+            // console.log(this); //디버깅 - 현재 컨텍스트 출력
+            // console.log(`Loading data for ${section} at ${new Date().toLocaleTimeString()}`); // 데이터 로딩 로그
+            this.loadMonthData(chartId, section);
+        }, interval);
+    },
+
     loadMonthData: function(chartId, section) {
         fetch(this.base_data_url + 'total_data.conf')
             .then(response => response.text())
@@ -17,28 +28,6 @@ var MonthChartManager = {
             .catch(error => {
                 console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
             });
-    },
-
-    updateMonthChart: function(chartId, data, section) {
-        if(this.currentChart){
-            this.currentChart.destroy();
-        }
-
-        const ctx = document.getElementById(chartId).getContext('2d');
-        this.currentChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: data.map(item => item.month),
-                datasets: [{
-                    label: section === 'e_month' ? '전기생산량(kW)' : '열생산량(kW)',
-                    data: data.map(item => item.value),
-                    borderWidth: 1,
-                    barThickness: 20,
-                    backgroundColor: section === 'e_month' ? "rgba(0, 123, 255, 0.5)" : "pink"
-                }]
-            },
-            options: this.getMonthChartOptions()
-        });
     },
 
     parseMonthConf: function(conf, section) {
@@ -62,6 +51,28 @@ var MonthChartManager = {
             }
         });
         return result;
+    },
+
+    updateMonthChart: function(chartId, data, section) {
+        if(this.currentChart){
+            this.currentChart.destroy();
+        }
+
+        const ctx = document.getElementById(chartId).getContext('2d');
+        this.currentChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(item => item.month),
+                datasets: [{
+                    label: section === 'e_month' ? '전기생산량(kW)' : '열생산량(kW)',
+                    data: data.map(item => item.value),
+                    borderWidth: 1,
+                    barThickness: 20,
+                    backgroundColor: section === 'e_month' ? "rgba(0, 123, 255, 0.5)" : "pink"
+                }]
+            },
+            options: this.getMonthChartOptions()
+        });
     },
 
     getMonthChartOptions: function() {
