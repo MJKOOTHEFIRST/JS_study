@@ -66,8 +66,13 @@ var MonthChartManager = {
 
     getMonthChartOptions: function() {
         return {
-            maintainAspectRatio: true,
             responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend:{
+                    display:false //범례 표시 없도록
+                }
+            },
             scales: {
                 y: {
                     beginAtZero: true,

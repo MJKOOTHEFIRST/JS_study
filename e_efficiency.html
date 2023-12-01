@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실시간 전력 생산량</title>
+
+    <style>
+         .myChartDiv {
+            flex-basis: 200px;
+            height: auto;
+            position: relative; /*텍스트 포지셔닝 위해 필요*/
+            flex-direction: row;  /*가로 방향으로 정렬*/
+        }
+         .myChartDiv canvas {
+        display: block;
+        box-sizing: border-box;
+        width: 20%;  /* 너비를 div에 맞추어 조정 */
+        height: auto; /* 높이를 자동으로 설정 */
+        max-height: 300px; /* 최대 높이 설정 */
+    }
+
+    
+    </style>
+</head>
+<body>
+    <div class="myChartDiv">
+        <canvas id="eEfficiencyChart"></canvas>
+        <div class="chart-label">전체 전력 생산(%)</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="efficiency.js"></script>
+    <script>
+        //  canvasId, section, label, color
+        EfficiencyChartManager.loadEfficiencyData('eEfficiencyChart', 'e_efficiency', '현재전력생산(%)', 'skyblue');
+    </script>
+</body>
+</html>

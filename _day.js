@@ -65,8 +65,13 @@ var DayChartManager = {
 
     getDayChartOptions: function() {
         return {
-            maintainAspectRatio: true,
             responsive: true,
+            maintainAspectRatio: false,
+            plugins:{
+                legend:{
+                    display:false, //범례 표시하지 않도록한다. 
+                }
+            },
             scales: {
                 y: {
                     beginAtZero: true,
@@ -102,7 +107,7 @@ var DayChartManager = {
                         return `${tooltipItems[0].label} 데이터`;
                     }
                 }
-            }
+            },
         };
     }
 };
