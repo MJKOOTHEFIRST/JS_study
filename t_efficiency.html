@@ -33,14 +33,14 @@
     <div class="chart-container">
         <div class="myChartDiv">
             <canvas id="tEfficiencyChart"></canvas>
-            <div class="chart-label">전체 열 생산량(%)</div>
+            <div class="chart-label">전체 열 생산량 : </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="efficiency.js"></script>
     <script>
-        EfficiencyChartManager.loadEfficiencyData('tEfficiencyChart', 't_efficiency', '현재열생산(%)', 'pink');
+        EfficiencyChartManager.loadEfficiencyData('tEfficiencyChart', 't_efficiency', '현재열생산량', 'pink');
     </script>
 </body>
 </html>

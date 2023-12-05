@@ -6,13 +6,15 @@ var EfficiencyChartManager = {
         fetch(this.base_data_url + 'total_data.conf')
             .then(response => response.text())
             .then(conf => {
+                console.log('Fetched data', conf);
                 const efficiencyData = this.parseEfficiencyConf(conf);
-                if (efficiencyData) {
-                    var efficiencyPercent = efficiencyData[section];
-                    this.createEfficiencyDoughnutChart(canvasId, efficiencyPercent, label, color);
-                } else {
-                    console.log("새로운 데이터가 없습니다.");
-                }
+                console.log('efficiencyData(parsed data): ', efficiencyData);
+    
+                console.log('Section:', section); // 추가된 디버깅 로그
+                var efficiencyPercent = efficiencyData[section];
+                console.log('Efficiency Percent before chart creation:', efficiencyPercent);
+    
+                this.createEfficiencyDoughnutChart(canvasId, efficiencyPercent, label, color);
             })
             .catch(error => {
                 console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
@@ -20,17 +22,19 @@ var EfficiencyChartManager = {
     },
 
     createEfficiencyDoughnutChart: function(canvasId, efficiencyPercent, label, color) {
+        console.log(`Efficiency Percent : ${efficiencyPercent}`); //값을 로그로 출력
         var canvas = document.getElementById(canvasId);
         if (!canvas) {
             console.error('Canvas ID가 없음:', canvasId);
             return;
         }
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d'); 
 
         if (this.doughnutCharts[canvasId]) {
+            // 차트 데이터 업데이트
             this.doughnutCharts[canvasId].data.datasets[0].data = [efficiencyPercent, 100 - efficiencyPercent];
-            this.doughnutCharts[canvasId].options.title.text = label;
-            this.doughnutCharts[canvasId].data.datasets[0].backgroundColor[0] = color;
+        
+            // 차트 업데이트 호출
             this.doughnutCharts[canvasId].update();
         } else {
             this.doughnutCharts[canvasId] = new Chart(ctx, {
@@ -55,8 +59,12 @@ var EfficiencyChartManager = {
                 }
             });
         }
-    },
-
+        //레이블 업데이트 
+        var chartLabel = document.querySelector('#' + canvasId + ' + .chart-label');
+        if(chartLabel){
+            chartLabel.textContent = label + ':  ' + efficiencyPercent + '%';
+        }
+            },
     parseEfficiencyConf: function(conf) {
         const lines = conf.split('\n');
         let sectionFound = false;
@@ -81,6 +89,11 @@ var EfficiencyChartManager = {
                 }
             }
         });
-        return { eEfficiency, tEfficiency };
+        //디버깅 
+        console.log('eEfficiency:', eEfficiency); // ok
+        console.log('tEfficiency:', tEfficiency); //ok  
+
+        // return { eEfficiency, tEfficiency };
+        return { e_efficiency: eEfficiency, t_efficiency: tEfficiency };
     }
 };
