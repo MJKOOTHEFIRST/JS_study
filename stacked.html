@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>발전량/가동율 누적수치</title>
-
     <style>
+        .bottom-side{
+            width: 20%
+        }
      </style>
 
 <!-- index.html 틀의 발전량/가동율에 해당하는 부분. 관련 파일 :  stacked.html, stacked.js -->
@@ -18,23 +20,22 @@
         <div class="top-side">
             <div class="row">
                 <div class="col-6 select">
-                    <!-- span id를 넣었습니다. -->
                     <span id="stackedYear" class="time-select">년</span>
                     <span id="stackedMonth" class="time-select">월</span>
                     <span id="stackedDay" class="time-select selected">일</span>
                 </div>
                 <div class="col-6">
                     <div class="result-unit">kW</div>
-                    <div class="result">222.00</div>
+                    <div class="result"><!--kW 수치 들어갈 부분--></div>
                 </div>
             </div>
         </div>
         <div class="bottom-side">
             <div class="rate">
-                80
+            <!-- % 수치 들어갈 부분 -->
                 <sup>%</sup>
             </div>
-            <div class="graph" style="height: 60px; text-align:center; background: #ddd;">
+            <div class="graph" style="height: 60px; text-align:center; background: #fffbf5e6;">
                 <canvas id="eProductionChartYear" class="stacked-chart" style="display: none;"></canvas>
                 <canvas id="eProductionChartMonth" class="stacked-chart" style="display: none;"></canvas>
                 <canvas id="eProductionChartDay" class="stacked-chart"></canvas>
@@ -46,29 +47,32 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="stacked.js"></script>
 <script>
-    StackedChartManager.loadStackedChartData('day'); // 초기 로드 시 'day'로 설정
-
-    // 시간 선택 버튼 이벤트 리스너
-    document.getElementById('stackedYear').addEventListener('click', function() {
-        StackedChartManager.loadStackedChartData('year');
-        updateChartDisplay('year');
-    });
-    document.getElementById('stackedMonth').addEventListener('click', function() {
-        StackedChartManager.loadStackedChartData('month');
-        updateChartDisplay('month');
-    });
-    document.getElementById('stackedDay').addEventListener('click', function() {
+    // 페이지 로드 시 차트 로드
+    document.addEventListener('DOMContentLoaded', function() {
         StackedChartManager.loadStackedChartData('day');
-        updateChartDisplay('day');
-    });
 
-    // 차트 표시 업데이트 함수
-    function updateChartDisplay(timeUnit) {
-        const charts = document.querySelectorAll('.stacked-chart');
-        charts.forEach(chart => {
-            chart.style.display = chart.id.includes(timeUnit) ? 'block' : 'none';
+        // 시간 선택 버튼 이벤트 리스너
+        document.getElementById('stackedYear').addEventListener('click', function() {
+            StackedChartManager.loadStackedChartData('year');
+            updateChartDisplay('year');
         });
-    }
+        document.getElementById('stackedMonth').addEventListener('click', function() {
+            StackedChartManager.loadStackedChartData('month');
+            updateChartDisplay('month');
+        });
+        document.getElementById('stackedDay').addEventListener('click', function() {
+            StackedChartManager.loadStackedChartData('day');
+            updateChartDisplay('day');
+        });
+
+        // 차트 표시 업데이트 함수
+        function updateChartDisplay(timeUnit) {
+            const charts = document.querySelectorAll('.stacked-chart');
+            charts.forEach(chart => {
+                chart.style.display = chart.id.includes(timeUnit) ? 'block' : 'none';
+            });
+        }
+    });
 </script>
 
 </body>

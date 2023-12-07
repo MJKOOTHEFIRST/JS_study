@@ -1,5 +1,6 @@
-// stacked.js
+// stacked.js 에서 총량(100% 일때 량을) 데이터 섹션으로 따로 뺐을 때 버전
 /*
+tota_data.conf 에서 읽어올 데이터 
 # 누적차트
 [e_year_stacked]
 e_production_stacked=2365.70
@@ -9,6 +10,16 @@ e_production_stacked=2664
 
 [e_day_stacked]
 e_production_stacked=74
+
+#총량설정
+[e_year_total_capacity]
+e_production_total=10000
+
+[e_month_total_capacity]
+e_production_total=1000
+
+[e_day_total_capacity]
+e_production_total=100
 */
 var StackedChartManager = {
     base_data_url: "/conf_data/", // 데이터 위치 설정
@@ -16,24 +27,26 @@ var StackedChartManager = {
 
     // 데이터 불러오는 함수
     loadStackedChartData: function(timeUnit = 'day') {
+        // console.log("loadStackedChartData  호출"); //디버깅 OK
         fetch(this.base_data_url + 'total_data.conf') // CONF 파일 가져오기
             .then(response => response.text())
             .then(conf => {
+                console.log("응답 데이터:", conf); // 디버깅 OK
                 // CONF 파일에서 데이터 파싱
                 const parsedData = this.parseConfData(conf, timeUnit);
 
-                // 각 섹션에서의 절대 total capacity 값을 가져옴
-                const totalCapacityYear = parsedData.eProductionTotalYearCapacity;
-                const totalCapacityMonth = parsedData.eProductionTotalMonthCapacity;
-                const totalCapacityDay = parsedData.eProductionTotalDayCapacity;
-
+                 // 각 섹션에서 절대 total capacity 값을 가져옴
+                 const totalCapacityYear = parsedData.eProductionTotalYearCapacity;
+                 const totalCapacityMonth = parsedData.eProductionTotalMonthCapacity;
+                 const totalCapacityDay = parsedData.eProductionTotalDayCapacity;
+                
                 // 차트 데이터 객체 생성
                 const chartData = {
                     eProductionStacked: parsedData.eProductionStacked,
-                    totalCapacity: totalCapacity,
+                    totalCapacity: totalCapacityYear, // 각 섹션에서의 값을 따로 사용
                     datasets: [{
-                        label: 'Electricity Production',
-                        data: [parsedData.eProductionStacked, totalCapacity - parsedData.eProductionStacked],
+                        label: '',
+                        data: [parsedData.eProductionStacked, totalCapacityYear - parsedData.eProductionStacked],
                         backgroundColor: ['rgba(54, 162, 235, 0.5)', 'rgba(211, 211, 211, 0.5)']
                     }],
                     labels: [timeUnit.charAt(0).toUpperCase() + timeUnit.slice(1)]
@@ -100,18 +113,9 @@ var StackedChartManager = {
             backgroundColor: 'rgba(54, 162, 235, 0.5)'
         }, {
             label: 'Unused Capacity',
-            data: [totalCapacityYear - chartData.eProductionStacked], // 미사용 용량
+            data: [chartData.totalCapacity - chartData.eProductionStacked], // 미사용 용량
             backgroundColor: 'rgba(211, 211, 211, 0.5)'
         }];
-
-        //.result 엘리먼트에 표시할 값
-        const resultValue = chartData.eProductionStacked; 
-
-        // .result 엘리먼트에 값 적용
-        const resultElement = document.querySelector('.result');
-        if(resultElement){
-            resultElement.textContent = resultValue; 
-        }
 
         // 차트 생성 또는 업데이트
         if (this.stackedChart) {
@@ -145,45 +149,46 @@ var StackedChartManager = {
         }
     },
     // total_data.conf 파일 파싱 함수
-    parseTotalCapacityData: function (conf) {
-        const lines = conf.split('\n');
-        let eProductionTotalYearCapacity = null;
-        let eProductionTotalMonthCapacity = null;
-        let eProductionTotalDayCapacity = null;
+    parseTotalCapacityData : function(conf) {
+    const lines = conf.split('\n');
+    let eProductionTotalYear = null;
+    let eProductionTotalMonth = null;
+    let eProductionTotalDay = null;
 
-        lines.forEach(line => {
-            if (line.trim() === '[e_year_total_capacity]') {
-                // 연간 총량 섹션 시작
-            } else if (line.trim() === '[e_month_total_capacity]') {
-                // 월간 총량 섹션 시작
-            } else if (line.trim() === '[e_day_total_capacity]') {
-                // 일간 총량 섹션 시작
-            } else if (line.trim().startsWith('e_production_total')) {
-                const parts = line.split('=');
-                const valueString = parts[1].trim();
-                const value = parseInt(valueString);
+    lines.forEach(line => {
+        if (line.trim() === '[e_year_total]') {
+            // 연간 총량 섹션 시작
+        } else if (line.trim() === '[e_month_total]') {
+            // 월간 총량 섹션 시작
+        } else if (line.trim() === '[e_day_total]') {
+            // 일간 총량 섹션 시작
+        } else if (line.trim().startsWith('e_production_total')) {
+            const parts = line.split('=');
+            const valueString = parts[1].trim();
+            const value = parseInt(valueString);
 
-                if (line.includes('[e_year_total_capacity]')) {
-                    eProductionTotalYearCapacity = value;
-                } else if (line.includes('[e_month_total_capacity]')) {
-                    eProductionTotalMonthCapacity = value;
-                } else if (line.includes('[e_day_total_capacity]')) {
-                    eProductionTotalDayCapacity = value;
-                }
+            if (line.includes('[e_year_total]')) {
+                eProductionTotalYear = value;
+            } else if (line.includes('[e_month_total]')) {
+                eProductionTotalMonth = value;
+            } else if (line.includes('[e_day_total]')) {
+                eProductionTotalDay = value;
             }
-        });
+        }
+    });
 
-        return {
-            eProductionTotalYearCapacity,
-            eProductionTotalMonthCapacity,
-            eProductionTotalDayCapacity
-        };
-    },
-    // 페이지 로드 시 차트 로드 
-    init: function () {
-        this.loadStackedChartData();
-    }
+    return {
+        eProductionTotalYear,
+        eProductionTotalMonth,
+        eProductionTotalDay
+    };
+},
+// 페이지 로드 시 차트 로드 
+init: function(){
+    this.loadStackedChartData();
+}
 };
+
 
 // 페이지 로드 시 차트 로드
 StackedChartManager.init();
