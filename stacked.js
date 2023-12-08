@@ -12,14 +12,14 @@ e_production_stacked=2664
 e_production_stacked=74
 
 #총량설정
-[e_year_total_capacity]
-e_production_total=10000
+[e_year_capacity]
+e_production_capacity=10000
 
-[e_month_total_capacity]
-e_production_total=1000
+[e_month_capacity]
+e_production_capacity=1000
 
-[e_day_total_capacity]
-e_production_total=100
+[e_day_capacity]
+e_production_capacity=100
 */
 var StackedChartManager = {
     base_data_url: "/conf_data/", // 데이터 위치 설정
@@ -36,14 +36,14 @@ var StackedChartManager = {
                 const parsedData = this.parseConfData(conf, timeUnit);
 
                  // 각 섹션에서 절대 total capacity 값을 가져옴
-                 const totalCapacityYear = parsedData.eProductionTotalYearCapacity;
-                 const totalCapacityMonth = parsedData.eProductionTotalMonthCapacity;
-                 const totalCapacityDay = parsedData.eProductionTotalDayCapacity;
+                 const totalYearCapacity = parsedData.eProductionTotalYearCapacity;
+                 const totalMonthCapacity = parsedData.eProductionTotalMonthCapacity;
+                 const totalDayCapacity = parsedData.eProductionTotalDayCapacity;
                 
                 // 차트 데이터 객체 생성
                 const chartData = {
                     eProductionStacked: parsedData.eProductionStacked,
-                    totalCapacity: totalCapacityYear, // 각 섹션에서의 값을 따로 사용
+                    totalCapacity: totalYearCapacity, // 각 섹션에서의 값을 따로 사용
                     datasets: [{
                         label: '',
                         data: [parsedData.eProductionStacked, totalCapacityYear - parsedData.eProductionStacked],
@@ -151,9 +151,9 @@ var StackedChartManager = {
     // total_data.conf 파일 파싱 함수
     parseTotalCapacityData : function(conf) {
     const lines = conf.split('\n');
-    let eProductionTotalYear = null;
-    let eProductionTotalMonth = null;
-    let eProductionTotalDay = null;
+    let eProductionYearCapacity = null;
+    let eProductionMonthCapacity = null;
+    let eProductionDayCapacity = null;
 
     lines.forEach(line => {
         if (line.trim() === '[e_year_total]') {
@@ -168,19 +168,19 @@ var StackedChartManager = {
             const value = parseInt(valueString);
 
             if (line.includes('[e_year_total]')) {
-                eProductionTotalYear = value;
+                eProductionYearCapacity = value;
             } else if (line.includes('[e_month_total]')) {
-                eProductionTotalMonth = value;
+                eProductionMonthCapacity = value;
             } else if (line.includes('[e_day_total]')) {
-                eProductionTotalDay = value;
+                eProductionDayCapacity = value;
             }
         }
     });
 
     return {
-        eProductionTotalYear,
-        eProductionTotalMonth,
-        eProductionTotalDay
+        eProductionYearCapacity,
+        eProductionMonthCapacity,
+        eProductionDayCapacity
     };
 },
 // 페이지 로드 시 차트 로드 
