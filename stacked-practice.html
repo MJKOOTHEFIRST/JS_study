@@ -8,6 +8,9 @@
         .bottom-side{
             width: 20%
         }
+        .time-select {
+            cursor: pointer; /* 커서를 포인터 모양으로 변경 */
+        }
      </style>
 <!-- stacked.html -->
 <!-- index.html 틀의 발전량/가동율에 해당하는 부분. 관련 파일 =>  stacked.html, stacked.js -->
@@ -45,7 +48,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="stacked.js"></script>
+<script src="stacked-practice.js"></script>
 <script>
     // 페이지 로드 시 차트 로드
     document.addEventListener('DOMContentLoaded', function() {
@@ -54,26 +57,16 @@
         // 시간 선택 버튼 이벤트 리스너
         document.getElementById('stackedYear').addEventListener('click', function() {
             StackedChartManager.loadStackedChartData('year');
-            updateChartDisplay('year');
         });
         document.getElementById('stackedMonth').addEventListener('click', function() {
             StackedChartManager.loadStackedChartData('month');
-            updateChartDisplay('month');
         });
         document.getElementById('stackedDay').addEventListener('click', function() {
             StackedChartManager.loadStackedChartData('day');
-            updateChartDisplay('day');
         });
-
-        // 차트 표시 업데이트 함수
-        function updateChartDisplay(timeUnit) {
-            const charts = document.querySelectorAll('.stacked-chart');
-            charts.forEach(chart => {
-                chart.style.display = chart.id.includes(timeUnit) ? 'block' : 'none';
-            });
-        }
     });
 </script>
+
 
 </body>
 </html>
