@@ -1,6 +1,7 @@
 var StackedChartManager = {
-    // 차트를 저장할 변수 초기화
-    stackedChart: null,
+    // 각 캔버스에 대한 차트 인스턴스를 저장할 객체,  
+    // 각 캔버스에 대한 차트 인스턴스를 별도 관리하고, 각 시간 단위에 따라 적절한 차트를 생성하고 업데이트
+    charts: {},
 
     // 데이터 로드 및 차트 생성
     loadStackedChartData: function(timeUnit) {
@@ -11,6 +12,7 @@ var StackedChartManager = {
         };
 
         var currentData = data[timeUnit];
+        console.log("currentData", currentData); //디버깅
 
         document.querySelector('.result').innerText = currentData.stacked + ' kW';
         var percentage = (currentData.stacked / currentData.capacity) * 100;
@@ -26,19 +28,22 @@ var StackedChartManager = {
         };
 
         // 차트 업데이트 및 캔버스 표시 업데이트
-        this.createOrUpdateChart(chartData, currentData.capacity, timeUnit);
+        var canvasId = 'eProductionChart' + timeUnit.charAt(0).toUpperCase() + timeUnit.slice(1);
+        console.log("canvasId:" , canvasId); // 디버깅
+        this.createOrUpdateChart(chartData, currentData.capacity, canvasId);
         this.updateChartDisplay(timeUnit);
     },
 
     // 차트 생성 또는 업데이트 함수
-    createOrUpdateChart: function(chartData, totalCapacity, timeUnit) {
-        var canvasId = 'eProductionChart' + timeUnit.charAt(0).toUpperCase() + timeUnit.slice(1);
+    createOrUpdateChart: function(chartData, totalCapacity, canvasId) {
         var ctx = document.getElementById(canvasId).getContext('2d');
 
-        if (this.stackedChart) {
-            this.stackedChart.destroy();
+        if (this.charts[canvasId]) {
+            this.charts[canvasId].destroy();
         }
-        this.stackedChart = new Chart(ctx, {
+
+        //새로운 차트 생성
+        this.charts[canvasId] = new Chart(ctx, {
             type: 'bar',
             data: chartData,
             options: {
@@ -46,9 +51,7 @@ var StackedChartManager = {
                 scales: {
                     x: { 
                         stacked: true, 
-                        ticks: {
-                            max: totalCapacity
-                        }
+                        max: totalCapacity
                     },
                     y: { stacked: true }
                 },
@@ -61,6 +64,8 @@ var StackedChartManager = {
                 }
             }
         });
+
+        console.log("차트 인스턴스 : ", this.charts[canvasId]);
     },
 
     // 차트 표시 업데이트 함수

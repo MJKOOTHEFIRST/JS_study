@@ -11,10 +11,20 @@
         .time-select {
             cursor: pointer; /* 커서를 포인터 모양으로 변경 */
         }
-        .stacked-chart{
-            width: 100%;
-            height: 100%;
+        .graph {
+            height: 60px; /* 높이를 조절 */
+            text-align: center;
+            background: #fffbf5e6;
+            display: flex; /* Flexbox 레이아웃 적용 */
+            justify-content: right; /* 중앙 정렬 */
+            align-items: right; /* 중앙 정렬 */
         }
+
+        .stacked-chart {
+            width: 100%; /* 전체 너비 사용 */
+            height: 100%; /* 전체 높이 사용 */
+        }
+
      </style>
 <!-- stacked.html -->
 <!-- index.html 틀의 발전량/가동율에 해당하는 부분. 관련 파일 =>  stacked.html, stacked.js -->
@@ -29,7 +39,7 @@
                 <div class="col-6 select">
                     <span id="stackedYear" class="time-select">년</span>
                     <span id="stackedMonth" class="time-select">월</span>
-                    <span id="stackedDay" class="time-select selected">일</span>
+                    <span id="stackedDay" class="time-select">일</span>
                 </div>
                 <div class="col-6">
                     <div class="result-unit">kW</div>
@@ -43,8 +53,8 @@
                 <sup>%</sup>
             </div>
             <div class="graph" style="height: 60px; text-align:center; background: #fffbf5e6;">
-                <canvas id="eProductionChartYear" class="stacked-chart" style="display: none;"></canvas>
-                <canvas id="eProductionChartMonth" class="stacked-chart" style="display: none;"></canvas>
+                <canvas id="eProductionChartYear" class="stacked-chart" style="visibility: hidden;"></canvas>
+                <canvas id="eProductionChartMonth" class="stacked-chart" style="visibility: hidden;"></canvas>
                 <canvas id="eProductionChartDay" class="stacked-chart"></canvas>
             </div>
         </div>
@@ -53,22 +63,26 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script> -->
-<script src="stacked-practice.js"></script>
+<script src="stacked_eProduction_.js"></script>
 <script>
     // 페이지 로드 시 차트 로드
     document.addEventListener('DOMContentLoaded', function() {
-        StackedChartManager.loadStackedChartData('day');
-
+        
         // 시간 선택 버튼 이벤트 리스너
         document.getElementById('stackedYear').addEventListener('click', function() {
-            StackedChartManager.loadStackedChartData('year');
+             StackedChartManager.loadStackedChartData('year');
+         
         });
         document.getElementById('stackedMonth').addEventListener('click', function() {
             StackedChartManager.loadStackedChartData('month');
+            
         });
         document.getElementById('stackedDay').addEventListener('click', function() {
             StackedChartManager.loadStackedChartData('day');
+            
         });
+
+        document.getElementById('stackedDay').click();
     });
 </script>
 
