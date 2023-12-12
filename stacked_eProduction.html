@@ -52,10 +52,21 @@
             <!-- % 수치 들어갈 부분 -->
                 <sup>%</sup>
             </div>
-            <div class="graph" style="height: 60px; text-align:center; background: #fffbf5e6;">
-                <canvas id="eProductionChartYear" class="stacked-chart" style="visibility: hidden;"></canvas>
-                <canvas id="eProductionChartMonth" class="stacked-chart" style="visibility: hidden;"></canvas>
-                <canvas id="eProductionChartDay" class="stacked-chart"></canvas>
+            <div class="graph-wrapper">
+                <div class="graph" style="height: 60px; text-align:center; background: #fffbf5e6;">
+                    <canvas id="eProductionChartYear" class="stacked-chart"></canvas>
+                </div>
+            </div>
+            <div class="graph-wrapper">
+                <div class="graph" style="height: 60px; text-align:center; background: #fffbf5e6;">
+                    <canvas id="eProductionChartMonth" class="stacked-chart"></canvas>
+                </div>
+            </div>
+            <div class="graph-wrapper">
+                <div class="graph" style="height: 60px; text-align:center; background: #fffbf5e6;">
+                    <canvas id="eProductionChartDay" class="stacked-chart"></canvas>
+                </div>
+            </div>
             </div>
         </div>
     </div>
@@ -71,17 +82,22 @@
         // 시간 선택 버튼 이벤트 리스너
         document.getElementById('stackedYear').addEventListener('click', function() {
              StackedChartManager.loadStackedChartData('year');
-         
-        });
-        document.getElementById('stackedMonth').addEventListener('click', function() {
-            StackedChartManager.loadStackedChartData('month');
-            
-        });
-        document.getElementById('stackedDay').addEventListener('click', function() {
-            StackedChartManager.loadStackedChartData('day');
-            
+             StackedChartManager.updateChartDisplay('year');
+             
+            });
+            document.getElementById('stackedMonth').addEventListener('click', function() {
+                StackedChartManager.loadStackedChartData('month');
+                StackedChartManager.updateChartDisplay('month');
+                
+            });
+            document.getElementById('stackedDay').addEventListener('click', function() {
+                StackedChartManager.loadStackedChartData('day');
+                StackedChartManager.updateChartDisplay('day');
+                
         });
 
+        // document.getElementById('stackedYear').click();
+        // document.getElementById('stackedMonth').click();
         document.getElementById('stackedDay').click();
     });
 </script>

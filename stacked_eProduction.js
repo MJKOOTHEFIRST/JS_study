@@ -9,11 +9,11 @@ var StackedChartManager = {
             .then(response => response.text())
             .then(conf => {
                 var parsedData = this.parseConfData(conf, timeUnit);
-                console.log("parsedData", parsedData);
+                // console.log("1. parsedData", parsedData);
                 this.updateDOMElements(parsedData, timeUnit); 
                 var chartData = this.getChartData(parsedData);
                 var canvasId = 'eProductionChart' + timeUnit.charAt(0).toUpperCase() + timeUnit.slice(1);
-                console.log("canvasId", canvasId); // 디버깅
+                // console.log("2. canvasId", canvasId); // 디버깅
     
                 // 존재하는 차트 업데이트 또는 새 차트 생성
                 if (this.charts[canvasId]) {
@@ -39,10 +39,10 @@ var StackedChartManager = {
     updateChartData: function(canvasId, newData) {
         var chart = this.charts[canvasId];
         if (chart) {
-            console.log("Before update: ", chart.data.datasets[0].data);
+            // console.log("3. Before update: ", chart.data.datasets[0].data);
             chart.data.datasets[0].data = [newData.stacked, newData.capacity - newData.stacked];
             chart.update();
-            console.log("After update: ", chart.data.datasets[0].data);
+            // console.log("4. After update: ", chart.data.datasets[0].data);
         }
     },
     
@@ -58,7 +58,7 @@ var StackedChartManager = {
     
         // 데이터셋 내용 출력
         // console.log("Generated chartData datasets: ", chartData.datasets);
-        console.log("Generated chartData for canvasId: ", chartData.datasets[0].data);
+        // console.log("5. Generated chartData for canvasId: ", chartData.datasets[0].data);
     
         return chartData;
     },
@@ -126,33 +126,54 @@ var StackedChartManager = {
                 }
             }
         });
-    
+        // console.log("6. [parseConfData] timeUnit,data : ",timeUnit, data); //디버깅
         return data;
     },
     
+     //모든 .graph-wrapper 숨기기 
     updateChartDisplay: function(timeUnit) {
-        // 모든 차트를 숨김.
-        const allCharts = document.querySelectorAll('.stacked-chart');
-        allCharts.forEach(chart => {
-            chart.style.visibility = 'hidden';
+        // 모든 .graph-wrapper 숨기기
+        const allWrappers = document.querySelectorAll('.graph-wrapper');
+        allWrappers.forEach(wrapper => {
+            wrapper.style.display = 'none'; // display를 none으로 설정하여 숨김
         });
-    
-        // 선택된 시간 단위에 해당하는 차트만 표시
+
+        // 선택된 시간 단위에 해당하는 .graph-wrapper만 표시
         const selectedChartId = 'eProductionChart' + timeUnit.charAt(0).toUpperCase() + timeUnit.slice(1);
-        const selectedChart = document.getElementById(selectedChartId);
-        if (selectedChart) {
-            selectedChart.style.visibility = 'visible';
+        const selectedWrapper = document.getElementById(selectedChartId).parentNode.parentNode;
+
+        // console.log("7. Selected time unit: ", timeUnit); // 선택된 시간 단위 출력
+        // console.log("8. Selected chart wrapper for: ", selectedChartId); // 선택된 차트의 wrapper 출력
+
+        if (selectedWrapper) {
+            selectedWrapper.style.display = 'block'; // display를 block으로 설정하여 표시
+            // console.log("9. Displaying chart wrapper for: ", selectedChartId); // 실제 표시되는 차트의 wrapper 출력
+        } else {
+            // console.log("10. Chart wrapper not found for: ", selectedChartId); // 차트 wrapper가 없는 경우 출력
         }
     }
 }
-    
-/*    
-document.addEventListener('DOMContentLoaded', function() {
-    // 페이지 로드 시 'day' 데이터를 로드합니다.
-    document.getElementById('stackedDay').click();
+/*
+raw data
 
-    document.getElementById('stackedYear').addEventListener('click', () => StackedChartManager.loadStackedChartData('year'));
-    document.getElementById('stackedMonth').addEventListener('click', () => StackedChartManager.loadStackedChartData('month'));
-    document.getElementById('stackedDay').addEventListener('click', () => StackedChartManager.loadStackedChartData('day'));
-});
+# 누적차트[발전량/가동률]
+[e_year_stacked]
+e_production_stacked= 6894
+
+[e_month_stacked]
+e_production_stacked=584
+
+[e_day_stacked]
+e_production_stacked=74
+
+#총량설정(capacity)[발전량/가동률]
+[e_year_capacity]
+e_production_capacity=10000
+
+[e_month_capacity]
+e_production_capacity=1000
+
+[e_day_capacity]
+e_production_capacity=100
 */
+    
