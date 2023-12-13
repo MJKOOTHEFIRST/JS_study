@@ -1,11 +1,12 @@
-// SystemInfoManager.js
-import { loadData, parseConf } from './dataManager.js';
+var SystemInfoManager = {
+    base_data_url: "/conf_data/",
+    configFileName: 'total_data.conf',
 
-const SystemInfoManager = {
     loadSystemData: function() {
-        loadData()
+        fetch(this.base_data_url + this.configFileName)
+            .then(response => response.text())
             .then(conf => {
-                const systemData = parseConf(conf, 'system');
+                const systemData = this.parseSystemConf(conf);
                 this.updateSystemInfo(systemData);
             })
             .catch(error => {
