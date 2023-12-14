@@ -62,7 +62,7 @@ var StackedChartManager = {
     
         return chartData;
     },
-    Options: function(totalCapacity) {
+    getChartOptions: function(totalCapacity) {
         return {
             
             indexAxis: 'y',

@@ -13,38 +13,33 @@ const dayMonthProductionBarManager = {
     },
 
     loadData: function(chartId, section) {
-        
         console.log(`데이터 로딩: ${chartId}, 섹션: ${section}`);
         loadData()
             .then(conf => {
                 const data = parseConf(conf, section);
                 console.log(`로딩된 데이터:`, data);
-                if (data.length > 0) {
-                    this.updateChart(chartId, data, section);
-                } else {
-                    console.log("새로운 데이터가 없습니다.");
-                }
-            })
-            .catch(error => {
-                console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
-            });
+                 if (Object.keys(data).length > 0) {  // 객체가 비어있지 않은 경우(Object.keys(data)는 객체의 모든 열거 가능한 속성 이름들을 문자열 배열로 반환). data.length는 배열일 때 사용
+                this.updateChart(chartId, data, section);
+            } else {
+                console.log("새로운 데이터가 없습니다.");
+            }
+        })
+        .catch(error => {
+            console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
+        });
     },
 
     parseConf: function(conf, section) {
         console.log(`구성 파싱: 섹션 ${section}`);
         const lines = conf.split('\n');
         let sectionFound = false;
-        
         const result = [];
-        
+    
         lines.forEach(line => {
-            console.log(`현재 라인: ${line}`);
             if (line.trim() === `[${section}]`) {
                 sectionFound = true;
-                console.log(`sectionFound 변경2 : ${sectionFound}`);
             } else if (sectionFound && line.startsWith('[')) {
                 sectionFound = false;
-                console.log(`sectionFound 변경2 : ${sectionFound}`);
             } else if (sectionFound) {
                 const parts = line.split('=');
                 if (parts.length === 2) {
@@ -52,22 +47,23 @@ const dayMonthProductionBarManager = {
                     const value = parseFloat(parts[1].trim());
     
                     if (section === 'e_day' || section === 't_day') {
-                        result.push({ time: key.split('_')[2], value });
+                        const time = key.split('_')[2];
+                        result.push({ label: `${time}시`, value });
                     } else if (section === 'e_month' || section === 't_month') {
-                        result.push({ month: parseInt(key.split('_')[2], 10) + '월', value });
-                    } else if (section === 'e_year' || section === 't_year') {
-                        // 연간 데이터 처리 로직
+                        const month = parseInt(key.split('_')[2], 10);
+                        result.push({ label: `${month}월`, value });
                     }
-                    // 여기에 stacked 관련 섹션에 대한 처리 로직 추가
+                    // 연간 및 기타 섹션에 대한 처리
                 }
             }
         });
+    
         console.log(`파싱된 결과:`, result);
         return result;
     },
-
+    
     updateChart: function(chartId, data, section) {
-        console.log(`차트 업데이트: ${chartId}, 데이터:`, data);
+        console.log(`차트 업데이트: ${chartId}, 데이터 구조:`, data);
        // 이전에 생성된 차트가 있다면 파괴
         if(this.charts[chartId]){
             console.log(`이전 차트 파괴: ${chartId}`);

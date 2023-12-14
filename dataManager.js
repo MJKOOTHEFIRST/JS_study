@@ -27,6 +27,25 @@ export const parseConf = (conf, section) => {
             }
         }
     });
-
     return sectionData;
 };
+
+    //데이터 업데이트
+    // startDataRefresh 함수는 콜백 함수와 업데이트 간격을 매개변수로 받는다. 
+    // loadData를 호출해서 데이터 로드하고, parseConf 통해 파싱된 데이터 콜백함수에 전달
+    // 다른 모듈에서 이 기능을 사용하려면, 해당 모듈에서 'startDataRefresh'함수 import 해서 쓰면된다
+    // 예 : import { startDataRefresh} from './dataManager.js'; 
+    // const updateWidgetData = (data) => {}
+    export const startDataRefresh = (callback, interval = 10000) => {
+    const refreshData = () => {
+        loadData().then(conf => {
+            const parsedData = parseConf(conf);
+            callback(parsedData);  // 콜백 함수로 파싱된 데이터 전달
+        });
+    };
+        refreshData();  //최초실행 
+        setInterval(refreshData, interval); // 주기적 실행
+    }
+
+   
+    
