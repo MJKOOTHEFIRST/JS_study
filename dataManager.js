@@ -73,12 +73,9 @@ export const parseConf = (conf, section) => {
 };
 
 
-const refreshData = () => {
-    console.log(`refreshData 확인`); 
-    loadData().then(conf => {
-        //console.log(`conf:`,conf);
-        //const parsedData = parseConf(conf); // 섹션을 명시하지 않은 경우는 전체 데이터 파싱
-        //console.log(`parsedData:`,parsedData);
+const refreshData = (callback) => {
+       loadData().then(conf => {
+        // const parsedData = parseConf(conf); // 섹션을 명시하지 않은 경우는 전체 데이터 파싱
         callback( conf );
     });
 };
@@ -92,7 +89,9 @@ const refreshData = () => {
 
 
 export const startDataRefresh = (callback, interval = 10000) => {
-    refreshData();
-    setInterval(refreshData, interval);
+    // refreshData(); //callback을 여기서 패스한다
+    refreshData(callback); //callback을 여기서 패스한다
+    // setInterval(refreshData, interval);
+    setInterval(() => refreshData(callback), interval); // Pass callback here as well
 };
 
