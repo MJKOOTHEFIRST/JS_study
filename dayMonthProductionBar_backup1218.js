@@ -6,62 +6,29 @@ const dayMonthProductionBarManager = {
 
     startAutoRefresh: function(chartId, section, interval) {
         console.log(`Auto-refresh 시작: ${chartId}, 섹션: ${section}, 간격: ${interval}`);
-        
-        // 이곳에서 loadData 함수 호출
         this.loadData(chartId, section);
-        
-        // 나머지 코드는 그대로 유지
         setInterval(() => {
             this.loadData(chartId, section);
         }, interval);
     },
-    
-    loadDayMonthProductionBarData: function(chartId, section) {
-        console.log(`loadDay~함수 호출`)
-        // console.log(`데이터 로딩: ${chartId}, 섹션: ${section}`);
 
+    loadData: function(chartId, section) {
+        console.log(`데이터 로딩: ${chartId}, 섹션: ${section}`);
         loadData()
             .then(conf => {
                 const data = parseConf(conf, section);
                 console.log(`로딩된 데이터:`, data);
-                if (Object.keys(data).length > 0) {
-                    this.updateChart(chartId, data, section);
-                } else {
-                    console.log("새로운 데이터가 없습니다.");
-                }
-            })
-            .catch(error => {
-                console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
-            });
-    },
-
-    parseDayConf: function(conf, section) {
-        console.log(`Parsing data for section: ${section}`);
-        const lines = conf.split('\n');
-        let sectionFound = false;
-        const result = [];
-
-        lines.forEach(line => {
-            if (line.trim() === `[${section}]`) {
-                console.log(`Found section: ${section}`);
-                sectionFound = true;
-            } else if (sectionFound && line.startsWith('[')) {
-                console.log(`End of section: ${section}`);
-                sectionFound = false;
-            } else if (sectionFound) {
-                const parts = line.split('=');
-                if (parts.length === 2) {
-                    console.log(`Parsing line: ${line}`);
-                    result.push({
-                        time: parts[0].trim().split('_')[2],
-                        value: parseFloat(parts[1].trim())
-                    });
-                }
+                 if (Object.keys(data).length > 0) {  // 객체가 비어있지 않은 경우(Object.keys(data)는 객체의 모든 열거 가능한 속성 이름들을 문자열 배열로 반환). data.length는 배열일 때 사용
+                this.updateChart(chartId, data, section);
+            } else {
+                console.log("새로운 데이터가 없습니다.");
             }
+        })
+        .catch(error => {
+            console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
         });
-        return result;
     },
-    
+
     parseConf: function(conf, section) {
         console.log(`구성 파싱: 섹션 ${section}`);
         const lines = conf.split('\n');
@@ -95,8 +62,8 @@ const dayMonthProductionBarManager = {
         return result;
     },
     
-    updateChart: function(chartId, conf, section) {
-        console.log(`차트 업데이트: ${chartId}, 데이터 구조:`, conf);
+    updateChart: function(chartId, data, section) {
+        console.log(`차트 업데이트: ${chartId}, 데이터 구조:`, data);
        // 이전에 생성된 차트가 있다면 파괴
         if(this.charts[chartId]){
             console.log(`이전 차트 파괴: ${chartId}`);
@@ -111,13 +78,10 @@ const dayMonthProductionBarManager = {
         const label = section.includes('e_') ? '전기생산량(kW)' : '열생산량(kW)';
         const backgroundColor = section.includes('e_') ? "rgba(0, 123, 255, 0.5)" : "pink";
 
-        const data = this.parseDayConf( conf, section);
-
         this.charts[chartId] = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: data.map(item => section.includes('day') ? item.time + '시' : item.month),
-                // labels: '',
                 datasets: [{
                     label: label,
                     data: data.map(item => item.value),
@@ -191,80 +155,33 @@ const dayMonthProductionBarManager = {
     }
 }
 
-function determineSectionBasedOnChartId(chartId) {
-    console.log(`determineSectionBasedOnChartId 호출됨, chartId: ${chartId}`);
-
-    if (chartId === 'eProduction-bar') {
-        console.log('차트 ID는 eProduction-bar, 반환 섹션: e_day');
-        return 'e_day'; // 'e_month'도 가능한 경우 추가
-    } else if (chartId === 'tProduction-bar') {
-        console.log('차트 ID는 tProduction-bar, 반환 섹션: t_day');
-        return 't_day'; // 't_month'도 가능한 경우 추가
-    } else {
-        console.log('일치하는 차트 ID 없음, 반환 값: null');
-        return null; // 차트 ID에 해당하는 섹션이 없는 경우
-    }
-}
-
 // 페이지 로드 시 차트 데이터 초기 로드 및 주기적 업데이트
 document.addEventListener('DOMContentLoaded', () => {
-
-    console.log(`이벤트리스너`);// 통신ok
-
-    startDataRefresh((conf) => {
+    startDataRefresh((data) => {
         // 여기서 data는 전체 데이터를 포함하는 객체
-        // console.log(`데이터 : `, data)
-
-        // [e_month]
-        //var section = parseConf( data, 'e_day');
-        //if ( section ) 
-        
-        //if ( dayMonthProductionBarManager.charts['eProduction-bar']) {
-            //console.log('e_day 데이터와 eProduction-bar 차트가 존재합니다.');
-
-            dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_day');
-            dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_day');
-        
-
-        /*section = parseConf( data, 't_day');
-        if (section['t_day'] && dayMonthProductionBarManager.charts['tProduction-bar']) {
-            dayMonthProductionBarManager.updateChart('tProduction-bar', section['t_day'], 't_day');
+        if (data['e_day'] && dayMonthProductionBarManager.charts['eProduction-bar']) {
+            dayMonthProductionBarManager.updateChart('eProduction-bar', data['e_day'], 'e_day');
         }
-
-        section = parseConf( data, 'e_month');
-        if (section['e_month'] && dayMonthProductionBarManager.charts['eProduction-bar']) {
-            dayMonthProductionBarManager.updateChart('eProduction-bar', section['e_month'], 'e_month');
+        if (data['t_day'] && dayMonthProductionBarManager.charts['tProduction-bar']) {
+            dayMonthProductionBarManager.updateChart('tProduction-bar', data['t_day'], 't_day');
         }
-
-        section = parseConf( data, 't_month');
-        if (section['t_month'] && dayMonthProductionBarManager.charts['tProduction-bar']) {
-            dayMonthProductionBarManager.updateChart('tProduction-bar', section['t_month'], 't_month');
-        }*/
-
-        //
+        if (data['e_month'] && dayMonthProductionBarManager.charts['eProduction-bar']) {
+            dayMonthProductionBarManager.updateChart('eProduction-bar', data['e_month'], 'e_month');
+        }
+        if (data['t_month'] && dayMonthProductionBarManager.charts['tProduction-bar']) {
+            dayMonthProductionBarManager.updateChart('tProduction-bar', data['t_month'], 't_month');
+        }
     }, 10000);
-
-    // /*
-    document.querySelector('#e_production .date-selector-bar.today').addEventListener('click', function() {
-        console.log('전기생산량 금일 클릭됨');
-        dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_day');
-    });
-
-    // 전기생산량에 대한 금월 클릭 이벤트
-    document.querySelector('#e_production .date-selector-bar.month').addEventListener('click', function() {
-        console.log('전기생산량 금월 클릭됨');
-    });
-
-    // 열생산량에 대한 금일 클릭 이벤트
-    document.querySelector('#h_production .date-selector-bar.today').addEventListener('click', function() {
-        console.log('열생산량 금일 클릭됨');
-    });
-
-    // 열생산량에 대한 금월 클릭 이벤트
-    document.querySelector('#h_production .date-selector-bar.month').addEventListener('click', function() {
-        console.log('열생산량 금월 클릭됨');
-    });
 });
 
+function determineSectionBasedOnChartId(chartId) {
+    if (chartId === 'eProduction-bar') {
+        return 'e_day'; // 'e_month'도 가능한 경우 추가
+        
+    } else if (chartId === 'tProduction-bar') {
+        return 't_day'; // 't_month'도 가능한 경우 추가
+    }
+    return null; // 차트 ID에 해당하는 섹션이 없는 경우
+}
 
 

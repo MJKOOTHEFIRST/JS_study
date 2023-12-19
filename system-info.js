@@ -3,6 +3,7 @@ import { loadData, parseConf } from './dataManager.js';
 
 const SystemInfoManager = {
     loadSystemData: function() {
+
         loadData()
             .then(conf => {
                 const systemData = parseConf(conf, 'system');
