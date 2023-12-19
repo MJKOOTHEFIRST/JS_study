@@ -1,44 +1,6 @@
 // dataManager.js
-/*
-export const loadData = async () => {
-    const response = await fetch('/conf_data/total_data.conf');
-    if (!response.ok) {
-        throw new Error('Failed to load data');
-    }
-    const data = await response.text();
-    return data;
-};
-
-export const parseDataBySection = (data, section) => {
-    const lines = data.split('\n');
-    let sectionFound = false;
-    const result = [];
-
-    lines.forEach(line => {
-        if (line.trim() === `[${section}]`) {
-            sectionFound = true;
-        } else if (sectionFound && line.startsWith('[')) {
-            sectionFound = false;
-        } else if (sectionFound) {
-            const parts = line.split('=');
-            if (parts.length === 2) {
-                result.push({
-                    time: parts[0].trim().split('_')[2],
-                    value: parseFloat(parts[1].trim())
-                });
-            }
-        }
-    });
-
-    return result;
-};
-*/
-
-// dataManager.js
 const base_data_url = "/conf_data/";
 const configFileName = 'total_data.conf';
-
-console.log(`dataManager.js 호출`);
 
 export const loadData = () => {
     return fetch(base_data_url + configFileName)
@@ -73,12 +35,7 @@ export const parseConf = (conf, section) => {
 };
 
 
-const refreshData = (callback) => {
-       loadData().then(conf => {
-        // const parsedData = parseConf(conf); // 섹션을 명시하지 않은 경우는 전체 데이터 파싱
-        callback( conf );
-    });
-};
+
 
 //데이터 업데이트
 // startDataRefresh 함수는 콜백 함수와 업데이트 간격을 매개변수로 받는다. 
@@ -89,6 +46,12 @@ const refreshData = (callback) => {
 
 
 export const startDataRefresh = (callback, interval = 10000) => {
+    const refreshData = (callback) => { //여기서 callback 
+        loadData().then(conf => {
+         // const parsedData = parseConf(conf); // 섹션을 명시하지 않은 경우는 전체 데이터 파싱
+         callback( conf );
+     });
+ };
     // refreshData(); //callback을 여기서 패스한다
     refreshData(callback); //callback을 여기서 패스한다
     // setInterval(refreshData, interval);

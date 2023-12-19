@@ -45,7 +45,7 @@ var StackedChartManager = {
             // console.log("4. After update: ", chart.data.datasets[0].data);
         }
     },
-
+    
     getChartData: function(data) {
         var chartData = {
             labels: [''],
@@ -62,9 +62,9 @@ var StackedChartManager = {
     
         return chartData;
     },
+    
     getChartOptions: function(totalCapacity) {
         return {
-            
             indexAxis: 'y',
             scales: {
                 x: { 

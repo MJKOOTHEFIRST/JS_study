@@ -1,41 +1,20 @@
-// SystemInfoManager.js
+// system-info.js
 import { loadData, parseConf } from './dataManager.js';
 
 const SystemInfoManager = {
     loadSystemData: function() {
-
         loadData()
             .then(conf => {
+                console.log("원본 데이터:", conf);
                 const systemData = parseConf(conf, 'system');
+                console.log("파싱된 데이터:", systemData);
                 this.updateSystemInfo(systemData);
             })
             .catch(error => {
                 console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
             });
     },
-
-    parseSystemConf: function(conf) {
-        const lines = conf.split('\n');
-        let systemData = {};
-        let sectionFound = false;
-
-        lines.forEach(line => {
-            if (line.trim() === '[system]') {
-                sectionFound = true;
-            } else if (sectionFound && line.startsWith('[')) {
-                sectionFound = false;
-            } else if (sectionFound) {
-                const parts = line.split('=');
-                if (parts.length === 2) {
-                    const key = parts[0].trim();
-                    const value = parts[1].trim();
-                    systemData[key] = value;
-                }
-            }
-        });
-
-        return systemData;
-    },
+    
 
     updateSystemInfo: function(systemData) {
         document.getElementById('type').innerText = systemData.type || 'N/A';
@@ -45,7 +24,7 @@ const SystemInfoManager = {
     }
 };
 
-// HTML 페이지 로딩 시 시스템 데이터 로드
-document.addEventListener('DOMContentLoaded', function() {
-    SystemInfoManager.loadSystemData();
-});
+export { SystemInfoManager };
+/*
+각 파일마다 단 한개의 default export만 존재할 수 있다. 
+*/

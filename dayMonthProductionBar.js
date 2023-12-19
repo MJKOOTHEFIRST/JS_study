@@ -212,36 +212,10 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(`이벤트리스너`);// 통신ok
 
     startDataRefresh((conf) => {
-        // 여기서 data는 전체 데이터를 포함하는 객체
-        // console.log(`데이터 : `, data)
-
-        // [e_month]
-        //var section = parseConf( data, 'e_day');
-        //if ( section ) 
-        
-        //if ( dayMonthProductionBarManager.charts['eProduction-bar']) {
-            //console.log('e_day 데이터와 eProduction-bar 차트가 존재합니다.');
-
-            dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_day');
-            dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_day');
-        
-
-        /*section = parseConf( data, 't_day');
-        if (section['t_day'] && dayMonthProductionBarManager.charts['tProduction-bar']) {
-            dayMonthProductionBarManager.updateChart('tProduction-bar', section['t_day'], 't_day');
-        }
-
-        section = parseConf( data, 'e_month');
-        if (section['e_month'] && dayMonthProductionBarManager.charts['eProduction-bar']) {
-            dayMonthProductionBarManager.updateChart('eProduction-bar', section['e_month'], 'e_month');
-        }
-
-        section = parseConf( data, 't_month');
-        if (section['t_month'] && dayMonthProductionBarManager.charts['tProduction-bar']) {
-            dayMonthProductionBarManager.updateChart('tProduction-bar', section['t_month'], 't_month');
-        }*/
-
-        //
+    
+        dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_day');
+        dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_day');
+     
     }, 10000);
 
     // /*
@@ -249,20 +223,23 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('전기생산량 금일 클릭됨');
         dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_day');
     });
-
+    
     // 전기생산량에 대한 금월 클릭 이벤트
     document.querySelector('#e_production .date-selector-bar.month').addEventListener('click', function() {
         console.log('전기생산량 금월 클릭됨');
+        dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_month');
     });
-
+    
     // 열생산량에 대한 금일 클릭 이벤트
     document.querySelector('#h_production .date-selector-bar.today').addEventListener('click', function() {
         console.log('열생산량 금일 클릭됨');
+        dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_day');
     });
-
+    
     // 열생산량에 대한 금월 클릭 이벤트
     document.querySelector('#h_production .date-selector-bar.month').addEventListener('click', function() {
         console.log('열생산량 금월 클릭됨');
+        dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_month');
     });
 });
 

@@ -14,22 +14,22 @@ var DayChartManager = {
     },
 
     parseDayConf: function(conf, section) {
-        console.log(`Parsing data for section: ${section}`);
+        // console.log(`Parsing data for section: ${section}`);
         const lines = conf.split('\n');
         let sectionFound = false;
         const result = [];
 
         lines.forEach(line => {
             if (line.trim() === `[${section}]`) {
-                console.log(`Found section: ${section}`);
+                // console.log(`Found section: ${section}`);
                 sectionFound = true;
             } else if (sectionFound && line.startsWith('[')) {
-                console.log(`End of section: ${section}`);
+                // console.log(`End of section: ${section}`);
                 sectionFound = false;
             } else if (sectionFound) {
                 const parts = line.split('=');
                 if (parts.length === 2) {
-                    console.log(`Parsing line: ${line}`);
+                    // console.log(`Parsing line: ${line}`);
                     result.push({
                         time: parts[0].trim().split('_')[2],
                         value: parseFloat(parts[1].trim())
@@ -41,7 +41,7 @@ var DayChartManager = {
     },
 
     loadDayData: function(chartId, section) {
-        console.log(`loadDayData 호출됨 - section: ${section}, time: ${new Date().toLocaleTimeString()}`); // 디버깅
+        // console.log(`loadDayData 호출됨 - section: ${section}, time: ${new Date().toLocaleTimeString()}`); // 디버깅
         // console.log("Requested section:", section);  // 섹션 이름 출력
         fetch(this.base_data_url + 'total_data.conf')
             .then(response => response.text())
