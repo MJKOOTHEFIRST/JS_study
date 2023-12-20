@@ -1,9 +1,6 @@
 // dayMonthProductionBarManager.js
 import { loadData, parseConf, startDataRefresh } from './dataManager.js';
 
-const toggleSwitch1 = document.querySelector('#toggle-switch-1');
-const toggleSwitch2 = document.querySelector('#toggle-switch-2');
-
 const dayMonthProductionBarManager = {
     charts: {}, // 차트 인스턴스 저장 객체
 
@@ -97,30 +94,22 @@ const dayMonthProductionBarManager = {
         console.log(`파싱된 결과:`, result);
         return result;
     },
-    
-    updateChart: function(chartId, conf, section) {
-        // console.log(`차트 업데이트: ${chartId}, 데이터 구조:`, conf);
-       // 이전에 생성된 차트가 있다면 파괴
-        if(this.charts[chartId]){
-            console.log(`이전 차트 파괴: ${chartId}`);
-            this.charts[chartId].destroy();
-        }
 
+    // 토글 클릭할때 생긴다. day - month 오가면서.
+    createChart: function(chartId, data, section) {
         const ctx = document.getElementById(chartId).getContext('2d');
         if (!ctx) {
             console.error(`Canvas 컨텍스트를 찾을 수 없음: ${chartId}`);
             return;
         }
+    
         const label = section.includes('e_') ? '전기생산량(kW)' : '열생산량(kW)';
         const backgroundColor = section.includes('e_') ? "rgba(0, 123, 255, 0.5)" : "pink";
-
-        const data = this.parseDayConf( conf, section);
-
+    
         this.charts[chartId] = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: data.map(item => section.includes('day') ? item.time + '시' : item.month),
-                // labels: '',
+                labels: data.map(item => item.label),
                 datasets: [{
                     label: label,
                     data: data.map(item => item.value),
@@ -131,9 +120,25 @@ const dayMonthProductionBarManager = {
             },
             options: this.getChartOptions(section)
         });
-        // console.log(`새 차트 생성: ${chartId}`);
-    },
+    }, 
 
+    // 토글 클릭안하면 차트 수치만 바뀐다. 기존 코드의 파괴하고 새로 생성하는 로직은 없앴다.
+    updateChart: function(chartId, conf, section) {
+        const data = this.parseDayConf(conf, section);
+    
+        if (this.charts[chartId]) {
+            // 데이터만 업데이트
+            this.charts[chartId].data.labels = data.map(item => item.label);
+            this.charts[chartId].data.datasets.forEach((dataset) => {
+                dataset.data = data.map(item => item.value);
+            });
+            this.charts[chartId].update();
+        } else {
+            // 새 차트 생성
+            this.createChart(chartId, data, section);
+        }
+    },
+    
     getChartOptions: function(section) {
         return {
             responsive: true,
@@ -173,89 +178,51 @@ const dayMonthProductionBarManager = {
                 }
             }
         };
-    },
-    //함수 표현식 사용 : 익명 함수의 사용. 이벤트 리스너에서 흔함. 해당 이벤트가 발생할 때만 함수가 실행되도록! 
-    initEventHandlers: function() {
-        console.log('initEventHandlers 호출');
-        document.querySelectorAll('.widget').forEach(widget => {
-            widget.querySelectorAll('.date-selector').forEach(selector => {
-                selector.addEventListener('click', function(event) {
-                    const chartId = widget.querySelector('.myChartDiv canvas').id;
-                    const isToday = event.target.classList.contains('today');
-                    // 현재 섹션 업데이트
-                    dayMonthProductionBarManager.currentSection[chartId] = isToday ? 'e_day' : 'e_month';
-    
-                    // 차트에 대한 새로고침 로직
-                    const section = dayMonthProductionBarManager.currentSection[chartId];
-                    console.log(`startAutoRefresh 호출: ${chartId}, ${section}`);
-                    dayMonthProductionBarManager.startAutoRefresh(chartId, section, 10000);
-                });
-            });
-        });
     }
 }
 
-function determineSectionBasedOnChartId(chartId) {
-    console.log(`determineSectionBasedOnChartId 호출됨, chartId: ${chartId}`);
-
-    if (chartId === 'eProduction-bar') {
-        console.log('차트 ID는 eProduction-bar, 반환 섹션: e_day');
-        return 'e_day'; // 'e_month'도 가능한 경우 추가
-    } else if (chartId === 'tProduction-bar') {
-        console.log('차트 ID는 tProduction-bar, 반환 섹션: t_day');
-        return 't_day'; // 't_month'도 가능한 경우 추가
-    } else {
-        console.log('일치하는 차트 ID 없음, 반환 값: null');
-        return null; // 차트 ID에 해당하는 섹션이 없는 경우
-    }
-}
-
-
-
-
-
-
-// 페이지 로드 시 차트 데이터 초기 로드 및 주기적 업데이트
 document.addEventListener('DOMContentLoaded', () => {
+    const toggleSwitch1 = document.querySelector('#toggle-switch-1');
+    const toggleSwitch2 = document.querySelector('#toggle-switch-2');
 
-    //초기 데이터 로드
+    // 데이터 리프레시 및 초기 차트 업데이트
     startDataRefresh((conf) => {
-        dayMonthProductionBarManager.updateChart('eProduction-bar',conf, 'e_day');
-        dayMonthProductionBarManager.updateChart('tProduction-bar',conf, 't_day');
-    })
+        const eData = dayMonthProductionBarManager.parseDayConf(conf, 'e_day');
+        const tData = dayMonthProductionBarManager.parseDayConf(conf, 't_day');
+        dayMonthProductionBarManager.createChart('eProduction-bar', eData, 'e_day');
+        dayMonthProductionBarManager.createChart('tProduction-bar', tData, 't_day');
 
-
-    startDataRefresh((conf) => {
+        // 주기적인 차트 업데이트
         setInterval(() => {
-            dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_day');
-            dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_day');
+            loadData().then(conf => {
+                const eSection = toggleSwitch1.checked ? 'e_month' : 'e_day';
+                const tSection = toggleSwitch2.checked ? 't_month' : 't_day';
+                const eData = dayMonthProductionBarManager.parseDayConf(conf, eSection);
+                const tData = dayMonthProductionBarManager.parseDayConf(conf, tSection);
+
+                dayMonthProductionBarManager.updateChart('eProduction-bar', eData, eSection);
+                dayMonthProductionBarManager.updateChart('tProduction-bar', tData, tSection);
+            });
         }, 10000);
-    // 전기생산량에 대한 "당일" 클릭 이벤트
-    toggleSwitch1.addEventListener('change', function(event) {
-        if (event.target.checked) {
-            // 당일 클릭됨
-            // console.log('전기생산량 당일 클릭됨');
-            dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_day');
-        } else {
-            // 당월 클릭됨
-            // console.log('전기생산량 당월 클릭됨');
-            dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_month');
-        }
     });
 
-    // 열생산량에 대한 "당일" 클릭 이벤트
+    // 전기생산량 토글 이벤트
+    toggleSwitch1.addEventListener('change', function(event) {
+        loadData().then(conf => {
+            const section = event.target.checked ? 'e_month' : 'e_day';
+            const parsedData = dayMonthProductionBarManager.parseDayConf(conf, section);
+            dayMonthProductionBarManager.updateChart('eProduction-bar', parsedData, section);
+        });
+    });
+
+    // 열생산량 토글 이벤트
     toggleSwitch2.addEventListener('change', function(event) {
-        if (event.target.checked) {
-            // 당일 클릭됨
-            // console.log('열생산량 당일 클릭됨');
-            dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_day');
-        } else {
-            // 당월 클릭됨
-            // console.log('열생산량 당월 클릭됨');
-            dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_month');
-        }
-    })
-    })
+        loadData().then(conf => {
+            const section = event.target.checked ? 't_month' : 't_day';
+            const parsedData = dayMonthProductionBarManager.parseDayConf(conf, section);
+            dayMonthProductionBarManager.updateChart('tProduction-bar', parsedData, section);
+        });
+    });
 });
 
 export { dayMonthProductionBarManager, toggleSwitch1, toggleSwitch2 };

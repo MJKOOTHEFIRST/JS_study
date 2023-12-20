@@ -1,9 +1,6 @@
 // dayMonthProductionBarManager.js
 import { loadData, parseConf, startDataRefresh } from './dataManager.js';
 
-const toggleSwitch1 = document.querySelector('#toggle-switch-1');
-const toggleSwitch2 = document.querySelector('#toggle-switch-2');
-
 const dayMonthProductionBarManager = {
     charts: {}, // 차트 인스턴스 저장 객체
 
@@ -211,10 +208,6 @@ function determineSectionBasedOnChartId(chartId) {
 }
 
 
-
-
-
-
 // 페이지 로드 시 차트 데이터 초기 로드 및 주기적 업데이트
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -231,31 +224,32 @@ document.addEventListener('DOMContentLoaded', () => {
             dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_day');
         }, 10000);
     // 전기생산량에 대한 "당일" 클릭 이벤트
-    toggleSwitch1.addEventListener('change', function(event) {
+    document.querySelector('#eProduction-bar .toggle-switch__input').addEventListener('change', function(event) {
         if (event.target.checked) {
             // 당일 클릭됨
-            // console.log('전기생산량 당일 클릭됨');
+            console.log('전기생산량 당일 클릭됨');
             dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_day');
         } else {
             // 당월 클릭됨
-            // console.log('전기생산량 당월 클릭됨');
+            console.log('전기생산량 당월 클릭됨');
             dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_month');
         }
     });
 
     // 열생산량에 대한 "당일" 클릭 이벤트
-    toggleSwitch2.addEventListener('change', function(event) {
+    document.querySelector('#tProduction-bar .toggle-switch__input').addEventListener('change', function(event) {
         if (event.target.checked) {
             // 당일 클릭됨
-            // console.log('열생산량 당일 클릭됨');
+            console.log('열생산량 당일 클릭됨');
             dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_day');
         } else {
             // 당월 클릭됨
-            // console.log('열생산량 당월 클릭됨');
+            console.log('열생산량 당월 클릭됨');
             dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_month');
         }
-    })
-    })
+    });
+
+    });
 });
 
-export { dayMonthProductionBarManager, toggleSwitch1, toggleSwitch2 };
+export { dayMonthProductionBarManager };
