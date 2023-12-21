@@ -122,7 +122,7 @@ const dayMonthProductionBarManager = {
                     label: label,
                     data: data.map(item => item.value),
                     borderWidth: 1,
-                    barThickness: 10,
+                    barThickness: 20,
                     backgroundColor: backgroundColor
                 }]
             },
@@ -207,49 +207,42 @@ function determineSectionBasedOnChartId(chartId) {
     }
 }
 
-
 // 페이지 로드 시 차트 데이터 초기 로드 및 주기적 업데이트
 document.addEventListener('DOMContentLoaded', () => {
 
-    //초기 데이터 로드
-    startDataRefresh((conf) => {
-        dayMonthProductionBarManager.updateChart('eProduction-bar',conf, 'e_day');
-        dayMonthProductionBarManager.updateChart('tProduction-bar',conf, 't_day');
-    })
-
+    console.log(`이벤트리스너`);// 통신ok
 
     startDataRefresh((conf) => {
-        setInterval(() => {
-            dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_day');
-            dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_day');
-        }, 10000);
-    // 전기생산량에 대한 "당일" 클릭 이벤트
-    document.querySelector('#eProduction-bar .toggle-switch__input').addEventListener('change', function(event) {
-        if (event.target.checked) {
-            // 당일 클릭됨
-            console.log('전기생산량 당일 클릭됨');
-            dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_day');
-        } else {
-            // 당월 클릭됨
-            console.log('전기생산량 당월 클릭됨');
-            dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_month');
-        }
-    });
+    
+        dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_day');
+        dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_day');
+     
+    }, 10000);
 
-    // 열생산량에 대한 "당일" 클릭 이벤트
-    document.querySelector('#tProduction-bar .toggle-switch__input').addEventListener('change', function(event) {
-        if (event.target.checked) {
-            // 당일 클릭됨
-            console.log('열생산량 당일 클릭됨');
-            dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_day');
-        } else {
-            // 당월 클릭됨
-            console.log('열생산량 당월 클릭됨');
-            dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_month');
-        }
+    // /*
+    document.querySelector('#e_production .date-selector-bar.today').addEventListener('click', function() {
+        console.log('전기생산량 금일 클릭됨');
+        dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_day');
     });
-
+    
+    // 전기생산량에 대한 금월 클릭 이벤트
+    document.querySelector('#e_production .date-selector-bar.month').addEventListener('click', function() {
+        console.log('전기생산량 금월 클릭됨');
+        dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_month');
+    });
+    
+    // 열생산량에 대한 금일 클릭 이벤트
+    document.querySelector('#h_production .date-selector-bar.today').addEventListener('click', function() {
+        console.log('열생산량 금일 클릭됨');
+        dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_day');
+    });
+    
+    // 열생산량에 대한 금월 클릭 이벤트
+    document.querySelector('#h_production .date-selector-bar.month').addEventListener('click', function() {
+        console.log('열생산량 금월 클릭됨');
+        dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_month');
     });
 });
 
 export { dayMonthProductionBarManager };
+
