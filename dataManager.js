@@ -3,13 +3,16 @@ const base_data_url = "/conf_data/";
 const configFileName = 'total_data.conf';
 
 export const loadData = (section = null) => {
-    return fetch(base_data_url + configFileName)
+    const timestamp = new Date().toISOString(); // 현재 시간을 ISO 형식의 문자열로 변환
+    const url = `${base_data_url}${configFileName}?t=${timestamp}`; // URL에 현재 시간을 파라미터로 추가
+
+    return fetch(url)
         .then(response => response.text())
         .then(text => {
-            if (section) {
+            if (section && section !== 'alarm') {
                 return parseConf(text, section);
             }
-            return text; // 전체 데이터를 반환
+            return text;
         })
         .catch(error => {
             console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
@@ -34,7 +37,7 @@ export const parseConf = (conf, section) => {
                 const key = parts[0].trim();
                 const value = parts[1].trim();
                 sectionData[key] = value;
-                ///console.log(`Key: ${key}, Value: ${value}`);
+                // console.log(`Key: ${key}, Value: ${value}`);
             }
         }
     });
@@ -54,20 +57,3 @@ export const startDataRefresh = (callback, interval = 10000) => {
 };
 // 데이터 로딩 로직은 dataManager.js에서 중앙집중적 관리, 로드된 데이터를 어떻게 사용할지는 각 위젯에서 결정
 
-/*
-이전코드
-refreshData 함수가 모든 위젯에 대해 동일한 데이터 로딩 방식을 사용하고, 
-차이가 있는 부분이 주로 시각적인 차트 구현이라면, callback 함수를 refreshData에 포함시킬 필요가 없다. 
-export const startDataRefresh = (callback, interval = 10000) => {
-    const refreshData = (callback) => { 
-        loadData().then(conf => {
-         // const parsedData = parseConf(conf); // 섹션을 명시하지 않은 경우는 전체 데이터 파싱
-         callback( conf );
-     });
- };
-    // refreshData(); //callback을 여기서 패스한다
-    refreshData(callback); //callback을 여기서 패스한다
-    // setInterval(refreshData, interval);
-    setInterval(() => refreshData(callback), interval); // 
-};
-*/
