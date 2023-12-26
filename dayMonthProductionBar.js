@@ -10,7 +10,7 @@ const dayMonthProductionBarManager = {
     loadDayMonthProductionBarData: function(chartId, section) {
         loadData(section)
             .then(data => {
-                console.log(`로딩된 데이터:`, data);
+                // console.log(`로딩된 데이터:`, data);
                 if (Object.keys(data).length > 0) {
                     this.updateChart(chartId, data, section);
                 } else {
@@ -38,7 +38,7 @@ const dayMonthProductionBarManager = {
             }
         }
     
-        console.log(`파싱된 결과:`, result);
+        // console.log(`파싱된 결과:`, result);
         return result;
     },
 

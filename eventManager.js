@@ -16,10 +16,10 @@ document.addEventListener('DOMContentLoaded', function() {
       // 초기 데이터 로드 및 차트 생성
       loadData().then(conf => {
         currentConf = conf;
-        SystemInfoManager.loadSystemData(conf);
-        QoeManager.loadQoeData(conf);
-        AlarmManager.loadAlarmData(conf);
-        // 차트 생성
+        SystemInfoManager.loadSystemData(conf); //[시스템]
+        QoeManager.loadQoeData(conf); //[qoe]
+        AlarmManager.loadAlarmData(conf); //[알람로그]
+        // [막대차트]
         const eData = dayMonthProductionBarManager.parseDayMonthConf(conf, 'e_day');
         const tData = dayMonthProductionBarManager.parseDayMonthConf(conf, 't_day');
         dayMonthProductionBarManager.createChart('eProduction-bar', eData, 'e_day');
@@ -31,20 +31,36 @@ document.addEventListener('DOMContentLoaded', function() {
     // 주기적 데이터 업데이트 및 차트 업데이트
     startDataRefresh(conf => { 
         currentConf = conf;
-        SystemInfoManager.loadSystemData(conf);
-        QoeManager.loadQoeData(conf);
-        AlarmManager.loadAlarmData(conf);
-        // 차트 업데이트
+        SystemInfoManager.loadSystemData(conf); //[시스템]
+        QoeManager.loadQoeData(conf); //[qoe]
+        AlarmManager.loadAlarmData(conf); //[알람로그]
+         // [막대차트]
         dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_day');
         dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_day');
     }, 10000);
 
+    // [알람로그]
+    // 개수 선택 드롭다운에 이벤트 리스너 추가(이벤트 기반 별도의 업데이트 메커니즘추가로 즉각반영되도록함)
+    const alarmCountSelect = document.getElementById('alarmCountSelect');
+    alarmCountSelect.addEventListener('change', function(){
+        //선택된 개수에 따라 알람 데이터 업데이트
+        AlarmManager.loadAlarmData();
+    });
+    // 필터
+    const filterButtons = document.querySelectorAll('.widget-head-gadget-alarm button');
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function(){
+            AlarmManager.currentFilter = this.textContent;
+            AlarmManager.loadAlarmData();
+        })
+    })
+
+    // [막대차트]
     // 토글 스위치 이벤트 핸들러
     toggleSwitch1.addEventListener('change', function(event) {
         const section = event.target.checked ? 'e_day' : 'e_month';
         dayMonthProductionBarManager.updateChart('eProduction-bar', currentConf, section);
     });
-
     toggleSwitch2.addEventListener('change', function(event) {
         const section = event.target.checked ? 't_day' : 't_month';
         dayMonthProductionBarManager.updateChart('tProduction-bar', currentConf, section);

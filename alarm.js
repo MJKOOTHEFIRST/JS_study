@@ -2,15 +2,17 @@
 import { loadData} from './dataManager.js';
 
 const AlarmManager = {
+    currentFilter:'전체', // 기본값 '전체'인 필터링 추적하는 변수 추가
+    
     loadAlarmData: function() {
         loadData('alarm')
         .then(conf => {
-            console.log("conf 타입:", typeof conf); // conf의 타입을 확인
-            console.log("conf 내용:", conf); // conf의 실제 내용을 확인
+            // console.log("conf 타입:", typeof conf); // conf의 타입을 확인
+            // console.log("conf 내용:", conf); // conf의 실제 내용을 확인
 
             // parseAlarmSection 함수를 사용하여 데이터 파싱
             const alarmsArray = this.parseAlarmSection(conf);
-            console.log("alarmsArray", alarmsArray);
+            // console.log("alarmsArray", alarmsArray);
             this.updateAlarmTable(alarmsArray);
         })
         .catch(error => {
@@ -52,9 +54,14 @@ const AlarmManager = {
         const tbody = document.querySelector('#alarm-log');
         tbody.innerHTML = ''; // 기존 내용을 비움
 
+        let filteredAlarmData = alarmData;
+        if (this.currentFilter && this.currentFilter !== '전체') {
+            filteredAlarmData = alarmData.filter(alarm => alarm.status === this.currentFilter);
+        }
+
          // 선택된 항목 수에 따라 데이터를 필터링
          const selectedCount = parseInt(document.getElementById('alarmCountSelect').value, 10); //값 가져와서 10진수로 변환
-         const limitedAlarmData = alarmData.slice(0, selectedCount); // 배열의 첫번째 요소부터 selectedCount 번째 요소까지 추출해서 저장
+         const limitedAlarmData =  filteredAlarmData.slice(0, selectedCount); // 배열의 첫번째 요소부터 selectedCount 번째 요소까지 추출해서 저장
 
         limitedAlarmData.forEach(alarm => {
             const tr = document.createElement('tr');
