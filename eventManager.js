@@ -6,6 +6,7 @@ import { QoeManager } from './qoe.js';
 import { SystemInfoManager } from './system-info.js';
 import { AlarmManager } from './alarm.js';
 import { dayMonthProductionBarManager, toggleSwitch1, toggleSwitch2 } from './dayMonthProductionBar.js';
+import { realTimeProductionManager } from './realTimeProduction.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     //startDataRefresh 함수의 콜백에서 반환된 설정 데이터 저장
@@ -19,7 +20,8 @@ document.addEventListener('DOMContentLoaded', function() {
         SystemInfoManager.loadSystemData(conf); //[시스템]
         QoeManager.loadQoeData(conf); //[qoe]
         AlarmManager.loadAlarmData(conf); //[알람로그]
-        // [막대차트]
+        realTimeProductionManager.loadRealTimeProductionData(); //[실시간생산량]
+        // [금일/금월 생산량 막대차트]
         const eData = dayMonthProductionBarManager.parseDayMonthConf(conf, 'e_day');
         const tData = dayMonthProductionBarManager.parseDayMonthConf(conf, 't_day');
         dayMonthProductionBarManager.createChart('eProduction-bar', eData, 'e_day');
@@ -34,7 +36,8 @@ document.addEventListener('DOMContentLoaded', function() {
         SystemInfoManager.loadSystemData(conf); //[시스템]
         QoeManager.loadQoeData(conf); //[qoe]
         AlarmManager.loadAlarmData(conf); //[알람로그]
-         // [막대차트]
+        realTimeProductionManager.loadRealTimeProductionData(); //[실시간생산량]
+         // [금일/금월 생산량 막대차트]
         dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_day');
         dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_day');
     }, 10000);
@@ -55,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
     })
 
-    // [막대차트]
+    // [금일/금월 생산량 막대차트]
     // 토글 스위치 이벤트 핸들러
     toggleSwitch1.addEventListener('change', function(event) {
         const section = event.target.checked ? 'e_day' : 'e_month';
@@ -66,20 +69,5 @@ document.addEventListener('DOMContentLoaded', function() {
         dayMonthProductionBarManager.updateChart('tProduction-bar', currentConf, section);
     });
 });
-
-/*
-    // 시스템 데이터 로드
-    // SystemInfoManager.loadSystemData();
-    startDataRefresh(SystemInfoManager.loadSystemData.bind(SystemInfoManager), 10000);
-
-    // QOE 데이터 로드
-    // QoeManager.loadQoeData();
-    startDataRefresh(QoeManager.loadQoeData.bind(QoeManager), 10000);
-    
-
-    // 알람로그
-    startDataRefresh(AlarmManager.loadAlarmData.bind(AlarmManager), 10000);
-*/
-
 
 

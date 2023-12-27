@@ -2,7 +2,7 @@
 import { loadData} from './dataManager.js';
 
 const AlarmManager = {
-    currentFilter:'전체', // 기본값 '전체'인 필터링 추적하는 변수 추가
+    currentFilter:'전항목', // 기본값 '전체'인 필터링 추적하는 변수 추가
     
     loadAlarmData: function() {
         loadData('alarm')
@@ -55,7 +55,13 @@ const AlarmManager = {
         tbody.innerHTML = ''; // 기존 내용을 비움
 
         let filteredAlarmData = alarmData;
-        if (this.currentFilter && this.currentFilter !== '전체') {
+
+        // '전항목' 필터거나 필터 적용하지 않은 경우, 모든 데이터를 그대로 사용
+        if(this.currentFilter === '전항목' || !this.currentFilter) {
+            filteredAlarmData = alarmData;
+        } else {
+            // 그 외의 경우, 선택된 필터에 따라 데이터 필터링
+            // 'filter' 는 내장 메서드로, 기존 배열에서 특정 조건을 만족하는 요소들만 골라내어 새로운 배열을 만드는 데 사용
             filteredAlarmData = alarmData.filter(alarm => alarm.status === this.currentFilter);
         }
 
