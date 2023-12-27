@@ -23,11 +23,11 @@ const realTimeProductionManager = {
         // 열 발전량 차트 업데이트
         this.createHalfDoughnutChart('realtime-tProduction', data.t_realtime_production, '열 발전량', '#FF8F8F');
 
-        // 퍼센티지 업데이트
+        // 퍼센티지 업데이트(임시데이터 섹션)
         document.querySelector('.realtime-e-percentage').innerHTML = data.e_realtime_production;
         document.querySelector('.realtime-t-percentage').innerHTML = data.t_realtime_production;
 
-        // 하단의 숫자 데이터 업데이트
+        // 하단의 숫자 데이터 업데이트(임시데이터 섹션)
         document.querySelector('.e-bottom-side').innerHTML = data.e_realtime_production + ' <sub>kW</sub>';
         document.querySelector('.t-bottom-side').innerHTML = data.t_realtime_production + ' <sub>kW</sub>';
     },
