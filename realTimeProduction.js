@@ -39,7 +39,8 @@ const realTimeProductionManager = {
            // 차트의 옵션 설정
            circumference: 180,
            rotation: 270,
-           cutoutPercentage: 80,
+        //    cutoutPercentage: 80, <-- old version //Eung
+           cutout: '80%',
            tooltips: {
                callbacks: {
                    label: function(tooltipItem) {

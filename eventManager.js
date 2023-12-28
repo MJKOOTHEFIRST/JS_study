@@ -7,17 +7,17 @@ import { SystemInfoManager } from './system-info.js';
 import { AlarmManager } from './alarm.js';
 import { dayMonthProductionBarManager, toggleSwitch1, toggleSwitch2 } from './dayMonthProductionBar.js';
 import { realTimeProductionManager } from './realTimeProduction.js';
-// import { operationRateManager } from './operationRate.js';
+import { operationRateManager } from './operationRate.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     //startDataRefresh 함수의 콜백에서 반환된 설정 데이터 저장
     // 이후 다른 함수나 이벤트 핸들러에서 이 데이터를 참조할 때 사용
-    // 설정 파일에서 로드된 데이터가 필요한 경우, currentConf 변수를 통해 접근
+    // 설정 파일에서 로드된 데이터가 필요한 경우, currentConf 변수를 통해 접근(callback)
     let currentConf = null;
+    let currentOperationTimeUnit = 'day'; 
 
     // [발전량/가동율]
     // 시간 선택 이벤트 리스너 설정
-    /*
     document.getElementById('operationRate-Year').addEventListener('click', function() {
         currentOperationTimeUnit = 'year';
         operationRateManager.loadOperationRateData(currentOperationTimeUnit);
@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
         currentOperationTimeUnit = 'day';
         operationRateManager.loadOperationRateData(currentOperationTimeUnit);
     });
-    */
 
     /**********************************************************************************/
       // 초기 데이터 로드 및 차트 생성
@@ -58,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
         QoeManager.loadQoeData(conf); //[qoe]
         AlarmManager.loadAlarmData(conf); //[알람로그]
         realTimeProductionManager.loadRealTimeProductionData(); //[실시간생산량]
-        // operationRateManager.loadOperationRateData(currentOperationTimeUnit); // 발전량 / 가동율
+        operationRateManager.loadOperationRateData(currentOperationTimeUnit); // 발전량 / 가동율
         // [금일/금월 생산량 막대차트]
         dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_day');
         dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_day');
@@ -86,7 +85,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
      // [발전량/가동율]
      // 시간 선택 클릭 이벤트 
-     /*
      document.getElementById('operationRate-Year').addEventListener('click', function() {
         operationRateManager.loadOperationRateData('year');
     });
@@ -96,7 +94,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('operationRate-Day').addEventListener('click', function() {
         operationRateManager.loadOperationRateData('day');
     });
-    */
 
     // [금일/금월 생산량 막대차트]
     // 토글 스위치 이벤트 핸들러

@@ -4,7 +4,7 @@ const configFileName = 'total_data.conf';
 
 export const loadData = (section = null) => {
     const timestamp = new Date().toISOString(); // 현재 시간을 ISO 형식의 문자열로 변환
-    const url = `${base_data_url}${configFileName}?t=${timestamp}`; // URL에 현재 시간을 파라미터로 추가
+    const url = `${base_data_url}${configFileName}?t=${timestamp}`; // URL에 현재 시간을 파라미터로 추가(캐시없애기)
 
     return fetch(url)
         .then(response => response.text())
