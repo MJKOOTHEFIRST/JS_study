@@ -8,6 +8,7 @@ import { AlarmManager } from './alarm.js';
 import { dayMonthProductionBarManager, toggleSwitch1, toggleSwitch2 } from './dayMonthProductionBar.js';
 import { realTimeProductionManager } from './realTimeProduction.js';
 import { operationRateManager } from './operationRate.js';
+import { BopDiagramManager } from './bopDiagram.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     //startDataRefresh 함수의 콜백에서 반환된 설정 데이터 저장
@@ -39,7 +40,9 @@ document.addEventListener('DOMContentLoaded', function() {
         QoeManager.loadQoeData(conf); //[qoe]
         AlarmManager.loadAlarmData(conf); //[알람로그]
         realTimeProductionManager.loadRealTimeProductionData(); //[실시간생산량]
-        // operationRateManager.loadOperationRateData('day'); //[발전량 / 가동율]
+        operationRateManager.loadOperationRateData('day'); //[발전량 / 가동율]
+        BopDiagramManager.loadBopData(conf); // [시스템구조도-BOP]
+        
         // [금일/금월 생산량 막대차트]
         const eData = dayMonthProductionBarManager.parseDayMonthConf(conf, 'e_day');
         const tData = dayMonthProductionBarManager.parseDayMonthConf(conf, 't_day');
@@ -58,6 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
         AlarmManager.loadAlarmData(conf); //[알람로그]
         realTimeProductionManager.loadRealTimeProductionData(); //[실시간생산량]
         operationRateManager.loadOperationRateData(currentOperationTimeUnit); // 발전량 / 가동율
+        BopDiagramManager.loadBopData(conf); // [시스템구조도-BOP]
         // [금일/금월 생산량 막대차트]
         dayMonthProductionBarManager.updateChart('eProduction-bar', conf, 'e_day');
         dayMonthProductionBarManager.updateChart('tProduction-bar', conf, 't_day');

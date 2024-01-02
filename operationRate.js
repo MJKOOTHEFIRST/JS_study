@@ -92,19 +92,41 @@ const operationRateManager = {
     };
 },
 
+
+
     updateChartDisplay: function(timeUnit) {
+
         // 모든 .graph-wrapper 숨기기
-        const allWrappers = document.querySelectorAll('.graph-wrapper');
+        // console.log('timeUnit =' + timeUnit);
+        const allWrappers = document.querySelectorAll('.watt-operation-rate .graph-wrapper');
+        
+        
         allWrappers.forEach(wrapper => {
             wrapper.style.display = 'none';
         });
 
         // 선택된 시간 단위에 해당하는 .graph-wrapper만 표시
         const selectedChartId = `eProductionChart${timeUnit.charAt(0).toUpperCase() + timeUnit.slice(1)}`;
+        const selectedId = `operationRate-${timeUnit.charAt(0).toUpperCase() + timeUnit.slice(1)}`;
         const selectedWrapper = document.getElementById(selectedChartId).parentNode.parentNode;
-
+        // const selectedOperationRateYMD = `operationRate-$(timeUint)`;
         if (selectedWrapper) {
             selectedWrapper.style.display = 'block';
+            // console.log('selectedId=', selectedId);
+            // console.log('allSelectId=', allSelectId);
+            // document.getElementById(selectedId).style.color = '#000';
+            // document.getElementById(selectedId).style.fontWeight = '700';
+            document.getElementById('operationRate-Year').style.color = '#BEBEBE';
+            document.getElementById('operationRate-Year').style.fontWeight = '500';
+            document.getElementById('operationRate-Day').style.color = '#BEBEBE';
+            document.getElementById('operationRate-Day').style.fontWeight = '500';
+            document.getElementById('operationRate-Month').style.color = '#BEBEBE';
+            document.getElementById('operationRate-Month').style.fontWeight = '500';
+            document.getElementById(selectedId).style.color = '#000';
+            document.getElementById(selectedId).style.fontWeight = '700';
+            // selecteId.style.color = 'red';
+            // document.querySelectorAll('.watt-operation-rate span.time-select').style.fontWeight = '700';
+            // selecteId.style.fontWeight = '700';
         }
     }
 };

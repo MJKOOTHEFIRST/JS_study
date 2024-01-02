@@ -27,6 +27,17 @@ export const parseConf = (conf, section) => {
     let sectionFound = false;
 
     lines.forEach(line => {
+        // 주석 제거: '#' 문자가 있으면 그 이전까지의 문자열만 사용
+        const commentIndex = line.indexOf('#');
+        if (commentIndex !== -1) {
+            line = line.substring(0, commentIndex);
+        }
+
+        // 빈 라인 무시
+        if (line.trim() === '') {
+            return;
+        }
+
         if (line.trim() === `[${section}]`) {
             sectionFound = true;
         } else if (sectionFound && line.startsWith('[')) {
@@ -37,12 +48,12 @@ export const parseConf = (conf, section) => {
                 const key = parts[0].trim();
                 const value = parts[1].trim();
                 sectionData[key] = value;
-                // console.log(`Key: ${key}, Value: ${value}`);
             }
         }
     });
     return sectionData;
 };
+
 
 export const startDataRefresh = (callback, interval = 10000) => {
     const refreshData = () => { 
