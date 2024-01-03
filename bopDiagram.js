@@ -12,18 +12,25 @@ const BopDiagramManager = {
         });
     },
 
-    // BOP 다이어그램 업데이트 함수
-    updateBopDiagram: function(conf) {
-        // `conf`에서 필요한 데이터 추출 및 DOM 업데이트
-        Object.keys(conf).forEach(key => {
-            // HTML에서 해당하는 요소의 ID를 찾아 값을 업데이트
-            const element = document.getElementById(`${key}_value`);
+  // BOP 다이어그램 업데이트 함수
+  updateBopDiagram: function(conf) {
+    Object.keys(conf).forEach(key => {
+        try {
+            let element = document.getElementById(`${key}_value`);
+            console.log('element:', element);  // 요소가 제대로 선택되었는지 확인
+
             if (element) {
-                // 값만 설정하면 됨 (단위는 이미 HTML에 설정되어 있음)
-                element.textContent = conf[key];
+                let unit = element.querySelector('sup') ? element.querySelector('sup').outerHTML : '';
+                console.log('conf[key]:', conf[key]);  // conf의 키 값 확인
+                console.log('Unit:', unit);  // 단위가 제대로 선택되었는지 확인
+                element.innerHTML = conf[key] + unit;
             }
-        });
-    }
+        } catch (error) {
+            console.error('Error updating BOP diagram for key:', key, error);
+        }
+    });
+}
+
 };
 
 export { BopDiagramManager };
