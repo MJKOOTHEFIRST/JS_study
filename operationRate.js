@@ -10,19 +10,19 @@ const operationRateManager = {
                     .then(capacityData => {
                         const operation = parseFloat(operationData[`e_production_stacked`]);
                         const capacity = parseFloat(capacityData[`e_production_capacity`]);
-                        const percentage = ((operation / capacity) * 100).toFixed(0);
+                        const operationPercentage = ((operation / capacity) * 100).toFixed(0);
 
-                        this.updateDOMElements(operation, percentage, timeUnit);
-                        this.updateChart(operation, capacity, timeUnit);
+                        this.updateDOMElements(operation, operationPercentage, timeUnit);
+                        this.updateChart(operationPercentage, 100, timeUnit); // capacity는 항상 100%
                         this.updateChartDisplay(timeUnit); // 차트 표시 업데이트 추가
                     });
             })
             .catch(error => console.error('Error loading operation data:', error));
     },
 
-    updateDOMElements: function(operation, percentage, timeUnit) {
-        document.querySelector('.operation-result').textContent = operation + ' kW';
-        document.querySelector('.operation-rate').textContent = percentage + '%';
+    updateDOMElements: function(operation, operationPercentage, timeUnit) {
+        document.querySelector('.operation-result').textContent = operation; //Eung
+        document.querySelector('.operation-rate').textContent = operationPercentage; //Eung
     },
 
     getChartData: function(data) {
@@ -64,13 +64,13 @@ const operationRateManager = {
       }
   },
 
-  getChartOptions: function(totalCapacity) {
+  getChartOptions: function() {
     return {
         indexAxis: 'y',
         scales: {
             x: { 
                 stacked: true, 
-                max: totalCapacity,
+                max: 100, // x축 최대값 100%
                 min: 0, // x축 최소값
                 ticks: {
                     font:{size: 8}
@@ -97,9 +97,8 @@ const operationRateManager = {
     updateChartDisplay: function(timeUnit) {
 
         // 모든 .graph-wrapper 숨기기
-        // console.log('timeUnit =' + timeUnit);
         const allWrappers = document.querySelectorAll('.watt-operation-rate .graph-wrapper');
-        
+       
         
         allWrappers.forEach(wrapper => {
             wrapper.style.display = 'none';
@@ -109,13 +108,7 @@ const operationRateManager = {
         const selectedChartId = `eProductionChart${timeUnit.charAt(0).toUpperCase() + timeUnit.slice(1)}`;
         const selectedId = `operationRate-${timeUnit.charAt(0).toUpperCase() + timeUnit.slice(1)}`;
         const selectedWrapper = document.getElementById(selectedChartId).parentNode.parentNode;
-        // const selectedOperationRateYMD = `operationRate-$(timeUint)`;
         if (selectedWrapper) {
-            selectedWrapper.style.display = 'block';
-            // console.log('selectedId=', selectedId);
-            // console.log('allSelectId=', allSelectId);
-            // document.getElementById(selectedId).style.color = '#000';
-            // document.getElementById(selectedId).style.fontWeight = '700';
             document.getElementById('operationRate-Year').style.color = '#BEBEBE';
             document.getElementById('operationRate-Year').style.fontWeight = '500';
             document.getElementById('operationRate-Day').style.color = '#BEBEBE';
@@ -124,9 +117,7 @@ const operationRateManager = {
             document.getElementById('operationRate-Month').style.fontWeight = '500';
             document.getElementById(selectedId).style.color = '#000';
             document.getElementById(selectedId).style.fontWeight = '700';
-            // selecteId.style.color = 'red';
-            // document.querySelectorAll('.watt-operation-rate span.time-select').style.fontWeight = '700';
-            // selecteId.style.fontWeight = '700';
+            selectedWrapper.style.display = 'block';
         }
     }
 };
