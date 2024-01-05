@@ -12,12 +12,15 @@ const BopDiagramManager = {
         });
     },
 
-  // BOP 다이어그램 업데이트 함수
+    // BOP 다이어그램 업데이트 함수
     updateBopDiagram: function(conf) {
         const clusterMap = {
-            'AIR-SUPPORT-BOX': ['T_A_B_in', 'P_A_B_in', 'P_A_m_out', 'MFM-Air', 'Pump-Air'],
-            'WATER-MANAGE-BOX': ['T_A_S_in', 'P_A_S_in', 'T_A_vent', 'T_A_S_out'],
-            'HEAT-MANAGE-BOX': ['T_DI_S_in', 'MFM-DI', 'Pump-DI', 'T_DI_S_out', 'T_w_h_out', 'T_DI_h_out', 'MFM-Water', 'Pump-Water']
+            'blowerFlame': ['T_A_B_in', 'P_A_B_in', 'P_A_m_out', 'MFM-Air', 'Pump-Air'], //공기공급계
+            'huminiferFlame': ['T_A_S_in', 'P_A_S_in', 'T_A_vent', 'T_A_S_out'], //물관리계
+            'SteamReformaerFlame': [''], // 연료공급계
+            'HeatExchangerFlame': ['T_DI_S_out', 'T_w_h_out', 'Pump-Water','MFM-Water'], // 열관리계 HeatExchangerFlame
+            'DIWaterTankFlame': ['MFM-DI', 'T_DI_S_in', 'T_DI_h_out', 'Pump-DI'], // 열관리계 DIWaterTankFlame
+            'WaterTankFlame': ['MFM-Water', 'Pump-Water', 'T_w_h_out'] // 열관리계 WaterTankFlame
         };
 
         Object.keys(conf).forEach(key => {
@@ -33,20 +36,20 @@ const BopDiagramManager = {
                         // element의 조상 요소에 'warning' 클래스 추가
                         element.closest('.tag').classList.add('warning');
 
-                        // element가 속한 클러스터의 첫 번째 <g> 태그의 > 두번째 자식인 g > 의 자식인 rect 'warning-box' 클래스 추가
+                        // element가 속한 클러스터의 rect에 'warning-box' 클래스 추가
                         Object.keys(clusterMap).forEach(cluster => {
-                            if (clusterMap[cluster].includes(key + '_value')) {
-                                document.querySelector(`#${cluster} > g > rect`).classList.add('warning-box');
+                            if (clusterMap[cluster].includes(key)) {
+                                document.querySelector(`#${cluster} > rect`).classList.add('warning-box');
                             }
                         });
                     } else {
                         // element의 조상 요소에서 'warning' 클래스 제거
                         element.closest('.tag').classList.remove('warning');
 
-                        // element가 속한 클러스터의 첫 번째 <g> 태그 자식 요소에서 'warning-box' 클래스 제거
+                        // element가 속한 클러스터의 rect에서 'warning-box' 클래스 제거
                         Object.keys(clusterMap).forEach(cluster => {
                             if (clusterMap[cluster].includes(key)) {
-                                document.querySelector(`#${cluster} > g > rect`).classList.remove('warning-box');
+                                document.querySelector(`#${cluster}`).classList.remove('warning-box');
                             }
                         });
                     }
@@ -63,21 +66,21 @@ const thresholdValues = {
     'A-current': {min: 10, max: 30},
     'V-volt': {min: 20, max: 30},
     'T_A_B_in': {min: -1, max: 1},
-    'P_A_B_in': {min: 10, max: 20},
+    'P_A_B_in': {min: 10, max: 30},
     'P_A_m_out': {min: 5, max: 10},
     'MFM-Air': {min: 20, max: 40},
-    'Pump-Air': {min: 40, max: 50},
+    'Pump-Air': {min: 20, max: 40},
     'T_A_S_out': {min: 50, max: 60},
     'T_A_S_in': {min: 40, max: 50},
     'P_A_S_in': {min: 5, max: 10},
-    'T_A_vent': {min: 40, max: 50},
+    'T_A_vent': {min: 20, max: 40},
     'T_DI_S_in': {min: 50, max: 60},
     'MFM-DI': {min: 20, max: 40},
     'Pump-DI': {min: 60, max: 70},
     'T_DI_S_out': {min: 50, max: 70},
     'T_DI_h_out': {min: 50, max: 60},
     'MFM-Water': {min: 20, max: 40},
-    'Pump-Water': {min: 20, max: 30},
+    'Pump-Water': {min: 10, max: 20},
     'T_w_h_out': {min: 50, max: 60}
 };
 

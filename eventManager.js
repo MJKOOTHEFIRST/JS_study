@@ -44,10 +44,12 @@ document.addEventListener('DOMContentLoaded', function() {
         BopDiagramManager.loadBopData(conf); // [시스템구조도-BOP]
         
         // [금일/금월 생산량 막대차트]
-        const eData = dayMonthProductionBarManager.parseDayMonthConf(conf, 'e_day');
-        const tData = dayMonthProductionBarManager.parseDayMonthConf(conf, 't_day');
-        dayMonthProductionBarManager.createChart('eProduction-bar', eData, 'e_day');
-        dayMonthProductionBarManager.createChart('tProduction-bar', tData, 't_day');
+        const eSection = toggleSwitch1.checked ? 'e_month' : 'e_day';
+        const tSection = toggleSwitch2.checked ? 't_month' : 't_day';
+        const eData = dayMonthProductionBarManager.parseDayMonthConf(conf, eSection);
+        const tData = dayMonthProductionBarManager.parseDayMonthConf(conf, tSection);
+        dayMonthProductionBarManager.createChart('eProduction-bar', eData, eSection);
+        dayMonthProductionBarManager.createChart('tProduction-bar', tData, tSection);
     }).catch(error => {
         console.error('초기 데이터 로드 중 오류 발생:', error);
     });
@@ -99,15 +101,15 @@ document.addEventListener('DOMContentLoaded', function() {
         operationRateManager.loadOperationRateData('day');
     });
 
-    // [금일/금월 생산량 막대차트]
+   // [금일/금월 생산량 막대차트]
     // 토글 스위치 이벤트 핸들러
     toggleSwitch1.addEventListener('change', function(event) {
-        const section = event.target.checked ? 'e_day' : 'e_month';
-        dayMonthProductionBarManager.updateChart('eProduction-bar', currentConf, section);
+        const eSection = event.target.checked ? 'e_month' : 'e_day';
+        dayMonthProductionBarManager.updateChart('eProduction-bar', currentConf, eSection);
     });
     toggleSwitch2.addEventListener('change', function(event) {
-        const section = event.target.checked ? 't_day' : 't_month';
-        dayMonthProductionBarManager.updateChart('tProduction-bar', currentConf, section);
+        const tSection = event.target.checked ? 't_month' : 't_day';
+        dayMonthProductionBarManager.updateChart('tProduction-bar', currentConf, tSection);
     });
 
    

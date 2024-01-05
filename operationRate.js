@@ -38,9 +38,9 @@ const operationRateManager = {
         return chartData;
     },
 
-    createChartData: function(operation, capacity) {
-      return [operation, capacity - operation];
-  },
+//     createChartData: function(operation, capacity) {
+//       return [operation, capacity - operation];
+//   },
 
     createChart: function(canvasId, chartData, totalCapacity) {
       const ctx = document.getElementById(canvasId).getContext('2d');
