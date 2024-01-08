@@ -2,23 +2,35 @@
 import { loadData} from './dataManager.js';
 
 const AlarmManager = {
-    currentFilter:'전항목', // 기본값 '전체'인 필터링 추적하는 변수 추가
+    currentFilters:['전항목'], // 여러 상태를 클릭할 수 있도록 배열로 변수를 설정.
     
     loadAlarmData: function() {
         loadData('alarm')
         .then(conf => {
-            // console.log("conf 타입:", typeof conf); // conf의 타입을 확인
-            // console.log("conf 내용:", conf); // conf의 실제 내용을 확인
-
-            // parseAlarmSection 함수를 사용하여 데이터 파싱
+            // conf의 타입과 내용을 확인
+            console.log("conf 타입:", typeof conf);
+            console.log("conf 내용:", conf);
+    
+            // 데이터 파싱
             const alarmsArray = this.parseAlarmSection(conf);
-            // console.log("alarmsArray", alarmsArray);
-            this.updateAlarmTable(alarmsArray);
+            console.log("alarmsArray", alarmsArray);
+    
+            // 데이터 필터링 로직
+            let filteredAlarmData;
+            if (this.currentFilters.includes('전항목') || this.currentFilters.length === 0) {
+                filteredAlarmData = alarmsArray;
+            } else {
+                filteredAlarmData = alarmsArray.filter(alarm => this.currentFilters.includes(alarm.status));
+            }
+    
+            // 필터링된 데이터로 알람 테이블 업데이트
+            this.updateAlarmTable(filteredAlarmData);
         })
         .catch(error => {
             console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
         });
     },
+    
 
     parseAlarmSection: function(conf) {
     const lines = conf.split('\n');
@@ -54,20 +66,9 @@ const AlarmManager = {
         const tbody = document.querySelector('#alarm-log');
         tbody.innerHTML = ''; // 기존 내용을 비움
 
-        let filteredAlarmData = alarmData;
-
-        // '전항목' 필터거나 필터 적용하지 않은 경우, 모든 데이터를 그대로 사용
-        if(this.currentFilter === '전항목' || !this.currentFilter) {
-            filteredAlarmData = alarmData;
-        } else {
-            // 그 외의 경우, 선택된 필터에 따라 데이터 필터링
-            // 'filter' 는 내장 메서드로, 기존 배열에서 특정 조건을 만족하는 요소들만 골라내어 새로운 배열을 만드는 데 사용
-            filteredAlarmData = alarmData.filter(alarm => alarm.status === this.currentFilter);
-        }
-
-         // 선택된 항목 수에 따라 데이터를 필터링
-         const selectedCount = parseInt(document.getElementById('alarmCountSelect').value, 10); //값 가져와서 10진수로 변환
-         const limitedAlarmData =  filteredAlarmData.slice(0, selectedCount); // 배열의 첫번째 요소부터 selectedCount 번째 요소까지 추출해서 저장
+        // 선택된 항목 수에 따라 데이터를 필터링
+        const selectedCount = document.getElementById('alarmCountSelect').value === '전체' ? alarmData.length : parseInt(document.getElementById('alarmCountSelect').value, 10);
+        const limitedAlarmData = alarmData.slice(0, selectedCount);
 
         limitedAlarmData.forEach(alarm => {
             const tr = document.createElement('tr');
@@ -83,7 +84,7 @@ const AlarmManager = {
                     statusClass = 'watchout-C';
                     break;
             }
-    
+
             tr.innerHTML = `
             <td class="col-4">${alarm.time}</td>
             <td class="col-6">${alarm.comment}</td> 
@@ -92,9 +93,8 @@ const AlarmManager = {
             tbody.appendChild(tr);
         });
     }
+
 };
 
-// 10초마다 데이터 새로고침 --> eventManager.js 로 보낸다.
-// startDataRefresh(() => alarmManager.loadAlarmData(), 10000);
 
 export { AlarmManager };
