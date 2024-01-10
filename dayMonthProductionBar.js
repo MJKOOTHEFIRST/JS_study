@@ -1,4 +1,4 @@
-// dayMonthProductionBarManager.js
+// dayMonthProductionBar.js
 import { loadData, parseConf} from './dataManager.js';
 
 const toggleSwitch1 = document.querySelector('#toggle-switch-1');

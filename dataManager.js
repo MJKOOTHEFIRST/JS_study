@@ -1,5 +1,5 @@
 // dataManager.js
-const base_data_url = "/conf_data/";
+const base_data_url = "/fuelcell_data/";
 const configFileName = 'total_data.conf';
 
 export const loadData = (section = null) => {

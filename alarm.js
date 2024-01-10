@@ -7,19 +7,17 @@ const AlarmManager = {
     loadAlarmData: function() {
         loadData('alarm')
         .then(conf => {
-            // conf의 타입과 내용을 확인
-            console.log("conf 타입:", typeof conf);
-            console.log("conf 내용:", conf);
     
             // 데이터 파싱
             const alarmsArray = this.parseAlarmSection(conf);
-            console.log("alarmsArray", alarmsArray);
+            // console.log("alarmsArray", alarmsArray);
     
             // 데이터 필터링 로직
             let filteredAlarmData;
+            // 배열이 '전항목'을 포함하거나 비어있는 경우, 모든 알람 데이터 사용
             if (this.currentFilters.includes('전항목') || this.currentFilters.length === 0) {
                 filteredAlarmData = alarmsArray;
-            } else {
+            } else { //currentFilters가 특정 상태만 포함하는 경우 해당 상태의 알람만 필터링
                 filteredAlarmData = alarmsArray.filter(alarm => this.currentFilters.includes(alarm.status));
             }
     
@@ -61,7 +59,7 @@ const AlarmManager = {
     return alarms;
 },
 
-
+    // 화면에 표시하는 기능
     updateAlarmTable: function(alarmData) {
         const tbody = document.querySelector('#alarm-log');
         tbody.innerHTML = ''; // 기존 내용을 비움

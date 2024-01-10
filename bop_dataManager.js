@@ -28,7 +28,7 @@ export const parseCsvLearningData = (csvText) => {
     const line = lines[i].trim();
     if (line) {
       const [date, startTime, endTime] = line.split(',');
-      learningData.push({ date, startTime, endTime });
+      learningData.push({ date, startTime, endTime }); 
     }
   }
   

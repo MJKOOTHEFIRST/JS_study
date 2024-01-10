@@ -110,12 +110,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     
     //////////////////////////////////////////////////////////////////////
-    //    [알람로그]
+    //  [알람로그]
     // 전항목 버튼 클릭 이벤트 처리
     document.querySelector('.all-C').addEventListener('click', function() {
-        // '전항목' 버튼이 선택/해제되면 모든 상태를 선택/해제
+        // currentFilters 배열이 4개의 요소를 모두 포함하거나 '전항목'을 포함하면 isAllSelected를 true로 설정, 그렇지 않으면 false
         const isAllSelected = AlarmManager.currentFilters.length === 4 || AlarmManager.currentFilters.includes('전항목');
+        // isAllSelected가 true면 currentfilters 배열을 비운다. false면 배열에 모든 상태를 추가한다. 
         AlarmManager.currentFilters = isAllSelected ? [] : ['정상', '점검요망', '경고', '비상'];
+        // 버튼의 selected 클래스 토글, isAllSelected가  true => selected 클래스 제거, false면 selected 클래스 추가
         document.querySelectorAll('.btn-wrapper button').forEach(btn => {
             btn.classList.toggle('selected', !isAllSelected);
         });
