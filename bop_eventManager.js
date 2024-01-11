@@ -38,14 +38,14 @@ export const updatePagination = (data, page, paginationSelector, pageChangeCallb
   // "왼쪽으로 가기" 버튼 추가
   const prevLi = document.createElement('li');
   prevLi.className = 'page-item';
-  prevLi.innerHTML = `<a class="page-link" href="#" data-page="${Math.max(1, currentPage - 1)}">&laquo;</a>`;
+  prevLi.innerHTML = `<a class="page-link" href="#" data-page="${Math.max(1, page - 1)}">&laquo;</a>`;
   pagination.appendChild(prevLi);
 
   // 페이지 번호 추가
   for (let i = 1; i <= totalPages; i++) {
     const li = document.createElement('li');
     li.className = 'page-item';
-    if (i === currentPage) {
+    if (i === page) {
       li.className += ' active';
     }
     li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
@@ -55,13 +55,13 @@ export const updatePagination = (data, page, paginationSelector, pageChangeCallb
     // "오른쪽으로 가기" 버튼 추가
     const nextLi = document.createElement('li');
     nextLi.className = 'page-item';
-    nextLi.innerHTML = `<a class="page-link" href="#" data-page="${Math.min(totalPages, currentPage + 1)}">&raquo;</a>`;
+    nextLi.innerHTML = `<a class="page-link" href="#" data-page="${Math.min(totalPages, page + 1)}">&raquo;</a>`;
     pagination.appendChild(nextLi);
 
     // 페이지번호 클릭 이벤트 핸들러 추가
     pagination.querySelectorAll('.page-link').forEach(link => {
-      link.addEventLlistener('click', (event) => {
-        e.preventDefault();
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
         const page = parseInt(event.target.dataset.page, 10);
         pageChangeCallback(page);
       });
@@ -71,6 +71,3 @@ export const updatePagination = (data, page, paginationSelector, pageChangeCallb
 
 
 
-
-
-}
