@@ -2,7 +2,7 @@
 
 // bop_dataManager.js에서 함수 임포트
 import { loadData, parseCsvSensorData } from './bop_dataManager.js';
-import { updatePagination } from './bop_eventManager.js';
+import { updatePagination, updateFirstCheckboxState, addCheckboxChangeListeners } from './bop_eventManager.js';
 
 const ITEMS_PER_PAGE = 20;  // 한 페이지에 표시할 항목 수
 let currentPage = 1;  // 현재 페이지 번호
@@ -53,18 +53,10 @@ const displaySensorData = (page) => {
   });
 
   // 첫 번째 체크박스 상태 업데이트
-  firstCheckbox.checked = sensorData.slice(start, end).every((_, index) => checkboxStates[start + index]);
+  updateFirstCheckboxState(checkboxStates, start, end, '#bop-sensor-data-table thead tr th input[type="checkbox"]');
 
   // 현재 페이지의 체크박스들에 대한 이벤트 리스너 추가
-  const checkboxes = tbody.querySelectorAll('input[type="checkbox"]');
-  checkboxes.forEach((checkbox, index) => {
-    const globalIndex = start + index;
-    checkbox.addEventListener('change', () => {
-      checkboxStates[globalIndex] = checkbox.checked;
-      // 첫 번째 체크박스 상태 업데이트
-      firstCheckbox.checked = Array.from(checkboxes).every(checkbox => checkbox.checked);
-    });
-  });
+  addCheckboxChangeListeners(checkboxStates, start, '#bop-sensor-data-table tbody tr td input[type="checkbox"]', '#bop-sensor-data-table thead tr th input[type="checkbox"]');
 
   // 현재 페이지 업데이트
   currentPage = page;

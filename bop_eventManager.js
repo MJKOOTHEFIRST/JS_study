@@ -69,5 +69,24 @@ export const updatePagination = (data, page, paginationSelector, pageChangeCallb
 
   };
 
+ // 체크박스 이벤트
+export const updateFirstCheckboxState = (checkboxStates, start, end, firstCheckboxSelector) => {
+  const firstCheckbox = document.querySelector(firstCheckboxSelector);
+  if (firstCheckbox) {
+    firstCheckbox.checked = checkboxStates.slice(start, end).every(state => state);
+  }
+};
+
+export const addCheckboxChangeListeners = (checkboxStates, start, checkboxesSelector, firstCheckboxSelector) => {
+  const checkboxes = document.querySelectorAll(checkboxesSelector);
+  checkboxes.forEach((checkbox, index) => {
+    const globalIndex = start + index;
+    checkbox.addEventListener('change', () => {
+      checkboxStates[globalIndex] = checkbox.checked;
+      updateFirstCheckboxState(checkboxStates, start, start + checkboxes.length, firstCheckboxSelector);
+    });
+  });
+};
+
 
 

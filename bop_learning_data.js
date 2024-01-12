@@ -2,7 +2,7 @@
 
 // bop_dataManager.js에서 함수 임포트
 import { loadData, parseCsvLearningData } from './bop_dataManager.js';
-import { updatePagination } from './bop_eventManager.js';
+import { updatePagination, updateFirstCheckboxState, addCheckboxChangeListeners } from './bop_eventManager.js';
 
 const ITEMS_PER_PAGE = 20;  // 한 페이지에 표시할 항목 수
 let currentPage = 1;  // 현재 페이지 번호
@@ -51,18 +51,11 @@ const displayLearningData = (page) => {
   });
 
     // 첫 번째 체크박스 상태 업데이트
-  firstCheckbox.checked = learningData.slice(start, end).every((_, index) => checkboxStates[start + index]);
+    updateFirstCheckboxState(checkboxStates, start, end, '#bop-learning-data-table thead tr th input[type="checkbox"]');
 
-  // 현재 페이지의 체크박스들에 대한 이벤트 리스너 추가
-  const checkboxes = tbody.querySelectorAll('input[type="checkbox"]');
-  checkboxes.forEach((checkbox, index) => {
-    const globalIndex = start + index;
-    checkbox.addEventListener('change', () => {
-      checkboxStates[globalIndex] = checkbox.checked;
-      // 첫 번째 체크박스 상태 업데이트
-      firstCheckbox.checked = Array.from(checkboxes).every(checkbox => checkbox.checked);
-    });
-  });
+    // 현재 페이지의 체크박스들에 대한 이벤트 리스너 추가
+    addCheckboxChangeListeners(checkboxStates, start, '#bop-learning-data-table tbody tr td input[type="checkbox"]', '#bop-learning-data-table thead tr th input[type="checkbox"]');
+
 
   // 현재 페이지 업데이트
   currentPage = page;
@@ -104,13 +97,16 @@ allPeriodButton.addEventListener('click', (event) => {
   // 첫번째 체크박스의 상태를 allPeriodSelected와 동일하게 설정
   firstCheckbox.checked = allPeriodSelected;
 
-  //모든 체크박스 선택
-  const checkboxes = document.querySelectorAll('#bop-learning-data-table tbody tr td input[type="checkbox"]');
+  // checkboxStates 배열의 모든 요소를 allPeriodSelected 값으로 설정
+  checkboxStates.fill(allPeriodSelected);
 
-  // 모든 체크박스의 상태를 체크된 상태로 변경
+    // 현재 페이지의 체크박스 상태 업데이트
+  const checkboxes = document.querySelectorAll('#bop-learning-data-table tbody tr td input[type="checkbox"]');
   checkboxes.forEach((checkbox, index) => {
     const globalIndex = (currentPage-1)* ITEMS_PER_PAGE +index;
     checkbox.checked = allPeriodSelected;
-    checkboxStates[globalIndex] = allPeriodSelected;
   });
+
+  // 첫 번째 체크박스 상태 업데이트
+  updateFirstCheckboxState(checkboxStates, 0, checkboxStates.length, '#bop-learning-data-table thead tr th input[type="checkbox"]');
 });
