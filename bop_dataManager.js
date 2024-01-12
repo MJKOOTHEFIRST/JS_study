@@ -45,9 +45,9 @@ export const parseCsvSensorData = (csvText) => {
     const line = lines[i].trim();
     if (line) {
       const parts = line.split(',');
-      const dateRange = parts[0];
+      const date = parts[0];
       const qoe = parseInt(parts[1], 10);
-      sensorData.push({ dateRange, qoe });
+      sensorData.push({ date, qoe });
     }
   }
 

@@ -15,6 +15,7 @@ const loadAndDisplayLearningData = (page = 1) => {
     .then(csvText => parseCsvLearningData(csvText))
     .then(data => {
       learningData = data;
+      checkboxStates = new Array(data.length).fill(false); // 데이터 로드시 체크박스 상태 배열 초기화
       displayLearningData(page);
     })
     .catch(error => {
@@ -24,16 +25,18 @@ const loadAndDisplayLearningData = (page = 1) => {
 
 const displayLearningData = (page) => {
   const tbody = document.querySelector('#bop-learning-data-table tbody');
-  if (!tbody) {
+  const firstCheckbox = document.querySelector('#bop-learning-data-table thead tr th input[type="checkbox"]');
+  if (!tbody || !firstCheckbox) {
     throw new Error('Table body not found');
   }
 
   // 기존의 내용을 초기화
   tbody.innerHTML = '';
 
-  // 표시할 데이터 범위를 계산
+    // 표시할 데이터 범위를 계산
   const start = (page - 1) * ITEMS_PER_PAGE;
-  const end = start + ITEMS_PER_PAGE;
+  const end = Math.min(start + ITEMS_PER_PAGE, learningData.length);
+
 
   // 새로운 행 추가
   learningData.slice(start, end).forEach((item, index) => {
@@ -47,23 +50,17 @@ const displayLearningData = (page) => {
     tbody.appendChild(row);
   });
 
-    // 첫 번째 체크박스의 상태 업데이트
-    const firstCheckbox = document.querySelector('#bop-learning-data-table thead tr th input[type="checkbox"]');
-    const checkboxes = document.querySelectorAll('#bop-learning-data-table tbody tr td input[type="checkbox"]');
-    if(firstCheckbox && checkboxes.length > 0){
-      firstCheckbox.checked = Array.from(checkboxes).every(checkbox => checkbox.checked);
-    }
-  
-  // 체크박스의 상태 변경 이벤트 핸들러
-  tbody.querySelectorAll('input[type="checkbox"]').forEach((checkbox, index) => {
-    const globalIndex = start + index; // 전체 학습 데이터에 대한 인덱스
-    checkbox.addEventListener('change', (event) => {
-      checkboxStates[globalIndex ] = event.target.checked;
+    // 첫 번째 체크박스 상태 업데이트
+  firstCheckbox.checked = learningData.slice(start, end).every((_, index) => checkboxStates[start + index]);
 
+  // 현재 페이지의 체크박스들에 대한 이벤트 리스너 추가
+  const checkboxes = tbody.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach((checkbox, index) => {
+    const globalIndex = start + index;
+    checkbox.addEventListener('change', () => {
+      checkboxStates[globalIndex] = checkbox.checked;
       // 첫 번째 체크박스 상태 업데이트
-      if(firstCheckbox && checkboxes.length > 0) {
-        firstCheckbox.checked = Array.from(checkboxes).every(checkbox => checkbox.checked);
-      }
+      firstCheckbox.checked = Array.from(checkboxes).every(checkbox => checkbox.checked);
     });
   });
 
@@ -90,8 +87,10 @@ firstCheckbox.addEventListener('change', (event) => {
   const checkboxes = document.querySelectorAll('#bop-learning-data-table tbody tr td input[type="checkbox"]');
 
   // 첫 번째 체크박스의 상태에 따라 다른 체크박스의 상태 변경
-  checkboxes.forEach(checkbox => {
+  checkboxes.forEach((checkbox, index) => {
+    const globalIndex = (currentPage - 1) * ITEMS_PER_PAGE + index;
     checkbox.checked = isChecked;
+    checkboxStates[globalIndex] = isChecked; // checkboxStates 배열 업데이트
   });
 });
 
