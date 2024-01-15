@@ -103,7 +103,6 @@ allPeriodButton.addEventListener('click', (event) => {
     // 현재 페이지의 체크박스 상태 업데이트
   const checkboxes = document.querySelectorAll('#bop-learning-data-table tbody tr td input[type="checkbox"]');
   checkboxes.forEach((checkbox, index) => {
-    const globalIndex = (currentPage-1)* ITEMS_PER_PAGE +index;
     checkbox.checked = allPeriodSelected;
   });
 

@@ -1,5 +1,8 @@
 // bop_eventManager.js (bop_learning_data.js와 bop_sensor_data.js의 공통 기능 기능 모듈화 -  테이블에 데이터 표시, 페이지네이션, 체크박스 체크, '모든기간' 버튼)
 
+///////////////////////////////////////////////////////////////////////////////////
+/*********************************************************/
+// BOP 정상 학습 데이터, BOP 센서 데이터 
 export const ITEMS_PER_PAGE = 20; // 한 페이지에 표시할 항목 수
 
 export const displayData = (data, page, tbodySelector, rowHTMLCallback) => {
@@ -87,6 +90,81 @@ export const addCheckboxChangeListeners = (checkboxStates, start, checkboxesSele
     });
   });
 };
+
+///////////////////////////////////////////////////////////////////////////////////
+/*********************************************************/
+// HW BOP 센서 리스트, 소프트 센서 리스트 '전체 선택' , '선택 해제'
+document.addEventListener('DOMContentLoaded', function() {
+  // HW BOP 센서 리스트 위젯의 버튼 선택
+  var hwBopWidget = document.getElementById('hw-bop-sensor-list');
+  var hwBopSelectAll = hwBopWidget.querySelector('.widget-head-gadget .mini:nth-child(1)');
+  var hwBopDeselectAll = hwBopWidget.querySelector('.widget-head-gadget .mini:nth-child(2)');
+
+  // 소프트 센서 리스트 위젯의 버튼 선택
+  var softSensorWidget = document.getElementById('soft-sensor-list');
+  var softSelectAll = softSensorWidget.querySelector('.widget-head-gadget .mini:nth-child(1)');
+  var softDeselectAll = softSensorWidget.querySelector('.widget-head-gadget .mini:nth-child(2)');
+
+  // HW BOP 센서 리스트 위젯에 대한 '모두 선택' 및 '선택 해제' 기능
+  hwBopSelectAll.addEventListener('click', function() {
+    var checkboxes = hwBopWidget.querySelectorAll('.tree input[type="checkbox"]');
+    checkboxes.forEach(function(checkbox) {
+      checkbox.checked = true;
+    });
+  });
+
+  hwBopDeselectAll.addEventListener('click', function() {
+    var checkboxes = hwBopWidget.querySelectorAll('.tree input[type="checkbox"]');
+    checkboxes.forEach(function(checkbox) {
+      checkbox.checked = false;
+    });
+  });
+
+  // 소프트 센서 리스트 위젯에 대한 '모두 선택' 및 '선택 해제' 기능
+  softSelectAll.addEventListener('click', function() {
+    var checkboxes = softSensorWidget.querySelectorAll('.tree input[type="checkbox"]');
+    checkboxes.forEach(function(checkbox) {
+      checkbox.checked = true;
+    });
+  });
+
+  softDeselectAll.addEventListener('click', function() {
+    var checkboxes = softSensorWidget.querySelectorAll('.tree input[type="checkbox"]');
+    checkboxes.forEach(function(checkbox) {
+      checkbox.checked = false;
+    });
+  });
+});
+
+
+///////////////////////////////////////////////////////////////////////////////////
+/*********************************************************/
+// HW BOP 센서 리스트
+// 공기공급계 체크박스에 이벤트 리스너 추가
+document.addEventListener('DOMContentLoaded', function() {
+  var sections = document.querySelectorAll('.tree-ui details');
+
+  sections.forEach(function(section) {
+      var parentCheckbox = section.querySelector('summary input[type="checkbox"]');
+      var childCheckboxes = section.querySelectorAll('ul input[type="checkbox"]');
+
+      // 부모 체크박스 상태 변경 시 자식 체크박스 상태 변경
+      parentCheckbox.addEventListener('change', function() {
+          childCheckboxes.forEach(function(checkbox) {
+              checkbox.checked = parentCheckbox.checked;
+          });
+      });
+
+      // 자식 체크박스 상태 변경 시 부모 체크박스 상태 업데이트
+      childCheckboxes.forEach(function(checkbox) {
+          checkbox.addEventListener('change', function() {
+              var allChecked = Array.from(childCheckboxes).every(checkbox => checkbox.checked);
+              // console.log(allChecked);
+              parentCheckbox.checked = allChecked;
+          });
+      });
+  });
+});
 
 
 
