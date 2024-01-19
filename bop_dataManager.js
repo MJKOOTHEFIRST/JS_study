@@ -1,6 +1,6 @@
 //bop_dataManager.js
 
-export const loadData = (filename = 'bop_learning_data.csv') => {
+export const loadData = (filename) => {
   const base_data_url = "/fuelcell_data/";
   const timestamp = new Date().toISOString(); 
   const url = `${base_data_url}${filename}?t=${timestamp}`; 

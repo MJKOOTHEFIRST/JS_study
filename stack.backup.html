@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="css/common.css" rel="stylesheet">
+  <link href="css/main.css" rel="stylesheet">
+  <link href="./css/multi-select.css" rel="stylesheet" type="text/css" > <!--멀티 셀렉션-->
+  <!-- <link href="css/diagram.css" rel="stylesheet"> -->
+  <script src="js/bootstrap.js"></script>
+  <!-- <script src="js/include.js"></script> -->
+  <script type="module" src="./js/main/stack_dataManager.js"></script> 
+  <script type="module" src="./js/main/stack_eventManager.js"></script> 
+  <!-- <script type="module" src="./js/main/bop_learning_data.js"></script> BOP 정상 학습 데이터 -->
+  <!-- <script type="module" src="./js/main/bop_sensor_data.js"></script> BOP 센서 데이터 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
+  <!-- <script type="module" src="js/main/dataManager.js"></script> 한번에 total_data.conf 뿌려주는 파일 -->
+  <!-- <script type="module" src="js/main/system-info.js"></script> 우측 하단 시스템정보 -->
+  <!-- <script type="module" src="js/main/dayMonthProductionBar.js"></script>금일/금월 전기/열생산량 바그래프 -->
+</head>
+
+<body>
+
+  <header>
+    <nav class="navbar navbar-expand-xxl bg-body-tertiary">
+      <div class="container-fluid">
+        <div class="logo-container">
+          <a href="./index.html">
+            <div class="logo"></div>
+          </a>
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarToggler" aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarToggler">
+          <ul class="navbar-nav">
+            <li><a href="#"><span class="icon-quality-management"></span>품질관리</a></li>
+            <li><a href="stack.html" class="active-link"><span class="icon-stack-diagnosis"></span>스택진단</a></li>
+            <li><a href="bop.html"><span class="icon-BOP-diagnosis"></span>BOP진단</a></li>
+            <li><a href="#"><span class="icon-device-manage"></span>장치관리</a></li>
+          </ul>
+          <div class="login">
+            <div class="stack-place">부안연료전지 #1호기</div>
+            <button class="btn btn-primary float-end"><span class="icon-exit"></span><span class="xxl-only">로그아웃</span></button>
+          </div>
+        </div>
+      </div>
+    </nav>    
+  </header>
+
+  <main>
+
+    <div class="row">
+
+      <div class="col-xxl-2 col-12 stack-column-right">
+        <div class="row">
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget qoe-stack">
+              <div class="widget-head">
+                품질 지수 (스택)
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body">
+                <div class="title">QOE(Stack)</div>
+                <div class="result" id="qoe-stack-Value">10</div>
+              </div>
+            </div>
+          </div>          
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget FCD-unit-ctrl">
+              <div class="widget-head">
+                FuelCellDr 유닛 콘트롤
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body scrollmini scrollmini-noborder on-off-contents">
+                <div class="inner-content">
+                  <h3 class="d-inline-block"><label for="clock">시간측정</label></h3>
+                  <select id="clock" name="people" multiple >
+                      <option value="">0시</option>
+                      <option value="">1시</option>
+                      <option value="">2시</option>
+                      <option value="">3시</option>
+                      <option value="">4시</option>
+                      <option value="">5시</option>
+                      <option value="">6시</option>
+                      <option value="">7시</option>
+                      <option value="">8시</option>
+                      <option value="">9시</option>
+                      <option value="">10시</option>
+                      <option value="">11시</option>
+                      <option value="">12시</option>
+                      <option value="">13시</option>
+                      <option value="">14시</option>
+                      <option value="">15시</option>
+                      <option value="">16시</option>
+                      <option value="">17시</option>
+                      <option value="">18시</option>
+                      <option value="">19시</option>
+                      <option value="">20시</option>
+                      <option value="">21시</option>
+                      <option value="">22시</option>
+                      <option value="">23시</option>
+                  </select>
+                  <!-- 시 -->
+                  <!-- 멀티 셀렉션 시작-->
+                  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+                  <script type="text/javascript" src="./js/lib/jquery.multi-select.js"></script>
+                  <script type="text/javascript">
+                    $(function(){
+                        $('#clock').multiSelect();
+                    });
+                  </script>
+                  <!-- 멀티 셀렉션 끝-->
+                  
+                  <hr>
+                  <h3 class="d-inline-block">주파수 범위</h3>
+                  <input type="number" min="0" max="2000"> Hz ~ <input type="number" min="0" max="2000"> Hz
+                  <hr>
+                  <h3 class="d-inline-block">통신상태</h3>
+                  <span class="connect disconnect">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </span>
+                  <div class="row box-grey">
+                    <div class="col-6">
+                        <button class="box">
+                          <div class="icon-h2s-pause-2"></div>
+                          재시작
+                        </button>
+                          <button class="box">
+                          <div class="icon-h2s-stop-2"></div>
+                          중지
+                        </button>
+                    </div>
+                    <div class="col-6 progress-section">
+                        <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100">
+                          <div class="progress-bar w-75"></div>
+                        </div>
+                        <div class="text-end">80%</div>
+                    </div>
+                  </div>
+                </div>
+                
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget AVHA-state">
+              <div class="widget-head">
+                전류/전압/수소/공기 현황
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body scrollmini scrollmini-noborder on-off-contents">
+                <div class="inner-content">
+                  <div class="conetent-top">
+                    <div class="ampere">
+                      <div>전류</div>
+                      <div>39.97</div>
+                      <div>A</div>
+                    </div>
+                    <div class="volt">
+                      <div>전압</div>
+                      <div>25.254</div>
+                      <div>V</div>
+                    </div>
+                    <div class="hydro">
+                      <div>수소</div>
+                      <div>9.16</div>
+                      <div>lpm</div>
+                    </div>
+                    <div class="air">
+                      <div>공기</div>
+                      <div>28.85</div>
+                      <div>lpm</div>
+                    </div>
+                  </div>
+                  <div class="conetent-bottom">
+                    <object data="./img/AVHA-Graph-2.svg" type="image/svg+xml" style="width: 100%; height: max(130px, 100%) !important;"></object>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget volt-down-prediction">
+              <div class="widget-head">
+                전압 강하 예측
+                <!-- <div class="widget-head-gadget">
+                    <button class="mini">모든기간</button>
+                    <button class="mini">그리기</button>
+                    <button class="mini critical-C">삭제</button>
+                  <span class="icon-arrow-right2"></span>
+                </div> -->
+              </div>
+              <div class="widget-body">
+                <div class="h3-column">
+                  <h3>포인트 설정</h3>
+                  <div class="text-end">
+                    <input type="text"value="2023.07.11 11:20~2023.07.11 11:20">
+                    <button class="btn-of w50px">계산</button>
+                  </div>
+                </div>
+                <!-- <object data="./img/volt-down.svg" type="image/svg+xml"></object> -->
+                <div class="mt-3">
+                  <svg
+                      width="100%"
+                      height="105"
+                      viewBox="0 0 293 105"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg">
+                      <g id="volt-down">
+                          <text
+                              id="start"
+                              fill="black"
+                              xml:space="preserve"
+                              style="white-space: pre"
+                              font-family="Noto Sans KR"
+                              font-size="8"
+                              letter-spacing="0em"
+                              class="06 10">
+                              <tspan x="9" y="17.488">2023.06.10</tspan>
+                          </text>
+                          <text
+                              id="end"
+                              fill="black"
+                              xml:space="preserve"
+                              style="white-space: pre"
+                              font-family="Noto Sans KR"
+                              font-size="8"
+                              letter-spacing="0em"
+                              class="07 11">
+                              <tspan x="80" y="17.488">2023.07.11</tspan>
+                          </text>
+                          <text
+                              id="predict"
+                              fill="#FF0000"
+                              xml:space="preserve"
+                              style="white-space: pre"
+                              font-family="Noto Sans KR"
+                              font-size="8"
+                              letter-spacing="0em"
+                              class="12 25">
+                              <tspan x="243.047" y="17.488">2026.12.25</tspan>
+                          </text>
+                          <text
+                              id="impedance-prediction"
+                              fill="#229A04"
+                              xml:space="preserve"
+                              style="white-space: pre"
+                              font-family="Noto Sans KR"
+                              font-size="12"
+                              letter-spacing="0em">
+                              <tspan x="11" y="98.232">임피던스 예측</tspan>
+                          </text>
+                          <text
+                              id="upper-limit-of-normal"
+                              fill="#FF0000"
+                              xml:space="preserve"
+                              style="white-space: pre"
+                              font-family="Noto Sans KR"
+                              font-size="12"
+                              letter-spacing="0em">
+                              <tspan x="156" y="17.232">정상 상한선</tspan>
+                          </text>
+                          <line id="Line 183" x1="10" y1="21.5" x2="282" y2="21.5" stroke="#FF0000"></line>
+                          <line id="Line 184" x1="10" y1="81.5" x2="282" y2="81.5" stroke="#E3E3E3"></line>
+                          <path
+                              id="Line 185"
+                              d="M79.2327 66.3856L281.932 22.9146"
+                              stroke="#4472C4"
+                              stroke-width="2.5"
+                              stroke-dasharray="5 5"></path>
+                          <path
+                              id="Line 187"
+                              d="M10.9999 81.0003L10.9999 22.0003"
+                              stroke="#229A04"
+                              stroke-dasharray="5 5"></path>
+                          <path
+                              id="Line 188"
+                              d="M80.9047 81.0003L80.9047 22.0003"
+                              stroke="#229A04"
+                              stroke-dasharray="5 5"></path>
+                          <path
+                              id="Line 189"
+                              d="M281.905 81.0003L281.905 22.0003"
+                              stroke="#E3E3E3"
+                              stroke-dasharray="5 5"></path>
+                          <path
+                              id="Line 186"
+                              d="M11 80.8105L79.7768 66.3843"
+                              stroke="#229A04"
+                              stroke-width="2.5"></path>
+                      </g>
+                  </svg>
+                </div>
+                <div class="text-center mt-4">
+                  <strong>2026년 12월(30개월) 전압 강하 예상</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xxl-8 col-12 stack-column-center">
+        <div class="row">
+
+          <div class="col-xxl-6 col-12">
+            <div class="widget stack-state-graph">
+              <div class="widget-head ">
+                스택상태
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body">
+                <div class="row" style="margin-top: 10px;">
+                  <div class="col text-end" style="position: relative">
+                    <input type="text" size="3" value="100" style="position: absolute; top:0; right: 0">
+                    <input type="text" size="3" value="0" style="position: absolute; bottom:35px; right: 0">
+                    <input type="text" size="3" value="0" style="position: absolute; bottom:-20px; right: -65px">
+                    <input type="text" size="3" value="100" style="position: absolute; bottom:-20px; right: -315px">
+                  </div>
+                  <div class="col">
+                  <object data="./img/stack-graph.svg" type="image/svg+xml"></object>
+                  </div>
+                  <div class="col">
+                    <div class="float-end">
+                      <button class="btn-of  w70px ">샘플 그래프</button>
+                      <hr class="w70px mtb-5">
+                      <button ontouchstart="zoom_in()" onclick="zoom_in()" class="btn-of  w70px "><span class="icon-zoom-in"></span></button>
+                      <div class="mtb-5"></div>
+                      <button ontouchstart="zoom_out()" onclick="zoom_out()" class="btn-of  w70px"><span class="icon-zoom-out"></span></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-6 col-12">
+            <div class="widget bode-plot-graph">
+              <div class="widget-head ">
+                Bode Plot
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body">
+                <div class="row" style="margin-top: 10px;">
+                  <div class="col"></div>
+                  <div class="col">
+                    <object data="./img/bode-plot.svg" type="image/svg+xml"></object>
+                  </div>
+                  <div class="col">
+                    <div class="float-end">
+                      <button ontouchstart="zoom_in()" onclick="zoom_in()" class="btn-of  w70px "><span class="icon-zoom-in"></span></button>
+                      <div class="mtb-5"></div>
+                      <button ontouchstart="zoom_out()" onclick="zoom_out()" class="btn-of  w70px"><span class="icon-zoom-out"></span></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget fullcell-graph">
+              <div class="widget-head ">
+                연료 전지 진단
+                <div class="widget-head-gadget">
+                  <span class="icon-arrow-right2"></span>
+                </div>
+              </div>
+              <div class="widget-body">
+                <div class="inner-content">
+                  <div style="position: relative;">
+                    <div class="btn-wrapper" style="position: absolute; right:0; z-index: 1; padding: 4px">
+                        <button ontouchstart="zoom_in()" onclick="zoom_in()" class="btn-of  w50px "><span class="icon-zoom-in"></span></button>
+                        <button ontouchstart="zoom_out()" onclick="zoom_out()" class="btn-of  w50px"><span class="icon-zoom-out"></span></button>
+                        <select id="yearly"><option value="-1">-년 선택-</option><option value="2022">2022</option><option value="2023">2023</option></select> <select id="monthly"><option value="-1">-월(11개)-</option><option value="01/">01/</option><option value="03/">03/</option><option value="04/">04/</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select> <select id="daily"><option value="-1">-일(10개)-</option><option value="04/">04/</option><option value="05/">05/</option><option value="06/">06/</option><option value="07/">07/</option><option value="12/">12/</option><option value="13/">13/</option><option value="14/">14/</option><option value="18/">18/</option><option value="19/">19/</option><option value="20/">20/</option></select><select id="timely"><option value="-1">-시(4개)-</option><option value="1_20231220.csv">1_20231220.csv</option><option value="1_20231220_ma.csv">1_20231220_ma.csv</option><option value="2_20231220.csv">2_20231220.csv</option><option value="2_20231220_ma.csv" selected="">2_20231220_ma.csv</option></select>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col"></div>
+                    <div class="col" style="margin-top: 35px;">
+                      <img src="./img/stack-graph-2.png" alt="">
+                      <div class="result">
+     
+                        <div class="bop">
+                          <div class="title">BOP</div>
+                          <div class="graph">
+                            <div class="outline">
+
+                              <div class="line" style="left: 8%">
+                                <span class="tooltip-box  air-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>    
+                              </div>
+                      
+                              <div class="line" style="left: 16%">
+                                <span class="tooltip-box  heat-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>    
+                              </div>
+
+
+
+                              <div class="line" style="left: 33%">
+                                <span class="tooltip-box  heat-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>    
+                              </div>
+
+                              <div class="line" style="left: 44%">
+                                <span class="tooltip-box  air-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>    
+                              </div>
+
+                              <div class="line" style="left: 45%">
+                                <span class="tooltip-box  air-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>    
+                              </div>
+                              
+
+                              <div class="line" style="left: 55%">
+                                <span class="tooltip-box  heat-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>    
+                              </div>
+
+                              <div class="line" style="left: 67%">
+                                <span class="tooltip-box  air-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>    
+                              </div>
+
+                              <div class="line" style="left: 68%">
+                                <span class="tooltip-box  air-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>    
+                              </div>
+
+
+
+
+
+
+
+
+                            </div>
+                          </div>
+                        </div>
+                      
+                      </div>
+                    </div>           
+                    <div class="col"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="col-xxl-2 col-12 stack-column-left">
+        <div class="row">
+
+          <div class="col-xxl-12 col-6">
+            <div class="widget state-diagnosis">
+              <div class="widget-head">
+                스택 진단
+                <div class="widget-head-gadget">
+                  <div class="widget-head-gadget">
+                    <div class="widget-head-gadget">
+                      <!-- <span class="icon-arrow-right2"></span> -->
+                    </div>
+                  </div>                  
+                </div>
+              </div>
+              <div class="widget-body scrollmini scrollmini-noborder">
+                
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th>정상</th>
+                      <th>표준편차</th>
+                      <th>현재 측정값</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- <tr style="display: none;">
+                    </tr> -->
+                    <tr>
+                      <td>고주파</td>
+                      <td>10</td>
+                      <td>3</td>
+                      <td>11</td>
+                    </tr>
+                    <tr>
+                      <td>중간대역파</td>
+                      <td>30</td>
+                      <td>3</td>
+                      <td>11</td>
+                    </tr>
+                    <tr>
+                      <td>저주파</td>
+                      <td>20</td>
+                      <td>2</td>
+                      <td>11</td>
+                    </tr>
+                    <tr>
+                      <td>High</td>
+                      <td>400</td>
+                      <td>20</td>
+                      <td class="critical-C">430</td>
+                    </tr>
+                    <tr>
+                      <td>Low</td>
+                      <td>500</td>
+                      <td>30</td>
+                      <td>540</td>
+                    </tr>
+                    <tr>
+                      <td colspan="2">Stack QoE</td>
+                      <td colspan="2" class="primary-C">9</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <select name="" id="">
+                  <option value="">당일</option>
+                </select>
+                <br>
+                <div class="d-flex justify-content-between">
+                  <input type="text" value="2023-12-12 12:12"> ~ <input type="text" value="2023-12-12 12:12"> 
+                  <button class="btn-of  w50px">재진단</button>
+                </div>
+                
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-12 col-6">
+            <div class="widget search-result">
+              <div class="widget-head">
+                검색 결과
+                <div class="widget-head-gadget">
+                  <div class="widget-head-gadget">
+                    <!-- <span class="icon-arrow-right2"></span> -->
+                  </div>
+                </div>
+              </div>
+              <div class="widget-body">
+                <h3>검색조건</h3>
+                <div class="scrollmini">
+                  <select name="" id="" class="first-select">
+                    <option value="">S QoE</option>
+                    <option value="">B QoE</option>
+                  </select>
+                  <select name="" id="" class="second-select">
+                    <option value="">&lt;</option>
+                    <option value="">&gt;</option>
+                  </select>
+                  <input type="number" class="third-input">
+                  <button class="btn-of ">+</button>
+                  <hr>
+                  <select name="" id="" class="first-select">
+                    <option value="">S QoE</option>
+                    <option value="">B QoE</option>
+                  </select>
+                  <select name="" id="" class="second-select">
+                    <option value="">&lt;</option>
+                    <option value="">&gt;</option>
+                  </select>
+                  <input type="number" class="third-input">
+                  <button class="circle">&#215;</button>
+                  <hr>
+                  <select name="" id="" class="first-select">
+                    <option value="">S QoE</option>
+                    <option value="">B QoE</option>
+                  </select>
+                  <select name="" id="" class="second-select">
+                    <option value="">&lt;</option>
+                    <option value="">&gt;</option>
+                  </select>
+                  <input type="number" class="third-input">
+                  <button class="circle">&#215;</button>
+                </div>
+                <div class="h3-column">
+                  <h3 class="d-inline-block">라벨</h3>
+                  <div class="float-end">
+                    <input type="text" size="15">
+                    <button class="btn-of  w50px">검색</button>
+                  </div>
+                </div>
+                <div class="list scrollmini">
+                  <table class="table table-striped">
+                    <tbody>
+                      <tr>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                      </tr>
+                      <tr>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                      </tr>
+                      <tr>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                      </tr>
+                      <tr>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                      </tr>
+                      <tr>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                      </tr>
+                      <tr>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                      </tr>
+                      <tr>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                      </tr>
+                      <tr>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                      </tr>
+                      <tr>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                      </tr>
+                      <tr>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                      </tr>
+                      <tr>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                        <td><input type="checkbox" name="" id=""> 2023-07-31 15:17</td>
+                      </tr>
+
+                    </tbody>
+                  </table>
+                </div>
+                <button class="btn-of w-24">그래프 보기</button>
+                <button class="btn-of w-24">정상 학습</button>
+                <button class="btn-of w-24">라벨 수정</button>
+                  
+                <button class="btn-of w-24 float-end">초기화</button>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- <div class="col-xxl-12 col-12 order-xxl-first"> -->
+          <div class="col-xxl-12 col-12">
+            <div class="widget diagnosis-log">
+              <div class="widget-head">
+                진단 로그
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body">
+                <div class="table-responsive">
+                  <table class="table table-fixed table-striped">
+                    <thead>
+                      <tr>
+                        <th><input type="checkbox" name="diagnosis-log-checkboxes" id="diagnosis-log-checkbox"></th>
+                        <th>시간</th>
+                        <th>내용</th>
+                      </tr>
+                    </thead>
+                    <tbody class="scrollmini">
+                      <tr>
+                        <!--
+                        <td><input type="checkbox" name="" id="diagnosis-log-checkbox"></td>
+                        <td>2023-07-31 14:26</td>
+                        <td>공기 유량 선서 부안.stk</td>
+                      </tr>
+                        -->
+                    </tbody>
+                  </table>
+                </div>
+                <div class="d-grid">
+                  <nav class="pagination-wrap">
+                    <ul class="pagination" id="diagnosis-log-pagination">
+                      <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
+                      <!--
+                      <li class="page-item"><a class="page-link active" href="#">1</a></li>
+                      <li class="page-item"><a class="page-link" href="#">2</a></li>
+                      -->
+                      <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>            
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+</body>
+
+</html>
+
