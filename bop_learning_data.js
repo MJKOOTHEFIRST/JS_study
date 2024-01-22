@@ -1,7 +1,7 @@
 // bop_learning_data.js
 
 // bop_dataManager.js에서 함수 임포트
-import { loadData, parseCsvLearningData } from './bop_dataManager.js';
+import { parseCsvLearningData, startDataRefresh} from './bop_dataManager.js';
 import { updatePagination, updateFirstCheckboxState, addCheckboxChangeListeners } from './bop_eventManager.js';
 
 const ITEMS_PER_PAGE = 20;  // 한 페이지에 표시할 항목 수
@@ -10,17 +10,22 @@ let learningData = [];  // 학습 데이터
 let allPeriodSelected = false;  // "모든기간" 버튼이 눌렸는지 여부
 let checkboxStates = []; // 체크박스 상태를 저장하는 배열
 
-const loadAndDisplayLearningData = (page = 1) => {
-  loadData('bop_learning_data.csv')
-    .then(csvText => parseCsvLearningData(csvText))
-    .then(data => {
-      learningData = data;
-      checkboxStates = new Array(data.length).fill(false); // 데이터 로드시 체크박스 상태 배열 초기화
-      displayLearningData(page);
-    })
-    .catch(error => {
-      console.error('Error loading or displaying data:', error);
-    });
+// 데이터를 주기적으로 새로고침하는 로직 + 데이터 새로고침시에도 currentPage가 조정
+const refreshLearningData = () => {
+  startDataRefresh('bop_learning_data.csv', parseCsvLearningData, (newData) => {
+    learningData = newData;
+    checkboxStates = new Array(newData.length).fill(false);
+
+    // 총 페이지 수를 계산
+    const totalPages = Math.ceil(newData.length / ITEMS_PER_PAGE);
+
+    // 현재 페이지 번호가 총 페이지 수를 초과하지 않도록 조정
+    if (currentPage > totalPages) {
+      currentPage = totalPages;
+    }
+
+    displayLearningData(currentPage);
+  });
 };
 
 const displayLearningData = (page) => {
@@ -64,8 +69,9 @@ const displayLearningData = (page) => {
   updatePagination(learningData, currentPage, '#bop-learning-data-pagination', displayLearningData);
 };
 
-// 페이지 로드 시 데이터 로드 및 표시
-document.addEventListener('DOMContentLoaded', () => loadAndDisplayLearningData(currentPage));
+// 페이지 로드 시 데이터 주기적 새로고침 시작
+document.addEventListener('DOMContentLoaded', refreshLearningData);
+
 
 // 첫 번째 체크박스 선택, 상태 업데이트
 const firstCheckbox = document.querySelector('#bop-learning-data-table thead tr th input[type="checkbox"]');

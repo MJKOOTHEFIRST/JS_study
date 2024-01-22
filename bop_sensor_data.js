@@ -1,7 +1,7 @@
 // bop_sensor_data.js
 
 // bop_dataManager.js에서 함수 임포트
-import { loadData, parseCsvSensorData } from './bop_dataManager.js';
+import { parseCsvSensorData, startDataRefresh } from './bop_dataManager.js';
 import { updatePagination, updateFirstCheckboxState, addCheckboxChangeListeners } from './bop_eventManager.js';
 
 const ITEMS_PER_PAGE = 20;  // 한 페이지에 표시할 항목 수
@@ -9,18 +9,24 @@ let currentPage = 1;  // 현재 페이지 번호
 let sensorData = [];  // 센서 데이터
 let checkboxStates = []; // 체크박스 상태를 저장하는 배열
 
-const loadAndDisplaySensorData = (page = 1) => {
-  loadData('bop_sensor_data.csv')
-    .then(csvText => parseCsvSensorData(csvText))
-    .then(data => {
-      sensorData = data;
-      checkboxStates = new Array(data.length).fill(false); // 데이터 로드 시 체크박스 상태 배열 초기화
-      displaySensorData(page);
-    })
-    .catch(error => {
-      console.error('Error loading or displaying data:', error);
-    });
+// 데이터를 주기적으로 새로고침하는 로직
+const refreshSensorData = () => {
+  startDataRefresh('bop_sensor_data.csv', parseCsvSensorData, (newData) => {
+    sensorData = newData;
+    checkboxStates = new Array(newData.length).fill(false);
+
+    // 총 페이지 수를 계산
+    const totalPages = Math.ceil(newData.length / ITEMS_PER_PAGE);
+
+    // 현재 페이지 번호가 총 페이지 수를 초과하지 않도록 조정
+    if (currentPage > totalPages) {
+      currentPage = totalPages;
+    }
+
+    displaySensorData(currentPage);
+  });
 };
+
 
 const displaySensorData = (page) => {
   const tbody = document.querySelector('#bop-sensor-data-table tbody');
@@ -65,9 +71,8 @@ const displaySensorData = (page) => {
   updatePagination(sensorData, page, '#bop-sensor-data-pagination', displaySensorData);
 };
 
-// 페이지 로드 시 데이터 로드 및 표시
-document.addEventListener('DOMContentLoaded', () => {
-  loadAndDisplaySensorData(currentPage);
+// 페이지 로드 시 데이터 주기적 새로고침 시작
+document.addEventListener('DOMContentLoaded', refreshSensorData);
 
   // 첫 번째 체크박스에 대한 이벤트 리스너 설정
   const firstCheckbox = document.querySelector('#bop-sensor-data-table thead tr th input[type="checkbox"]');
@@ -81,4 +86,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     displaySensorData(currentPage); // 체크박스 상태를 업데이트하고 화면을 다시 그립니다.
   });
-});

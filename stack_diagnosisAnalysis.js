@@ -1,4 +1,4 @@
-// stack_diagnosisAnalysis.js
+// stack_eventManager.js
 
 import { loadStackData, parseCsvDiagnosisLogData} from './stack_dataManager.js';
 

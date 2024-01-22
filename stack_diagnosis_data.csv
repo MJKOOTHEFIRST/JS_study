@@ -1,0 +1,7 @@
+Category,Normal_Value,Standard_Deviation,Current_Measurement
+High_Frequency,10,3,11
+Mid-band_Frequency,30,3,11
+Low_Frequency,20,2,11
+High,400,20,430
+Low,500,30,540
+Stack_QoE,9,,,
