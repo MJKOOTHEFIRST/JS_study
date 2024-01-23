@@ -28,8 +28,8 @@ const realTimeProductionManager = {
         document.querySelector('.realtime-t-percentage').innerHTML = data.t_realtime_production;
 
         // 하단의 숫자 데이터 업데이트(임시데이터 섹션)
-        document.querySelector('.e-bottom-side').innerHTML = data.e_realtime_production + ' <sub>kW</sub>';
-        document.querySelector('.t-bottom-side').innerHTML = data.t_realtime_production + ' <sub>kW</sub>';
+        document.querySelector('.e-bottom-side').innerHTML = data.e_realtime_production + ' <sub>W</sub>'; //<sub>kW</sub>
+        document.querySelector('.t-bottom-side').innerHTML = data.t_realtime_production + ' <sub>W</sub>'; //<sub>kW</sub>
     },
 
     createHalfDoughnutChart: function(canvasId, productionPercent, label, color) {

@@ -72,7 +72,8 @@ const displaySensorData = (page) => {
 };
 
 // 페이지 로드 시 데이터 주기적 새로고침 시작
-document.addEventListener('DOMContentLoaded', refreshSensorData);
+document.addEventListener('DOMContentLoaded', () => {
+  refreshSensorData();
 
   // 첫 번째 체크박스에 대한 이벤트 리스너 설정
   const firstCheckbox = document.querySelector('#bop-sensor-data-table thead tr th input[type="checkbox"]');
@@ -82,7 +83,7 @@ document.addEventListener('DOMContentLoaded', refreshSensorData);
     const end = Math.min(start + ITEMS_PER_PAGE, sensorData.length);
     for (let i = start; i < end; i++) {
       checkboxStates[i] = isChecked;
-      checkboxStates[i] = isChecked;
     }
     displaySensorData(currentPage); // 체크박스 상태를 업데이트하고 화면을 다시 그립니다.
   });
+});

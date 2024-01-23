@@ -21,8 +21,21 @@ const operationRateManager = {
     },
 
     updateDOMElements: function(operation, operationPercentage, timeUnit) {
-        document.querySelector('.operation-result').textContent = operation; //Eung
-        document.querySelector('.operation-rate').textContent = operationPercentage; //Eung
+        // 발전량 수치 업데이트
+        const operationValueElement = document.querySelector('.operation-result');
+        const unitElement = document.querySelector('.result-unit');
+    
+        // 1000Wh 이상일 경우 단위를 kWh로 변경
+        if (operation >= 1000) {
+            unitElement.textContent = 'kWh';
+            operationValueElement.textContent = (operation / 1000).toFixed(2); // 수치를 kWh로 변환
+        } else {
+            unitElement.textContent = 'Wh';
+            operationValueElement.textContent = operation.toFixed(2);
+        }
+    
+        // 가동율을 업데이트
+        document.querySelector('.operation-rate').textContent = operationPercentage ; //Eung
     },
 
     getChartData: function(data) {
