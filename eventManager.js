@@ -7,7 +7,7 @@ import { SystemInfoManager } from './system-info.js';
 import { AlarmManager } from './alarm.js';
 import { dayMonthProductionBarManager, toggleSwitch1, toggleSwitch2 } from './dayMonthProductionBar.js';
 import { realTimeProductionManager } from './realTimeProduction.js';
-import { operationRateManager } from './operationRate.js';
+import { operationRateManager } from './operation-rate.js';
 import { BopDiagramManager } from './bopDiagram.js';
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -15,39 +15,63 @@ document.addEventListener('DOMContentLoaded', function() {
     // 이후 다른 함수나 이벤트 핸들러에서 이 데이터를 참조할 때 사용
     // 설정 파일에서 로드된 데이터가 필요한 경우, currentConf 변수를 통해 접근(callback)
     let currentConf = null;
-    let currentOperationTimeUnit = 'day'; 
+    let currentOperationTimeUnit = 'e_day';  //발전량/가동율 초기 설정
 
     // [금일/금월 전기생산량 열생산량 토글스위치]
     // 페이지 로드 시 토글 스위치의 초기 상태에 따라 eSection과 tSection 결정
     const eSection = toggleSwitch1.checked ? 'e_month' : 'e_day';
     const tSection = toggleSwitch2.checked ? 't_month' : 't_day';
 
-    // [발전량/가동율]
-    // 시간 선택 이벤트 리스너 설정
+    // [발전량/가동율] - 시간 선택 버튼에 대한 이벤트 리스너 설정
+    function clearSelected() {
+        document.querySelectorAll('.watt-operation-rate .time-select').forEach(element => {
+            element.classList.remove('selected');
+        });
+    }
+
+    document.getElementById('operationRate-Stack').addEventListener('click', function() {
+        clearSelected();
+        this.classList.add('selected');
+        currentOperationTimeUnit = 'e_total';
+        operationRateManager.loadOperationRateData(currentOperationTimeUnit);
+    });
+
     document.getElementById('operationRate-Year').addEventListener('click', function() {
-        currentOperationTimeUnit = 'year';
+        clearSelected();
+        this.classList.add('selected');
+        currentOperationTimeUnit = 'e_year';
         operationRateManager.loadOperationRateData(currentOperationTimeUnit);
     });
+
     document.getElementById('operationRate-Month').addEventListener('click', function() {
-        currentOperationTimeUnit = 'month';
-        operationRateManager.loadOperationRateData(currentOperationTimeUnit);
+        clearSelected();
+        this.classList.add('selected');
+        const currentMonth = new Date().getMonth() + 1;
+        currentOperationTimeUnit = `e_month`;
+        operationRateManager.loadOperationRateData(currentOperationTimeUnit, currentMonth);
     });
+
     document.getElementById('operationRate-Day').addEventListener('click', function() {
-        currentOperationTimeUnit = 'day';
-        operationRateManager.loadOperationRateData(currentOperationTimeUnit);
+        clearSelected();
+        this.classList.add('selected');
+        currentOperationTimeUnit = `e_day`;
+        operationRateManager.loadOperationRateData(currentOperationTimeUnit, new Date().getDate());
     });
 
     /**********************************************************************************/
       // 초기 데이터 로드 및 차트 생성
-      loadData().then(conf => {
+    loadData().then(conf => {
         currentConf = conf;
         SystemInfoManager.loadSystemData(conf); //[시스템]
         QoeManager.loadQoeData(conf); //[qoe]
         AlarmManager.loadAlarmData(conf); //[알람로그]
         realTimeProductionManager.loadRealTimeProductionData(); //[실시간생산량]
-        operationRateManager.loadOperationRateData('day'); //[발전량 / 가동율]
         BopDiagramManager.loadBopData(conf); // [시스템구조도-BOP]
-       
+        //[발전량 / 가동율]
+        const currentDate = new Date().getDate().toString().padStart(2, '0');
+        operationRateManager.loadOperationRateData('e_day', currentDate) // 현재 날짜를 keySuffix로 전달
+
+    
         // [알람로그] 페이지 로드  시 '전항목' 선택
         AlarmManager.currentFilters = ['전항목'];
         document.getElementById('alarmCountSelect').value = '전체';
@@ -85,14 +109,35 @@ document.addEventListener('DOMContentLoaded', function() {
     //////////////////////////////////////////////////////////////////////
     // [발전량/가동율]
     // 시간 선택 클릭 이벤트 
-     document.getElementById('operationRate-Year').addEventListener('click', function() {
-        operationRateManager.loadOperationRateData('year');
+    /*
+    document.getElementById('operationRate-Stack').addEventListener('click', function() {
+        clearSelected();
+        this.classList.add('selected');
+        currentOperationTimeUnit = 'e_total';
+        operationRateManager.loadOperationRateData(currentOperationTimeUnit);
     });
+    
+    document.getElementById('operationRate-Year').addEventListener('click', function() {
+        clearSelected();
+        this.classList.add('selected');
+        currentOperationTimeUnit = 'e_year';
+        operationRateManager.loadOperationRateData(currentOperationTimeUnit, 'eProductionChartYear');
+    });
+    
     document.getElementById('operationRate-Month').addEventListener('click', function() {
-        operationRateManager.loadOperationRateData('month');
+        clearSelected();
+        this.classList.add('selected');
+        const currentMonth = new Date().getMonth() + 1;
+        currentOperationTimeUnit = `e_month`;
+        operationRateManager.loadOperationRateData(currentOperationTimeUnit, 'eProductionChartMonth', currentMonth);
     });
+    
     document.getElementById('operationRate-Day').addEventListener('click', function() {
-        operationRateManager.loadOperationRateData('day');
+        clearSelected();
+        this.classList.add('selected');
+        const currentDate = new Date().getDate();
+        currentOperationTimeUnit = `e_day`;
+        operationRateManager.loadOperationRateData(currentOperationTimeUnit, 'eProductionChartDay', currentDate);
     });
     
     //////////////////////////////////////////////////////////////////////
@@ -106,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const tSection = event.target.checked ? 't_month' : 't_day';
         dayMonthProductionBarManager.updateChart('tProduction-bar', currentConf, tSection);
     });
-    
+    */
     
     
     //////////////////////////////////////////////////////////////////////

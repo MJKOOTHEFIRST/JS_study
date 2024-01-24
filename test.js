@@ -31,8 +31,8 @@ const realTimeProductionManager = {
 
     updateCharts: function(data, totalData) {
         // 퍼센티지 계산
-        const ePercentage = Number(data.e_real_per_production).toFixed(0);
-        const tPercentage = Number(data.t_real_per_production).toFixed(0);
+        const ePercentage = data.e_real_per_production.toFixed(0);
+        const tPercentage = data.t_real_per_production.toFixed(0);
     
         // 전기 발전량 차트 업데이트
         this.createHalfDoughnutChart('realtime-eProduction', ePercentage, '전기발전량', '#4CB9E7');
