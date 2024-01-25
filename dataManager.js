@@ -2,6 +2,15 @@
 const base_data_url = "/fuelcell_data/";
 const configFileName = 'total_data.conf';
 
+export function getToday() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 1을 더해줍니다.
+    const day = String(today.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+};
+
 export const loadData = (section = null) => {
     const timestamp = new Date().toISOString(); // 현재 시간을 ISO 형식의 문자열로 변환
     const url = `${base_data_url}${configFileName}?t=${timestamp}`; // URL에 현재 시간을 파라미터로 추가(캐시없애기)
@@ -58,6 +67,7 @@ export const parseConf = (conf, section) => {
 export const startDataRefresh = (callback, interval = 10000) => {
     const refreshData = () => { 
         loadData().then(conf => { // refreshData는 loadData를 호출하여 데이터 로드
+            console.log(data);
             callback(conf); // startDataRefresh 함수는 콜백 함수를 매개변수로 받아, 데이터 로딩이 완료될 때마다 해당 콜백함수 실행.
         }).catch(error=> {
             console.error('error loading data:', error);
@@ -68,3 +78,56 @@ export const startDataRefresh = (callback, interval = 10000) => {
 };
 // 데이터 로딩 로직은 dataManager.js에서 중앙집중적 관리, 로드된 데이터를 어떻게 사용할지는 각 위젯에서 결정
 
+
+export const loadAllData = () => {
+    const timestamp = new Date().toISOString(); // 현재 시간을 ISO 형식의 문자열로 변환
+    const url = `${base_data_url}${configFileName}?t=${timestamp}`; // URL에 현재 시간을 파라미터로 추가(캐시없애기)
+
+    return fetch(url)
+        .then(response => response.text())
+        .then(text => {
+            const data = parseAllConf(text); // 모든 섹션의 데이터를 파싱
+            console.log('Today is', getToday()); // 오늘 날짜 출력
+            console.log('Loaded data:', data); // 로드된 데이터 출력
+            return data;
+        })
+        .catch(error => {
+            console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
+            throw error;
+        });
+};
+
+
+export const parseAllConf = (conf) => {
+    const lines = conf.split('\n');
+    let data = {};
+    let currentSection = null;
+
+    lines.forEach(line => {
+        // 주석 제거: '#' 문자가 있으면 그 이전까지의 문자열만 사용
+        const commentIndex = line.indexOf('#');
+        if (commentIndex !== -1) {
+            line = line.substring(0, commentIndex);
+        }
+
+        // 빈 라인 무시
+        if (line.trim() === '') {
+            return;
+        }
+
+        // 섹션 시작
+        if (line.startsWith('[')) {
+            currentSection = line.slice(1, -1);
+            data[currentSection] = {};
+        } else if (currentSection) {
+            const parts = line.split('=');
+            if (parts.length === 2) {
+                const key = parts[0].trim();
+                const value = parts[1].trim();
+                data[currentSection][key] = value;
+            }
+        }
+    });
+
+    return data;
+};

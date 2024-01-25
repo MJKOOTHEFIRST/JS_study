@@ -7,7 +7,7 @@ import { SystemInfoManager } from './system-info.js';
 import { AlarmManager } from './alarm.js';
 import { dayMonthProductionBarManager, toggleSwitch1, toggleSwitch2 } from './dayMonthProductionBar.js';
 import { realTimeProductionManager } from './realTimeProduction.js';
-import { operationRateManager } from './operation-rate.js';
+import { operationRateManager } from './operation_rate.js';
 import { BopDiagramManager } from './bopDiagram.js';
 
 document.addEventListener('DOMContentLoaded', function() {
