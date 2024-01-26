@@ -1,4 +1,4 @@
-//operation-rate.js [발전량 / 가동율]
+//operation-rate.js
 import { loadData } from './dataManager.js';
 
 const operationRateManager = {
@@ -6,81 +6,63 @@ const operationRateManager = {
 
 
     loadOperationRateData: function(sectionName, keySuffix) {
-        keySuffix = keySuffix || 'default'; // keySuffix가 undefined인 경우 'default'를 사용
+        console.log("loadOperationRateData called", sectionName, keySuffix);
+        keySuffix = keySuffix || 'default';
+    
         let dataKey, capacityKey;
-        if (sectionName === 'e_month' || sectionName === 'e_day') {
-            dataKey = `e_production_${keySuffix.toString().padStart(2, '0')}`; // 'e_production_XX' 형식의 키를 사용
-            capacityKey = 'e_production_capacity'; // capacity는 항상 'e_production_capacity'
+        if (sectionName === 'e_total') {
+            dataKey = 'e_production';
+            capacityKey = 'e_total_capacity';
         } else if (sectionName === 'e_year') {
-            // 'e_year'에 대한 처리
-            dataKey = `e_production_${new Date().getFullYear()}`; // 현재 연도를 사용
-            capacityKey = 'e_production_capacity'; // capacity는 항상 'e_production_capacity'
-        } else {
-            // 'e_total'에 대한 처리
-            dataKey = 'e_production'; // 연도 접미사가 없음
-            capacityKey = 'e_production_capacity'; // capacity는 항상 'e_production_capacity'
+            dataKey = `e_production_${new Date().getFullYear()}`;
+            capacityKey = 'e_year_capacity';
+        } else if (sectionName === 'e_month') {
+            const currentMonth = new Date().getMonth() + 1;
+            dataKey = `e_production_${currentMonth.toString().padStart(2, '0')}`;
+            capacityKey = 'e_month_capacity';
+        } else if (sectionName === 'e_day') {
+            const currentDay = new Date().getDate();
+            dataKey = `e_production_${currentDay.toString().padStart(2, '0')}`;
+            capacityKey = 'e_day_capacity';
         }
-        // Promise.all을 반환하도록 수정
+    
         return Promise.all([
-            loadData(sectionName, dataKey),
-            loadData(`${sectionName}_capacity`, capacityKey)
+            loadData(dataKey),
+            loadData(capacityKey)
         ])
         .then(([operationData, capacityData]) => {
-            const operation = parseFloat(operationData[dataKey]);
-            const capacity = parseFloat(capacityData[capacityKey]);
-            const operationPercentage = ((operation / capacity) * 100).toFixed(0);
-            
-            // sectionName을 timeUnit으로 변환
-            let timeUnit;
-            switch (sectionName) {
-                case 'e_month':
-                    timeUnit = 'e_month';
-                    break;
-                case 'e_day':
-                    timeUnit = 'e_day';
-                    break;
-                case 'e_year':
-                    timeUnit = 'e_year';
-                    break;
-                case 'e_total':
-                    timeUnit = 'e_total';
-                    break;
-                default:
-                    console.error('Invalid section name:', sectionName);
-                    return;
-            }
-    
-            this.updateDOMElements(operation, operationPercentage, timeUnit);
-            this.updateChart(operationPercentage, 100, timeUnit);
-            this.updateChartDisplay(timeUnit);
+            const operation = parseFloat(operationData[dataKey] || 0);
+            const capacity = parseFloat(capacityData[capacityKey] || 0);
+            this.updateDOMElements(operation);
+            this.updateChart(operation, capacity, sectionName);
         })
         .catch(error => console.error('Error loading operation data:', error));
     },
-
-    updateDOMElements: function(operation, operationPercentage, timeUnit) {
-        // 발전량 수치 업데이트
+    
+    
+    updateDOMElements: function(operation) {
         const operationValueElement = document.querySelector('.operation-result');
-        const unitElement = document.querySelector('.result-unit');
+        const operationUnitElement = document.querySelector('.result-unit');
     
-        // 1000Wh 이상일 경우 단위를 kWh로 변경
-        if (operation >= 10000) {
-            unitElement.textContent = 'kWh';
-            operationValueElement.textContent = (operation / 1000).toFixed(2); // 수치를 kWh로 변환
+        // 1000Wh 이상일 경우 단위를 kWh로 변경, 그렇지 않으면 Wh 사용
+        if (operation >= 1000) {
+            operationValueElement.textContent = `${(operation / 1000).toFixed(2)}`;
+            operationUnitElement.textContent= 'kWh';
         } else {
-            unitElement.textContent = 'Wh';
-            operationValueElement.textContent = operation.toFixed(2);
+            operationValueElement.textContent = `${operation.toFixed(2)} `;
+            operationUnitElement.textContent= 'Wh';
         }
-    
-        // 가동율을 업데이트
-        document.querySelector('.operation-rate').textContent = operationPercentage ; //Eung
     },
 
-    getChartData: function(data) {
+    getChartData: function(operation, capacity) {
+        // 운영 결과가 차지하는 비율 계산(백분율)
+        const operationRate = (operation / capacity) * 100;
+
         var chartData = {
-            labels: [''],
+            labels: ['', ''],
             datasets: [{
                 label: 'Data',
-                data: [data.stacked, data.capacity - data.stacked],
+                data: [operationRate, 100 - operationRate],
                 backgroundColor: ['rgba(54, 162, 235, 0.5)', 'rgba(211, 211, 211, 0.5)']
             }]
         };
@@ -123,7 +105,7 @@ const operationRateManager = {
                 return;
         }
 
-        const chartData = this.getChartData({stacked: operation, capacity: capacity});
+        const chartData = this.getChartData(operation, capacity);
   
       if (this.charts[canvasId]) {
           this.charts[canvasId].data.datasets[0].data = chartData.datasets[0].data;
@@ -198,7 +180,7 @@ const operationRateManager = {
 
         let selectedWrapper = document.getElementById(selectedChartId);
         if (!selectedWrapper) { // 선택된 요소가 실제로 존재하는지 확인
-            console.error(`Cannot find element with id '${selectedChartId}'`);
+            (`Cannot find element with id '${selectedChartId}'`);
             return; // 선택된 요소가 없으면 함수를 종료
         }
         selectedWrapper.style.display = 'block';
@@ -214,7 +196,7 @@ const operationRateManager = {
         const selectedButton = document.getElementById(selectedId);
         if (selectedButton) {
             selectedButton.style.color = '#000';
-            selectedButton.style.fontWeight = '700';
+            selectedButton.style.fontWeight = '800';
         }
     }
 

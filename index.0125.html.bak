@@ -18,6 +18,7 @@
   <script type="module" src="./js/main/alarm.js"></script> <!-- 알람로그 -->
   <script type="module" src="./js/main/realTimeProduction.js"></script> <!-- 실시간 생산량 반도넛 -->
   <script type="module" src="./js/main/operation_rate.js"></script> <!-- 발전량 / 가동율 누적차트 -->
+  <script type="module" src="./js/main/operation_info.js"></script> <!-- 발전량 / 가동율 누적차트 -->
   <script type="module" src="./js/main/dayMonthProductionBar.js"></script> <!--금일/금월 전기/열생산량 바그래프-->
   <script type="module" src="./js/main/qoe.js"></script>
   <script type="module" src="./js/main/bopDiagram.js"></script> <!--시스템구조도(BOP)-->
@@ -76,7 +77,7 @@
                     <div class="top-side">
                         <div class="row">
                             <div class="col-3 select">
-                                <span id="operationRate-Stack">누적</span>
+                                <span id="operationRate-Stack" class="time-select">누적</span>
                                 <span id="operationRate-Year" class="time-select">년</span>
                                 <span id="operationRate-Month" class="time-select">월</span>
                                 <span id="operationRate-Day" class="time-select selected">일</span>
@@ -95,6 +96,11 @@
                         </div>
                         <div class="graph-wrapper-base-out">
                             <div class="graph-wrapper-base">
+                                <div class="graph-wrapper">
+                                    <div class="graph" style="width: calc(100% - 10px); height: 60px; text-align:center;">
+                                        <canvas id="eProductionChartTotal" class="operationRate-chart"></canvas>
+                                    </div>
+                                </div>
                                 <div class="graph-wrapper">
                                     <div class="graph" style="width: calc(100% - 10px); height: 60px; text-align:center;">
                                         <canvas id="eProductionChartYear" class="operationRate-chart"></canvas>

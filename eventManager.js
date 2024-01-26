@@ -22,42 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const eSection = toggleSwitch1.checked ? 'e_month' : 'e_day';
     const tSection = toggleSwitch2.checked ? 't_month' : 't_day';
 
-    // [발전량/가동율] - 시간 선택 버튼에 대한 이벤트 리스너 설정
-    function clearSelected() {
-        document.querySelectorAll('.watt-operation-rate .time-select').forEach(element => {
-            element.classList.remove('selected');
-        });
-    }
-
-    document.getElementById('operationRate-Stack').addEventListener('click', function() {
-        clearSelected();
-        this.classList.add('selected');
-        currentOperationTimeUnit = 'e_total';
-        operationRateManager.loadOperationRateData(currentOperationTimeUnit);
-    });
-
-    document.getElementById('operationRate-Year').addEventListener('click', function() {
-        clearSelected();
-        this.classList.add('selected');
-        currentOperationTimeUnit = 'e_year';
-        operationRateManager.loadOperationRateData(currentOperationTimeUnit);
-    });
-
-    document.getElementById('operationRate-Month').addEventListener('click', function() {
-        clearSelected();
-        this.classList.add('selected');
-        const currentMonth = new Date().getMonth() + 1;
-        currentOperationTimeUnit = `e_month`;
-        operationRateManager.loadOperationRateData(currentOperationTimeUnit, currentMonth);
-    });
-
-    document.getElementById('operationRate-Day').addEventListener('click', function() {
-        clearSelected();
-        this.classList.add('selected');
-        currentOperationTimeUnit = `e_day`;
-        operationRateManager.loadOperationRateData(currentOperationTimeUnit, new Date().getDate());
-    });
-
     /**********************************************************************************/
       // 초기 데이터 로드 및 차트 생성
     loadData().then(conf => {
@@ -70,6 +34,14 @@ document.addEventListener('DOMContentLoaded', function() {
         //[발전량 / 가동율]
         const currentDate = new Date().getDate().toString().padStart(2, '0');
         operationRateManager.loadOperationRateData('e_day', currentDate) // 현재 날짜를 keySuffix로 전달
+          // 초기 차트 및 버튼 스타일 설정
+        operationRateManager.updateChartDisplay('e_day');
+
+        // 초기 시간 선택 버튼 상태 설정
+        const initialTimeSelection = document.getElementById('operationRate-day');
+        if (initialTimeSelection) {
+            initialTimeSelection.classList.add('selected');
+        }
 
     
         // [알람로그] 페이지 로드  시 '전항목' 선택
@@ -95,50 +67,87 @@ document.addEventListener('DOMContentLoaded', function() {
         QoeManager.loadQoeData(conf); //[qoe]
         AlarmManager.loadAlarmData(conf); //[알람로그]
         realTimeProductionManager.loadRealTimeProductionData(); //[실시간생산량]
-        operationRateManager.loadOperationRateData(currentOperationTimeUnit); // [발전량 / 가동율]
         BopDiagramManager.loadBopData(conf); // [시스템구조도-BOP]
         // [금일/금월 생산량 막대차트]
         dayMonthProductionBarManager.updateChart('eProduction-bar', conf, eSection);
         dayMonthProductionBarManager.updateChart('tProduction-bar', conf, tSection);
+    
+        // [발전량 / 가동율]
+        let keySuffix;
+        if (currentOperationTimeUnit === 'e_day') {
+            keySuffix = new Date().getDate().toString().padStart(2, '0');
+        } else if (currentOperationTimeUnit === 'e_month') {
+            keySuffix = (new Date().getMonth() + 1).toString().padStart(2, '0');
+        } else if (currentOperationTimeUnit === 'e_year') {
+            keySuffix = new Date().getFullYear().toString();
+        } else if (currentOperationTimeUnit === 'e_total') {
+            keySuffix = null;
+        }
+        operationRateManager.loadOperationRateData(currentOperationTimeUnit, keySuffix);
     }, 10000);
     
     
-    /**********************************************************************************/
     // 이벤트 즉각동작
-
-    //////////////////////////////////////////////////////////////////////
+    /**********************************************************************************/
     // [발전량/가동율]
     // 시간 선택 클릭 이벤트 
-    /*
-    document.getElementById('operationRate-Stack').addEventListener('click', function() {
+    function clearSelected() {
+        document.querySelectorAll('.watt-operation-rate .time-select').forEach(element => {
+            element.classList.remove('selected');
+        });
+    }
+    
+    function handleTimeSelection(unitType, keySuffix) {
         clearSelected();
-        this.classList.add('selected');
-        currentOperationTimeUnit = 'e_total';
-        operationRateManager.loadOperationRateData(currentOperationTimeUnit);
+        const element = document.getElementById(`operationRate-${unitType}`);
+        if (!element) {
+            console.error(`Cannot find element with id 'operationRate-${unitType}'`);
+            return;
+        }
+        element.classList.add('selected');
+        currentOperationTimeUnit = `e_${unitType}`;
+    
+        let productionValue;
+        switch (unitType) {
+            case 'total':
+                productionValue = currentConf['e_total'] ? currentConf['e_total']['e_production'] : 'N/A';
+                break;
+            case 'year':
+                productionValue = currentConf['e_year'] ? currentConf['e_year'][`e_production_${new Date().getFullYear()}`] : 'N/A';
+                break;
+            case 'month':
+                const currentMonth = new Date().getMonth() + 1;
+                productionValue = currentConf['e_month'] ? currentConf['e_month'][`e_production_${currentMonth.toString().padStart(2, '0')}`] : 'N/A';
+                break;
+            case 'day':
+                const currentDate = new Date().getDate();
+                productionValue = currentConf['e_day'] ? currentConf['e_day'][`e_production_${currentDate.toString().padStart(2, '0')}`] : 'N/A';
+                break;
+        }
+    
+        document.querySelector('.operation-result').textContent = productionValue;
+        operationRateManager.loadOperationRateData(currentOperationTimeUnit, keySuffix);
+    }
+    
+    document.getElementById('operationRate-total').addEventListener('click', function() {
+        handleTimeSelection('total');
     });
     
-    document.getElementById('operationRate-Year').addEventListener('click', function() {
-        clearSelected();
-        this.classList.add('selected');
-        currentOperationTimeUnit = 'e_year';
-        operationRateManager.loadOperationRateData(currentOperationTimeUnit, 'eProductionChartYear');
+    document.getElementById('operationRate-year').addEventListener('click', function() {
+        const currentYear = new Date().getFullYear();
+        handleTimeSelection('year', currentYear);
     });
-    
-    document.getElementById('operationRate-Month').addEventListener('click', function() {
-        clearSelected();
-        this.classList.add('selected');
+
+    document.getElementById('operationRate-month').addEventListener('click', function() {
         const currentMonth = new Date().getMonth() + 1;
-        currentOperationTimeUnit = `e_month`;
-        operationRateManager.loadOperationRateData(currentOperationTimeUnit, 'eProductionChartMonth', currentMonth);
+        handleTimeSelection('month', currentMonth);
     });
     
-    document.getElementById('operationRate-Day').addEventListener('click', function() {
-        clearSelected();
-        this.classList.add('selected');
+    document.getElementById('operationRate-day').addEventListener('click', function() {
         const currentDate = new Date().getDate();
-        currentOperationTimeUnit = `e_day`;
-        operationRateManager.loadOperationRateData(currentOperationTimeUnit, 'eProductionChartDay', currentDate);
+        handleTimeSelection('day', currentDate);
     });
+    
     
     //////////////////////////////////////////////////////////////////////
     // [금일/금월 생산량 막대차트]
@@ -151,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const tSection = event.target.checked ? 't_month' : 't_day';
         dayMonthProductionBarManager.updateChart('tProduction-bar', currentConf, tSection);
     });
-    */
+    // */
     
     
     //////////////////////////////////////////////////////////////////////
