@@ -5,12 +5,11 @@ import { loadData, startDataRefresh } from './dataManager.js';
 import { QoeManager } from './qoe.js';
 import { SystemInfoManager } from './system-info.js';
 import { AlarmManager } from './alarm.js';
-import { dayMonthProductionBarManager} from './dayMonthProductionBar.js';
+import { dayMonthProductionBarManager, toggleSwitch1, toggleSwitch2 } from './dayMonthProductionBar.js';
 import { realTimeProductionManager } from './realTimeProduction.js';
 import { operationRateManager } from './operation_rate.js';
 import { BopDiagramManager } from './bopDiagram.js';
 
-/**********************************************************************************/
 document.addEventListener('DOMContentLoaded', function() {
     //startDataRefresh 함수의 콜백에서 반환된 설정 데이터 저장
     // 이후 다른 함수나 이벤트 핸들러에서 이 데이터를 참조할 때 사용
@@ -20,8 +19,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let eSection; // [전기생산량]
     let tSection; // [열생산량]
 
-    // [전기생산량/열생산량]
-    // 페이지 로드 시 라디오 버튼의 초기 상태에 따라 eSection과 tSection 결정, 초기 상태 설정 및 차트 로드
+    // [금일/금월 전기생산량 열생산량 토글스위치]
+    // 페이지 로드 시 라디오 버튼의 초기 상태에 따라 eSection과 tSection 결정
+    // 초기 상태 설정 및 차트 로드
     function initializeCharts() {
         // '시간' 라디오 버튼이 체크된 상태로 초기화
         document.getElementById('hour-e').checked = true;
@@ -41,7 +41,6 @@ document.addEventListener('DOMContentLoaded', function() {
     loadData().then(conf => {
         console.log(conf);
         currentConf = conf;
-
         SystemInfoManager.loadSystemData(conf); //[시스템]
         QoeManager.loadQoeData(conf); //[qoe]
         AlarmManager.loadAlarmData(conf); //[알람로그]
@@ -144,8 +143,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
     
-// 이벤트 즉각동작
-/**********************************************************************************/
+    // 이벤트 즉각동작
+    /**********************************************************************************/
     // [발전량/가동율]
     // 시간 선택 클릭 이벤트 
     function clearSelected() {
@@ -229,34 +228,23 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', function() {
             console.log('e-switch-field radio button changed:', this.value);
             eSection = 'e_' + this.value;
-    
-            // 즉시 차트 업데이트
-            dayMonthProductionBarManager.updateChart('eProduction-bar', currentConf, eSection);
-    
-            // 비동기 작업 완료 후 차트 다시 업데이트
             dayMonthProductionBarManager.loadDayMonthProductionBarData('eProduction-bar', eSection)
                 .then(() => {
-                    dayMonthProductionBarManager.updateChart('eProduction-bar', currentConf, eSection);
+                    // 필요한 추가 작업
                 })
                 .catch(error => {
                     console.error('Error loading data:', error);
                 });
+            });
         });
-    });
-    
-    // 열생산량
-    document.querySelectorAll('.t-switch-field input[type="radio"]').forEach((radio) => {
-        radio.addEventListener('change', function() {
-            console.log('t-switch-field radio button changed:', this.value);
-            tSection = 't_' + this.value;
-    
-            // 즉시 차트 업데이트
-            dayMonthProductionBarManager.updateChart('tProduction-bar', currentConf, tSection);
-    
-            // 비동기 작업 완료 후 차트 다시 업데이트
-            dayMonthProductionBarManager.loadDayMonthProductionBarData('tProduction-bar', tSection)
+        
+        document.querySelectorAll('.t-switch-field input[type="radio"]').forEach((radio) => {
+            radio.addEventListener('change', function() {
+                console.log('t-switch-field radio button changed:', this.value);
+                tSection = 't_' + this.value;
+                dayMonthProductionBarManager.loadDayMonthProductionBarData('tProduction-bar', tSection)
                 .then(() => {
-                    dayMonthProductionBarManager.updateChart('tProduction-bar', currentConf, tSection);
+                    // 필요한 추가 작업
                 })
                 .catch(error => {
                     console.error('Error loading data:', error);

@@ -31,11 +31,15 @@ export const loadData = (section = null) => {
 
 
 export const parseConf = (conf, section) => {
+    // console.log('parseConf의 conf : ', typeof conf);
     const lines = conf.split('\n');
+    // console.log('lines : ', lines); 
     let sectionData = {};
     let sectionFound = false;
 
-    lines.forEach(line => {
+    lines.forEach((line, index) => {
+        // console.log('Line ${index}: ', line);
+
         // 주석 제거: '#' 문자가 있으면 그 이전까지의 문자열만 사용
         const commentIndex = line.indexOf('#');
         if (commentIndex !== -1) {
@@ -49,17 +53,25 @@ export const parseConf = (conf, section) => {
 
         if (line.trim() === `[${section}]`) {
             sectionFound = true;
+            // console.log(`Section ${section} found at line ${index}.`); // 섹션 시작 지점
+
         } else if (sectionFound && line.startsWith('[')) {
             sectionFound = false;
+            // console.log(`Section ${section} ended at line ${index}.`); // 섹션 종료 지점을
+
         } else if (sectionFound) {
             const parts = line.split('=');
+            // console.log(`Line ${index} split into parts:`, parts); // '='로 분할된 부분
+
             if (parts.length === 2) {
                 const key = parts[0].trim();
                 const value = parts[1].trim();
                 sectionData[key] = value;
+                // console.log(`Key-Value pair found: ${key} = ${value}`);
             }
         }
     });
+    // console.log(`Section data for ${section}:`, sectionData); // 최종 섹션 데이터
     return sectionData;
 };
 
@@ -67,7 +79,8 @@ export const parseConf = (conf, section) => {
 export const startDataRefresh = (callback, interval = 10000) => {
     const refreshData = () => { 
         loadData().then(conf => { // refreshData는 loadData를 호출하여 데이터 로드
-            console.log(data);
+            // console.log('type of conf: ',typeof conf);
+            // console.log(conf);
             callback(conf); // startDataRefresh 함수는 콜백 함수를 매개변수로 받아, 데이터 로딩이 완료될 때마다 해당 콜백함수 실행.
         }).catch(error=> {
             console.error('error loading data:', error);
@@ -88,7 +101,7 @@ export const loadAllData = () => {
         .then(text => {
             const data = parseAllConf(text); // 모든 섹션의 데이터를 파싱
             console.log('Today is', getToday()); // 오늘 날짜 출력
-            console.log('Loaded data:', data); // 로드된 데이터 출력
+            // console.log('Loaded data:', data); // 로드된 데이터 출력
             return data;
         })
         .catch(error => {

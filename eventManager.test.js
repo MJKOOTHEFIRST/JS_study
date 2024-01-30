@@ -5,49 +5,33 @@ import { loadData, startDataRefresh } from './dataManager.js';
 import { QoeManager } from './qoe.js';
 import { SystemInfoManager } from './system-info.js';
 import { AlarmManager } from './alarm.js';
-import { dayMonthProductionBarManager} from './dayMonthProductionBar.js';
+import { dayMonthProductionBarManager, toggleSwitch1, toggleSwitch2 } from './dayMonthProductionBar.js';
 import { realTimeProductionManager } from './realTimeProduction.js';
-import { operationRateManager } from './operation_rate.js';
+import { operationRateManager } from './operation_rate.test.js';
 import { BopDiagramManager } from './bopDiagram.js';
 
-/**********************************************************************************/
 document.addEventListener('DOMContentLoaded', function() {
     //startDataRefresh 함수의 콜백에서 반환된 설정 데이터 저장
     // 이후 다른 함수나 이벤트 핸들러에서 이 데이터를 참조할 때 사용
     // 설정 파일에서 로드된 데이터가 필요한 경우, currentConf 변수를 통해 접근(callback)
     let currentConf = null;
     let currentOperationTimeUnit = 'e_day';  //발전량/가동율 초기 설정
-    let eSection; // [전기생산량]
-    let tSection; // [열생산량]
 
-    // [전기생산량/열생산량]
-    // 페이지 로드 시 라디오 버튼의 초기 상태에 따라 eSection과 tSection 결정, 초기 상태 설정 및 차트 로드
-    function initializeCharts() {
-        // '시간' 라디오 버튼이 체크된 상태로 초기화
-        document.getElementById('hour-e').checked = true;
-        document.getElementById('hour-h').checked = true;
-
-        // 초기 차트 데이터 로드 및 표시
-        eSection = 'e_hour';
-        tSection = 't_hour';
-        const eData = dayMonthProductionBarManager.parseDayMonthConf(currentConf, eSection);
-        const tData = dayMonthProductionBarManager.parseDayMonthConf(currentConf, tSection);
-        dayMonthProductionBarManager.createChart('eProduction-bar', eData, eSection);
-        dayMonthProductionBarManager.createChart('tProduction-bar', tData, tSection);
-    } 
+    // [금일/금월 전기생산량 열생산량 토글스위치]
+    // 페이지 로드 시 토글 스위치의 초기 상태에 따라 eSection과 tSection 결정
+    const eSection = toggleSwitch1.checked ? 'e_month' : 'e_day';
+    const tSection = toggleSwitch2.checked ? 't_month' : 't_day';
 
     /**********************************************************************************/
       // 초기 데이터 로드 및 차트 생성
     loadData().then(conf => {
         console.log(conf);
         currentConf = conf;
-
         SystemInfoManager.loadSystemData(conf); //[시스템]
         QoeManager.loadQoeData(conf); //[qoe]
         AlarmManager.loadAlarmData(conf); //[알람로그]
         realTimeProductionManager.loadRealTimeProductionData(); //[실시간생산량]
         BopDiagramManager.loadBopData(conf); // [시스템구조도-BOP]
-        initializeCharts(); // [전기생산량/열생산량]
 
         // [발전량 / 가동율] 초기 데이터 로드 및 차트 생성
         const currentDate = new Date().getDate().toString().padStart(2, '0');
@@ -80,15 +64,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         }
 
+
         // [알람로그] 페이지 로드  시 '전항목' 선택
         AlarmManager.currentFilters = ['전항목'];
         document.getElementById('alarmCountSelect').value = '전체';
         AlarmManager.loadAlarmData();
 
-
         // [금일/금월 생산량 막대차트]
         // 페이지 로드 시 토글 스위치의 초기 상태와 차트 데이터의 초기 로드 상태를 일치시켜야 한다!!
-        /*
         const eData = dayMonthProductionBarManager.parseDayMonthConf(conf, eSection);
         const tData = dayMonthProductionBarManager.parseDayMonthConf(conf, tSection);
         dayMonthProductionBarManager.createChart('eProduction-bar', eData, eSection);
@@ -96,7 +79,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }).catch(error => {
         console.error('초기 데이터 로드 중 오류 발생:', error);
     });
-    */
 
     /**********************************************************************************/
     // 주기적 데이터 업데이트 및 차트 업데이트
@@ -107,15 +89,9 @@ document.addEventListener('DOMContentLoaded', function() {
         AlarmManager.loadAlarmData(conf); //[알람로그]
         realTimeProductionManager.loadRealTimeProductionData(); //[실시간생산량]
         BopDiagramManager.loadBopData(conf); // [시스템구조도-BOP]
-        // [전기생산량/열생산량 막대 차트]           
-        // 라디오 버튼의 상태에 따라 eSection과 tSection 설정
-        const eRadioValue = document.querySelector('.e-switch-field input[type="radio"]:checked').value;
-        const tRadioValue = document.querySelector('.t-switch-field input[type="radio"]:checked').value;
-        eSection = 'e_' + eRadioValue;
-        tSection = 't_' + tRadioValue;
         // [금일/금월 생산량 막대차트]
-        dayMonthProductionBarManager.updateChart('eProduction-bar', currentConf, eSection);
-        dayMonthProductionBarManager.updateChart('tProduction-bar', currentConf, tSection);
+        dayMonthProductionBarManager.updateChart('eProduction-bar', conf, eSection);
+        dayMonthProductionBarManager.updateChart('tProduction-bar', conf, tSection);
     
         // [발전량 / 가동율]
         let keySuffix;
@@ -137,15 +113,14 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(operationRate => {
             // .operation-rate 요소에 가동율 표시
             document.querySelector('.operation-rate').textContent = `${operationRate.toFixed(2)}`;
-
             // 해당하는 차트 표시
             operationRateManager.updateChartDisplay(timeUnit);
         });
     }
-});
     
-// 이벤트 즉각동작
-/**********************************************************************************/
+    
+    // 이벤트 즉각동작
+    /**********************************************************************************/
     // [발전량/가동율]
     // 시간 선택 클릭 이벤트 
     function clearSelected() {
@@ -221,54 +196,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('operationRate-day').addEventListener('click', function() {
         handleTimeSelection('day', new Date().getDate().toString().padStart(2, '0'));
     });
-
-      //////////////////////////////////////////////////////////////////////
-    // [전기생산량 / 열생산량 막대차트 라디오 버튼 이벤트 핸들러]
-    // 전기생산량
-    document.querySelectorAll('.e-switch-field input[type="radio"]').forEach((radio) => {
-        radio.addEventListener('change', function() {
-            console.log('e-switch-field radio button changed:', this.value);
-            eSection = 'e_' + this.value;
-    
-            // 즉시 차트 업데이트
-            dayMonthProductionBarManager.updateChart('eProduction-bar', currentConf, eSection);
-    
-            // 비동기 작업 완료 후 차트 다시 업데이트
-            dayMonthProductionBarManager.loadDayMonthProductionBarData('eProduction-bar', eSection)
-                .then(() => {
-                    dayMonthProductionBarManager.updateChart('eProduction-bar', currentConf, eSection);
-                })
-                .catch(error => {
-                    console.error('Error loading data:', error);
-                });
-        });
-    });
-    
-    // 열생산량
-    document.querySelectorAll('.t-switch-field input[type="radio"]').forEach((radio) => {
-        radio.addEventListener('change', function() {
-            console.log('t-switch-field radio button changed:', this.value);
-            tSection = 't_' + this.value;
-    
-            // 즉시 차트 업데이트
-            dayMonthProductionBarManager.updateChart('tProduction-bar', currentConf, tSection);
-    
-            // 비동기 작업 완료 후 차트 다시 업데이트
-            dayMonthProductionBarManager.loadDayMonthProductionBarData('tProduction-bar', tSection)
-                .then(() => {
-                    dayMonthProductionBarManager.updateChart('tProduction-bar', currentConf, tSection);
-                })
-                .catch(error => {
-                    console.error('Error loading data:', error);
-                });
-        });
-    });
-
     
     //////////////////////////////////////////////////////////////////////
     // [금일/금월 생산량 막대차트]
     // 토글 스위치 이벤트 핸들러
-    /*
     toggleSwitch1.addEventListener('change', function(event) {
         const eSection = event.target.checked ? 'e_month' : 'e_day';
         dayMonthProductionBarManager.updateChart('eProduction-bar', currentConf, eSection);
@@ -277,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const tSection = event.target.checked ? 't_month' : 't_day';
         dayMonthProductionBarManager.updateChart('tProduction-bar', currentConf, tSection);
     });
-    */
+    // */
     
     
     //////////////////////////////////////////////////////////////////////

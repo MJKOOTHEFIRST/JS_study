@@ -47,8 +47,11 @@ const operationRateManager = {
     
    
     getChartData: function(operationRate) {
-        document.querySelector('#operation-rate-rect').setAttribute('width', `${operationRate}%`) //EUNG SVG 변경
         // 차트 데이터 생성 로직
+        console.log('operationRate=',operationRate)
+        console.log(`---->${2.29 * operationRate}`)
+        document.querySelector('#operation-rate-rect').setAttribute('width', `${operationRate}%`)
+        // Eung
         var chartData = {
             labels: ['', ''],
             datasets: [{
@@ -114,6 +117,8 @@ const operationRateManager = {
                 break;
             default:
                 console.error('Invalid section name:', sectionName);
+                console.log(`---->${2.29 * operationRate}`)
+                // document.querySelector('#operation-rate-rect').setAttribute('width', `${100}`)
                 return;
         }
     
@@ -170,60 +175,38 @@ updateDOMElements: function(operation, capacity) {
     }
 },
 
-    updateChartDisplay: function(timeUnit) {
-        // 모든 .graph-wrapper 숨기기
-        const allWrappers = document.querySelectorAll('.watt-operation-rate .graph-wrapper');
-        
-        allWrappers.forEach(wrapper => {
-            wrapper.style.display = 'none';
-        });
+updateChartDisplay: function(timeUnit) {
+    // 모든 .graph-wrapper 숨기기
+    const allWrappers = document.querySelectorAll('.watt-operation-rate .graph-wrapper');
+    allWrappers.forEach(wrapper => {
+        wrapper.style.display = 'block';
+    });
 
-        // 선택된 시간 단위에 해당하는 .graph-wrapper만 표시
-        let selectedChartId, selectedId;
-        switch (timeUnit) {
-            case 'e_day':
-                selectedChartId = 'eProductionChart-day';
-                selectedId = 'operationRate-day';
-                break;
-            case 'e_month':
-                selectedChartId = 'eProductionChart-month';
-                selectedId = 'operationRate-month';
-                break;
-            case 'e_year':
-                selectedChartId = 'eProductionChart-year';
-                selectedId = 'operationRate-year';
-                break;
-            case 'e_total':
-                selectedChartId = 'eProductionChart-total';
-                selectedId = 'operationRate-total';
-                break;
-            default:
-                console.error('Invalid time unit:', timeUnit);
-                return;
-        }
+    // 선택된 시간 단위에 해당하는 .graph-wrapper만 표시
+    const selectedChartId = 'eProductionChart-' + timeUnit;
+    const selectedWrapper = document.getElementById(selectedChartId);
 
-        let selectedWrapper = document.getElementById(selectedChartId);
-        if (!selectedWrapper) { // 선택된 요소가 실제로 존재하는지 확인
-            (`Cannot find element with id '${selectedChartId}'`);
-            return; // 선택된 요소가 없으면 함수를 종료
-        }
-        selectedWrapper.style.display = 'block';
-
-        // 모든 버튼의 스타일 초기화 및 선택된 버튼의 스타일 강조
-        ['year', 'month', 'day', 'total'].forEach(unit => {
-            const button = document.getElementById(`operationRate-${unit}`);
-            if (button) {
-                button.style.color = '#BEBEBE';
-                button.style.fontWeight = '500';
-            }
-        });
-        const selectedButton = document.getElementById(selectedId);
-        if (selectedButton) {
-            selectedButton.style.color = '#000';
-            selectedButton.style.fontWeight = '800';
-        }
+    if (!selectedWrapper) { // 선택된 요소가 실제로 존재하는지 확인
+        console.error(`Cannot find element with id '${selectedChartId}'`);
+        return; // 선택된 요소가 없으면 함수를 종료
     }
+    selectedWrapper.style.display = 'block';
 
+    // 모든 버튼의 스타일 초기화 및 선택된 버튼의 스타일 강조
+    ['day', 'month', 'year', 'total'].forEach(unit => {
+        const button = document.getElementById(`operationRate-${unit}`);
+        if (button) {
+            button.style.color = '#BEBEBE';
+            button.style.fontWeight = '500';
+        }
+    });
+    const selectedId = 'operationRate-' + timeUnit;
+    const selectedButton = document.getElementById(selectedId);
+    if (selectedButton) {
+        selectedButton.style.color = '#000';
+        selectedButton.style.fontWeight = '800';
+    }
+}
 
 }
 

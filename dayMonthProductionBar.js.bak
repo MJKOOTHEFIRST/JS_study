@@ -1,16 +1,16 @@
 // dayMonthProductionBar.js
 import { loadData, parseConf} from './dataManager.js';
 
-// const toggleSwitch1 = document.querySelector('#toggle-switch-1');
-// const toggleSwitch2 = document.querySelector('#toggle-switch-2');
+const toggleSwitch1 = document.querySelector('#toggle-switch-1');
+const toggleSwitch2 = document.querySelector('#toggle-switch-2');
 
 const dayMonthProductionBarManager = {
     charts: {}, // 차트 인스턴스 저장 객체
 
     loadDayMonthProductionBarData: function(chartId, section) {
-        return loadData(section)
+        loadData(section)
             .then(data => {
-                // JSON.parse 대신 직접 데이터 사용
+                // console.log(`로딩된 데이터:`, data);
                 if (Object.keys(data).length > 0) {
                     this.updateChart(chartId, data, section);
                 } else {
@@ -21,26 +21,17 @@ const dayMonthProductionBarManager = {
                 console.error('CONF 파일을 불러오는 데 실패했습니다.', error);
             });
     },
-    
-    
 
     parseDayMonthConf: function(conf, section) {
-        console.log('parseDayMonthConf called with conf:', conf, 'type:', typeof conf); 
-        if (typeof conf !== 'string') {
-            throw new TypeError('conf must be a string'); // 이 부분 추가
-        }
-        const sectionData = parseConf(conf, section); 
+        const sectionData = parseConf(conf, section); // parseConf를 이용하여 기본 파싱 수행
     
         const result = [];
         for (const key in sectionData) {
             const value = parseFloat(sectionData[key]);
     
-            if (section === 'e_hour' || section === 't_hour') {
-                const hour = key.split('_')[2];
-                result.push({ label: `${hour}시`, value });
-            } else if (section === 'e_day' || section === 't_day') {
-                const day = key.split('_')[2];
-                result.push({ label: `${day}일`, value });
+            if (section === 'e_day' || section === 't_day') {
+                const time = key.split('_')[2];
+                result.push({ label: `${time}시`, value });
             } else if (section === 'e_month' || section === 't_month') {
                 const month = parseInt(key.split('_')[2], 10);
                 result.push({ label: `${month}월`, value });
@@ -116,7 +107,7 @@ const dayMonthProductionBarManager = {
                 x: {
                     scaleLabel: {
                         display: true,
-                        labelString: section.includes('hour') ? '시' : section.includes('day')? '일': '월',
+                        labelString: section.includes('day') ? '시' : '월',
                         position: 'right'
                     },
                     ticks: {
@@ -138,5 +129,4 @@ const dayMonthProductionBarManager = {
     }
 }
 
-export { dayMonthProductionBarManager};
-// export { dayMonthProductionBarManager, toggleSwitch1, toggleSwitch2 };
+export { dayMonthProductionBarManager, toggleSwitch1, toggleSwitch2 };
