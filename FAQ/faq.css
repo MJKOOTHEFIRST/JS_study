@@ -1,0 +1,38 @@
+/* faq.css 파일에 추가 */
+.input-form {
+  display: flex;
+  flex-direction: column;
+  max-width: 600px;
+  margin: auto;
+}
+
+.input-form label,
+.input-form input,
+.input-form textarea {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.input-form label {
+  font-weight: bold;
+}
+
+.input-form input[type="text"],
+.input-form textarea {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.input-form input[type="submit"] {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.input-form input[type="submit"]:hover {
+  background-color: #0056b3;
+}
