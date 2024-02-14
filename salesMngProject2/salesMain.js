@@ -32,99 +32,25 @@ function redirectToSalesMain() {
 /* -------------------------------------------------------------------------- */
 /*                salesMain   pagination & sorting                            */
 /* -------------------------------------------------------------------------- */
- // 정렬 방향을 추적하는 변수
-let sortDirection = 'asc';
-
-// 페이지네이션 및 정렬을 초기화하는 함수
-function initializeTable() {
-    // 열의 클릭 이벤트에 정렬 기능 연결
-    const sortableColumns = document.querySelectorAll('[data-sortable="true"]');
-    sortableColumns.forEach(column => {
-        column.addEventListener('click', () => sortTable(column));
+function fetchDataForPage(pageNumber) {
+    return $.ajax({
+        url: 'salesMain.php', // 서버 측 스크립트 URL
+        type: 'GET',
+        data: {
+            page: pageNumber // 요청할 페이지 번호
+        }
     });
+}
 
-
-    // Pagination 컨트롤을 초기화하고 첫 번째 페이지 표시
-    const pagination = document.querySelector('.pagination');
-    const prevButton = pagination.querySelector('.prev');
-    const nextButton = pagination.querySelector('.next');
-    prevButton.addEventListener('click', () => goToPage(currentPage - 1));
-    nextButton.addEventListener('click', () => goToPage(currentPage + 1));
-
-    // 페이지네이션에서 페이지 번호를 클릭할 때 페이지 이동
-    const pageButtons = pagination.querySelectorAll('.page');
-    pageButtons.forEach(pageButton => {
-        pageButton.addEventListener('click', () => {
-            const pageNumber = parseInt(pageButton.textContent);
-            goToPage(pageNumber);
-        });
+function goToPage(pageNumber) {
+    fetchDataForPage(pageNumber).then(data => {
+        // 여기에서 data를 사용하여 테이블 내용 업데이트
+        // 예: updateTable(data);
+        // 페이지네이션 UI 업데이트도 여기에서 수행
+    }).fail(() => {
+        console.error('페이지 데이터를 가져오는데 실패했습니다.');
     });
-
-    // 초기 페이지를 1로 설정하고 테이블 초기화
-    currentPage = 1;
-    updateTable();
 }
-
-// 열 제목을 클릭하여 표를 정렬하는 함수
-function sortTable(column) {
-    // 클릭된 열의 인덱스를 가져옴
-    const columnIndex = Array.from(column.parentElement.children).indexOf(column);
-
-    // 정렬 방향을 업데이트 (asc 또는 desc)
-    sortDirection = (sortDirection === 'asc') ? 'desc' : 'asc';
-
-    // 정렬 함수를 호출하여 테이블을 정렬 (가상의 정렬 함수 예시)
-    const sortedData = sortData(columnIndex, sortDirection);
-
-    // 정렬된 데이터를 사용하여 테이블 업데이트 (가상의 테이블 업데이트 함수 예시)
-    renderTable(sortedData);
-}
-0
-// 페이지를 변경하는 함수
-function goToPage(pageNumber) { 
-    // 페이지 번호 유효성 검사
-    if (pageNumber < 1 || pageNumber > totalPages) {
-        return;
-    }
-
-    // 현재 페이지 업데이트 및 테이블 업데이트
-    currentPage = pageNumber;
-    updateTable();
-}
-
-// 테이블 업데이트 함수
-function updateTable() {
-    // 가져온 데이터로 테이블 업데이트
-    // 예: renderTable(data);
-
-    // 페이지 번호 업데이트
-    updatePagination();
-}
-
-// 페이지 번호 업데이트 함수
-function updatePagination() {
-    // 현재 페이지 및 전체 페이지 수 계산 (예: currentPage, totalPages)
-
-    // 페이지네이션 컨트롤 업데이트
-    const pagination = document.querySelector('.pagination');
-    const prevButton = pagination.querySelector('.prev');
-    const nextButton = pagination.querySelector('.next');
-    const pageButtons = pagination.querySelectorAll('.page');
-
-    pageButtons.forEach(pageButton => {
-        const pageNumber = parseInt(pageButton.textContent);
-        pageButton.classList.toggle('active', pageNumber === currentPage);
-    });
-
-    prevButton.disabled = currentPage === 1;
-    nextButton.disabled = currentPage === totalPages;
-}
-
-// 초기화 함수 호출
-initializeTable();
-
-
-
 
 /* -------------------------------------------------------------------------- */
 /*                                  salesSearch                               */
