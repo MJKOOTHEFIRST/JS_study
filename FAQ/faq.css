@@ -12,6 +12,27 @@
   width: 100%;
   margin-bottom: 10px;
 }
+/* 기존 스타일에 추가 */
+.input-form textarea,
+.input-form input[type="text"],
+.input-form select {
+  box-sizing: border-box; /* 패딩과 테두리를 너비에 포함 */
+  /* 필요한 경우 추가 스타일 속성 */
+}
+
+/* 특정 요소에 대한 스타일이 필요하다면 */
+#sub_section_content,
+#section_description {
+  max-width: 600px; /* 다른 입력란과 일치하는 최대 너비 설정 */
+  width: 100%; /* 부모 요소에 맞춰 너비 설정 */
+  /* 필요한 경우 추가 스타일 속성 */
+}
+
+.input-form span{
+  color: rgba(128, 128, 128, 0.842);
+  font-size: 10px;
+  margin-left: 5px;
+}
 
 .input-form label {
   font-weight: bold;
@@ -22,6 +43,12 @@
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+textarea {
+  width: 100%; /* 전체 너비를 차지하도록 설정 */
+  height: 150px; /* 적절한 높이 설정 */
+  resize: vertical; /* 사용자가 세로로만 크기 조절 가능하도록 설정 */
 }
 
 .input-form input[type="submit"] {
@@ -35,4 +62,52 @@
 
 .input-form input[type="submit"]:hover {
   background-color: #0056b3;
+}
+
+.input-form select,
+.input-form input[type="text"] {
+  width: 100%; /* 너비를 100%로 설정하여 부모 요소의 너비에 맞춤 */
+  padding: 8px; /* 적절한 패딩을 적용 */
+  margin-bottom: 10px; /* 하단 마진 추가 */
+  border: 1px solid #ccc; /* 테두리 스타일 적용 */
+  border-radius: 4px; /* 테두리 둥글게 처리 */
+  box-sizing: border-box; /* 패딩과 테두리를 너비에 포함시킴 */
+}
+
+.input-form label {
+  display: block; /* label을 블록 요소로 만들어 줄 바꿈 효과 적용 */
+  margin-bottom: 5px; /* label 아래 마진 추가 */
+  font-weight: bold;
+}
+
+.add-new,
+.new-option{
+  background-color: #FF9BD2;
+  color: white;
+  font-weight: bold;
+}
+
+/* add-field 새롭게 입력하는 칸 효과 */
+/* 입력 필드 기본 스타일 */
+.add-field {
+  display: none; /* 초기 상태는 숨김 */
+  border: 2px solid blue; /* 테두리 색상 설정 */
+  transition: all 0.5s ease; /* 부드러운 전환 효과 */
+}
+
+/* 테두리 번쩍이는 애니메이션 */
+@keyframes blinkBorder {
+  0%, 100% { border-color: #FFA447; }
+  50% { border-color: #F28585; }
+}
+
+/* 애니메이션 적용 스타일 */
+.add-field-active {
+  display: block; /* 활성 상태에서 보이게 설정 */
+  animation: blinkBorder 3s infinite; /* 번쩍이는 효과 적용 */
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border: 2px solid #F28585;
 }
