@@ -265,30 +265,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         });
 
         //type이 무상일 때, price 0원으로 비활성화
-        document.addEventListener('DOMContentLoaded', function() {
-            // 유지보수 유형 select 요소를 가져옵니다.
-            let typeSelect = document.getElementById('type');
-            // 라이센스 가격 input 요소를 가져옵니다.
-            let priceInput = document.getElementById('price');
+document.addEventListener('DOMContentLoaded', function() {
+    // 유지보수 유형 select 요소를 가져옵니다.
+    let typeSelect = document.getElementById('type');
+    // 라이센스 가격 input 요소를 가져옵니다.
+    let priceInput = document.getElementById('price');
 
-            // 유지보수 유형 select 요소에 변경 이벤트 리스너를 추가합니다.
-            typeSelect.addEventListener('change', function() {
-                // 선택된 값이 '무상'인 경우
-                if (this.value === '무상') {
-                    // 라이센스 가격을 0으로 설정하고 비활성화합니다.
-                    priceInput.value = 0;
-                    priceInput.setAttribute('disabled', true);
-                } else {
-                    // 그렇지 않은 경우, 입력란을 활성화합니다.
-                    priceInput.removeAttribute('disabled');
-                }
-            });
+    // 유지보수 유형 select 요소에 변경 이벤트 리스너를 추가합니다.
+    typeSelect.addEventListener('change', function() {
+        // 선택된 값이 '무상'인 경우
+        if (this.value === '무상') {
+            // 라이센스 가격을 0으로 설정하고 비활성화합니다.
+            priceInput.value = 0;
+            priceInput.setAttribute('disabled', true);
+        } else {
+            // 그렇지 않은 경우, 입력란을 활성화합니다.
+            priceInput.removeAttribute('disabled');
+        }
+    });
 
-            // 페이지 로드 시 초기 설정을 위한 함수 호출
-            typeSelect.dispatchEvent(new Event('change'));
-            console.log('typeSelect 변경 이벤트 발생');
-        });
-        
+    // 페이지 로드 시 초기 설정을 위한 함수 호출
+    typeSelect.dispatchEvent(new Event('change'));
+    console.log('typeSelect 변경 이벤트 발생');
+});
     </script>
 </body>
 </html>

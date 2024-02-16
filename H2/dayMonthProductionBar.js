@@ -51,7 +51,7 @@ const dayMonthProductionBarManager = {
         return result;
     },
 
-    // 토글 클릭할때 차트가 새로 생긴다.  day - month 오가면서.
+    // 새 차트 생성
     createChart: function(chartId, data, section) {
         const ctx = document.getElementById(chartId).getContext('2d');
         if (!ctx) {
@@ -79,7 +79,7 @@ const dayMonthProductionBarManager = {
         });
     }, 
 
-    // 토글 클릭안하면 차트 수치만 바뀐다. 기존 코드의 파괴하고 새로 생성하는 로직은 없앴다.
+    // 주어진 데이터와 섹션에 따라 차트 업데이트
     updateChart: function(chartId, conf, section) {
         const data = this.parseDayMonthConf(conf, section);
     

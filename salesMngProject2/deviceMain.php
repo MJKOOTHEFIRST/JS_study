@@ -1,4 +1,5 @@
 <?php
+// deviceMain.php
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -182,7 +183,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     </a>
                                 </td>
                                 <td class="col-1">
-                                    <a class="custom-link" href="salesMain.php?SALE_ID=<?php echo $row['SALE_ID']; ?>">
+                                    <a class="custom-link" href="licenseMain.php?SALE_ID=<?php echo $row['SALE_ID']; ?>">
                                         <?php echo $row['SALE_ID']; ?>
                                     </a>
                                 </td>

@@ -7,7 +7,7 @@ require_once "sales_db.php";
 mysqli_set_charset($dbconnect, "utf8");
 
 function updateDevice($dbconnect, $type, $price, $sDate, $dDate, $ref, $warranty, $saleId, $SN) {
-    $query = "UPDATE DEVICE SET `TYPE`=?, PRICE=?, S_DATE=?, D_DATE=?, REF=?, WARRANTY=?, INSPECTION=?, SUPPORT=? WHERE SALE_ID=? AND SN=?";
+    $query = "UPDATE LICENSE SET `TYPE`=?, PRICE=?, S_DATE=?, D_DATE=?, REF=?, WARRANTY=?, INSPECTION=?, SUPPORT=? WHERE SALE_ID=? AND SN=?";
     $stmt = $dbconnect->prepare($query);
     $stmt->bind_param("sisssissss", $type, $price, $sDate, $dDate, $ref, $warranty, $inspection, $support, $saleId, $SN);
     $stmt->execute();

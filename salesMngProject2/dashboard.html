@@ -18,6 +18,12 @@
   </head>
   <body>
   
+Warning: session_start(): Session cannot be started after headers have already been sent in /var/www/html/navbar.php on line 10
+<pre>Session Data: 
+Warning: Undefined global variable $_SESSION in /var/www/html/navbar.php on line 15
+NULL
+</pre><pre>Username: string(0) ""
+</pre>
 <!--
   PHP의 다양한 기능을 사용하여 현재 페이지를 동적으로 감지하고 해당 메뉴 항목을 활성화.
   navbar.php 파일에서 각 메뉴 항목의 href 속성과 현재 URL을 비교합니다.
@@ -33,7 +39,7 @@
     <ul class="navbar-nav me-auto">
       <li class="nav-item">
         <!-- strpos는 해당 파일에 '키워드'가 포함되어있으면 active 클래스를 추가하고 아니면 추가하지 않는다.  -->
-        <a class="nav-link active" href="dashboard.html">대시보드</a>
+        <a class="nav-link active" href="dashboard.php">대시보드</a>
       </li>
       <li class="nav-item">
         <a class="nav-link " href="salesMain.php">거래명세서</a>
@@ -42,7 +48,7 @@
         <a class="nav-link " href="licenseMain.php">라이센스</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link " href="#">장비</a>
+        <a class="nav-link " href="deviceMain.php">장비</a>
       </li>
       <li class="nav-item">
         <a class="nav-link " href="#">지원이력</a>
@@ -50,10 +56,10 @@
     </ul>
     <ul class="navbar-nav ms-auto">
         <li class="nav-item">
-            <a href="index.php" class="nav-link">
+                      <a href="index.php" class="nav-link">
                 <img src="/img/password0901.png" alt="Login Image" style="height: 45px; width: auto; margin-right:5%;">
             </a>
-        </li>
+                    </li>
     </ul>
   </div>
 </nav>
@@ -70,51 +76,54 @@
             <table class="table dashboard-tbl">
                 <tbody class="main-screen">
                     <tr>
-                        <th>총 고객</th>
-                        <td>373<span>건</span></td>
+                        <th>납품처</th>
+                        <td>391<span>건</span></td>
                     </tr>
                     <tr>
-                        <th>총 유지보수</th>
-                        <td>26<span>건</span></td>
+                        <th>진행중 유지보수</th>
+                        <td>250<span>건</span></td>
                     </tr>
                     <tr>
                         <th>유상 보증기간 종료 예정<span style="color:red; font-weight:100; font-size: 15px;">(D-30)</span></th>
                         <td>
-                            <a class="dashLink" href="licenseMain.php?cmd=001&dDateOfLicense=2023-10-08" id="licenseLink">2</a>
+                            <a class="dashLink" href="licenseMain.php?cmd=001&dDateOfLicense=2024-03-16" id="licenseLink1">20</a>
                             <span style="margin-left:3px;">건</span>
                         </td>
                     </tr>
                     <tr>
                         <th>무상 보증기간 종료 예정<span style="color:red; font-weight:100; font-size: 15px; margin-left:3px">(D-30)</span></th>
                         <td>
-                            <a class="dashLink" href="licenseMain.php?cmd=002&dDateOfLicense=2023-10-08" id="licenseLink">0</a>
+                            <a class="dashLink" href="licenseMain.php?cmd=002&dDateOfLicense=2024-03-16" id="licenseLink2">5</a>
                             <span style="margin-left:3px;">건</span>
                         </td>
                     </tr>
                     <tr>
                         <th>유상 보증기간 만료</th>
                         <td>
-                            <a class="dashLink" href="licenseMain.php?cmd=003" id="licenseLink">9</a>
+                            <a class="dashLink" href="licenseMain.php?cmd=003" id="licenseLink3">49</a>
                             <span style="margin-left:3px;">건</span>
                         </td>
                     </tr>
                     <tr>
                         <th>무상 보증기간 만료</th>
                         <td>
-                            <a class="dashLink" href="licenseMain.php?cmd=004" id="licenseLink">0</a>
+                            <a class="dashLink" href="licenseMain.php?cmd=004" id="licenseLink4">275</a>
                             <span style="margin-left:3px;">건</span>
                         </td>
                     </tr>
                     <tr>
-                      <th>EOS<span style="color:red; font-weight:100; font-size: 15px;">(D-180)</span></th>
-                      <td>
-                          <a class="dashLink" href="licenseMain.php?cmd=005" id="licenseLink5"></a>
-                          <span style="margin-left:3px;">건</span>
-                      </td>
-                  </tr>
-            </table>
+                        <th>EOS<span style="color:red; font-weight:100; font-size: 15px;">(납품일+6년6개월~8년)</span></th>
+                        <td>
+                            <!-- eos_start_date와 eos_end_date를 링크 파라미터로 추가 -->
+                            <a class="dashLink" href="salesMain.php?condition=eos&eos_start_date=2017-08-15&eos_end_date=2016-02-15" id="licenseLink5">0</a>
+                            <span style="margin-left:3px;">건</span>
+                        </td>
+                    </tr>
+                </table>
+                <div class="btn-class">
+                    <button type="button" class="btn btn-primary" id="refresh-button">갱신</button>
+              </div>
             
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -128,53 +137,53 @@
     <title>Document</title>
     <style>
     .height{
-    height: 10vh;
+        height: 10vh;
     }
     .form{
-    position: relative;
+        position: relative;
     }
     .form .fa-search{
-    position: absolute;
-    top:20px;
-    left: 20px;
-    color: #9ca3af;
+        position: absolute;
+        top:20px;
+        left: 20px;
+        color: #9ca3af;
     }
     .form span{
-    position: absolute;
-    right: 17px;
-    top: 13px;
-    padding: 2px;
-    border-left: 1px solid #d1d5db;
+        position: absolute;
+        right: 17px;
+        top: 13px;
+        padding: 2px;
+        border-left: 1px solid #d1d5db;
     }
     .left-pan{
-    padding-left: 7px;
+        padding-left: 7px;
     }
     .left-pan i{
-    padding-left: 10px;
+        padding-left: 10px;
     }
     .form-input{
-    height: 50px;
-    text-indent: 33px;
-    border-radius: 10px;
-    width:80%
+        height: 50px;
+        text-indent: 33px;
+        border-radius: 10px;
+        width:80%
     }
     .form-input:focus {
-    box-shadow: 0 0 10px #BDCDD6; /*가로, 세로, 퍼진정도*/
-    border: 1px solid #ECF2FF;
-    background-color:none;
+        box-shadow: 0 0 10px #BDCDD6; /*가로, 세로, 퍼진정도*/
+        border: 1px solid #ECF2FF;
+        background-color:none;
     }
     img{
-    width:10px;
-    height: auto;
+        width:10px;
+        height: auto;
     }
     .form {
-    display: flex;
-    align-items: center;
+        display: flex;
+        align-items: center;
     }
     .btn-primary {
-    margin-left: 10px; /* 입력 필드와 버튼 사이의 간격 */
-    min-width: 60px;  /* 버튼의 최소 너비를 설정합니다. 필요에 따라 값을 조절해보세요. */
-    white-space: nowrap;  /* 텍스트 줄바꿈 방지 */
+        margin-left: 10px; /* 입력 필드와 버튼 사이의 간격 */
+        min-width: 60px;  /* 버튼의 최소 너비를 설정합니다. 필요에 따라 값을 조절해보세요. */
+        white-space: nowrap;  /* 텍스트 줄바꿈 방지 */
     }
 
     </style>
@@ -206,5 +215,30 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
     <script src="salesMain.js"></script>
     <script src="/.__/auto_complete.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log("페이지 로딩 완료");
+
+        // 버튼 클릭 시 데이터 업데이트
+        document.getElementById('refresh-button').addEventListener('click', function () {
+            // AJAX 요청을 이용해 서버에서 데이터를 업데이트하는 PHP 파일을 호출합니다.
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'refreshData.php', true);
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    // 성공적으로 데이터 업데이트를 완료하면 페이지를 다시 로드합니다.
+                    location.reload();
+                    alert('실시간 데이터로 업데이트했습니다.')
+                } else {
+                    // 실패한 경우 에러 메시지를 표시합니다.
+                    alert('데이터 업데이트에 실패했습니다.');
+                }
+            };
+
+            xhr.send();
+        });
+    });
+</script>
 </body>
 </html>

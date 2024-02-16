@@ -135,6 +135,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     <option value="N500" <?php echo isset($html_values['MODEL']) && $html_values['MODEL'] == 'N500' ? 'selected' : ''; ?>>N500</option>
                                     <option value="NP1000" <?php echo isset($html_values['MODEL']) && $html_values['MODEL'] == 'NP1000' ? 'selected' : ''; ?>>NP1000</option>
                                     <option value="NP300" <?php echo isset($html_values['MODEL']) && $html_values['MODEL'] == 'NP300' ? 'selected' : ''; ?>>NP300</option>
+                                    <option value="NP500" <?php echo isset($html_values['MODEL']) && $html_values['MODEL'] == 'NP500' ? 'selected' : ''; ?>>NP500</option>
                                     <option value="S100" <?php echo isset($html_values['MODEL']) && $html_values['MODEL'] == 'S100' ? 'selected' : ''; ?>>S100</option>
                                     <option value="S200" <?php echo isset($html_values['MODEL']) && $html_values['MODEL'] == 'S200' ? 'selected' : ''; ?>>S200</option>
                                 </select>

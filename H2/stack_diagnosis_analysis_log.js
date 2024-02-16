@@ -1,4 +1,4 @@
-// stack_diagnosisAnalysis.js
+// stack_diagnosis_analysis_log.js
 
 import { loadStackData, parseCsvDiagnosisLogData, startDataRefresh } from './stack_dataManager.js';
 

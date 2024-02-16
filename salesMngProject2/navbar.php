@@ -1,5 +1,30 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+// 현재 페이지의 파일 이름을 가져옵니다.
 $current_page = basename($_SERVER['PHP_SELF']);
+
+// 세션이 이미 시작되었는지 확인하고, 아니라면 세션을 시작합니다.
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+// // 세션 데이터를 디버깅을 위해 출력합니다.
+// echo "<pre>Session Data: ";
+// // var_dump($_SESSION);
+// echo "</pre>";
+
+// 로그인 상태를 확인하기 위해 세션에 저장된 username을 가져옵니다.
+$username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
+
+// // username 변수를 디버깅을 위해 출력합니다.
+// echo "<pre>Username: ";
+// // var_dump($username);
+// echo "</pre>";
+
+
+
 ?>
 
 <!--
@@ -34,9 +59,14 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </ul>
     <ul class="navbar-nav ms-auto">
         <li class="nav-item">
+          <?php if ($username) : ?>
+            <!-- 로그인 상태일 때 사용자 이름 표시 -->
+            <a href="index.php" class="nav-link"><?=htmlspecialchars($username) ?>님이 로그인하셨습니다.</a>
+            <?php else: ?>
             <a href="index.php" class="nav-link">
                 <img src="/img/password0901.png" alt="Login Image" style="height: 45px; width: auto; margin-right:5%;">
             </a>
+            <?php endif; ?>
         </li>
     </ul>
   </div>

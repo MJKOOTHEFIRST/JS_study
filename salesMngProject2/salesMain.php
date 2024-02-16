@@ -6,12 +6,18 @@ error_reporting(E_ALL);
 
 // Include the database connection file
 require_once "sales_db.php";
+// include "auth.php"; // 사용자 로그인 상태 확인
 
 // UTF-8 인코딩 설정
 mysqli_set_charset($dbconnect, "utf8");
 
+
 $today = date("Y-m-d");
 $message = "전체 : ";
+$sortBy = 'SALE_ID'; // 기본 정렬 기준
+$receivedSN = null; // 또는 적절한 값
+$receivedSaleID = null; // 또는 적절한 값
+$receivedOrderNo = null; // 또는 적절한 값
 
 // 총 건수 구하기
 $totalSalesQuery = "SELECT COUNT(*) as total FROM SALES";
@@ -29,12 +35,15 @@ if ($totalSalesResult && $totalSalesResult->num_rows > 0) {
 $urlPattern = '/salesMain.php?page=(:num)';
 
 // 페이지네이션 및 정렬 파라미터 설정
-$itemsPerPage = 100;
+$itemsPerPage = 50;
 $currentPage = isset($_GET['page']) ? intval($_GET['page']) : 1;
-
-// 해당 페이지의 데이터를 가져오는 SQL 쿼리 작성
 $offset = ($currentPage - 1) * $itemsPerPage;
-$sql = "SELECT * FROM SALES LIMIT $offset, $itemsPerPage";
+
+// selectSales 함수를 사용하여 필요한 조건을 적용한 SQL 쿼리를 생성
+$sql = selectSales($sortBy, $receivedSN, $receivedSaleID, $receivedOrderNo);
+
+// 생성된 SQL 쿼리에 LIMIT와 OFFSET을 적용
+$sql .= " LIMIT $offset, $itemsPerPage";
 
 //dashboard_search_result.php 에서 받은 sale_ids
 if (isset($_GET['sale_ids'])) {
@@ -48,6 +57,26 @@ $action = $_GET['action'] ?? "";  // PHP 7 이후의 null coalescing operator를
 // 해당 페이지의 데이터를 가져오는 SQL 쿼리 작성
 $offset = ($currentPage - 1) * $itemsPerPage; // 여기서 $page 대신 $currentPage를, $perPage 대신 $itemsPerPage를 사용합니다.
 $sql = "SELECT * FROM SALES LIMIT $offset, $itemsPerPage"; // 여기서도 $perPage 대신 $itemsPerPage를 사용합니다.
+
+// AJAX 요청인지 확인
+if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+    // AJAX 요청으로부터 페이지 번호 받기
+    $currentPage = isset($_GET['page']) ? intval($_GET['page']) : 1;
+    $offset = ($currentPage - 1) * $itemsPerPage;
+    
+    // selectSales 함수를 사용하여 쿼리 실행
+    $sortBy = 'SALE_ID'; // 또는 다른 정렬 기준
+    $sql = selectSales($sortBy);
+    $sql .= " LIMIT $offset, $itemsPerPage"; // 페이지네이션을 위한 LIMIT 추가
+
+    $result = mysqli_query($dbconnect, $sql);
+    $data = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+    // 데이터를 JSON 형태로 변환하여 반환
+    echo json_encode($data);
+    exit; // 여기서 스크립트 종료
+}
+
 
 //dashboard_search_result.php 에서 받은 sale_ids
 if (isset($_GET['sale_ids'])) {

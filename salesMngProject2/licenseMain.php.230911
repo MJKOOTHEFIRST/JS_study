@@ -1,0 +1,248 @@
+<?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+require_once "sales_db.php";
+
+// UTF-8 인코딩 설정
+mysqli_set_charset($dbconnect, "utf8");
+
+$today = date("Y-m-d");
+
+// 대시보드랑 연결
+// Check connection
+if ($dbconnect->connect_error) {
+    die("Connection failed: " . $dbconnect->connect_error);
+}
+
+function get_sql_queried_from_dashboard($cmd) {
+    global $dbconnect, $today;
+    $sql = "";
+    // Fetching the 'dDateTo' value from the URL and ensuring it's safe to use in a query
+    $dDateOfLicense = isset($_GET['dDateOfLicense']) ? $dbconnect->real_escape_string($_GET['dDateOfLicense']) : '';
+    switch($cmd) {
+        case "001": // 유상 보증기간 종료 예정
+            if ($dDateOfLicense && strtotime($dDateOfLicense)) {
+                $sql = "SELECT L.L_ID, L.SALE_ID, L.SN, 
+                               C.NAME AS CUSTOMER_NAME, B.NAME AS BUSINESS_NAME, 
+                               L.TYPE, L.PRICE, L.S_DATE, L.D_DATE
+                        FROM LICENSE AS L
+                        LEFT JOIN CUSTOMER AS C ON L.C_ID = C.C_ID
+                        LEFT JOIN BUSINESS AS B ON L.C_ID = B.C_ID
+                        WHERE L.TYPE = '유상' AND (L.D_DATE >= '$today' AND L.D_DATE <= '$dDateOfLicense')
+                        ORDER BY L.D_DATE DESC";
+            }
+        break;
+        case "002": // 무상 보증기간 종료 예정
+            if ($dDateOfLicense && strtotime($dDateOfLicense)) {
+                $sql = "SELECT L.L_ID, L.SALE_ID, L.SN, 
+                        C.NAME AS CUSTOMER_NAME, B.NAME AS BUSINESS_NAME, 
+                        L.TYPE, L.PRICE, L.S_DATE, L.D_DATE
+                        FROM LICENSE AS L
+                        LEFT JOIN CUSTOMER AS C ON L.C_ID = C.C_ID
+                        LEFT JOIN BUSINESS AS B ON L.C_ID = B.C_ID
+                        WHERE L.TYPE = '무상' AND L.D_DATE >= '$today' AND L.D_DATE <= '$dDateOfLicense'
+                        ORDER BY L.D_DATE DESC";
+            }
+        break;
+        case "003": // 유상 보증기간 만료
+            $sql = "SELECT L.L_ID, L.SALE_ID, L.SN, 
+                    C.NAME AS CUSTOMER_NAME, B.NAME AS BUSINESS_NAME, 
+                    L.TYPE, L.PRICE, L.S_DATE, L.D_DATE
+                    FROM LICENSE AS L
+                    INNER JOIN CUSTOMER AS C ON L.C_ID = C.C_ID
+                    INNER JOIN BUSINESS AS B ON L.C_ID = B.C_ID
+                    WHERE L.TYPE = '유상' AND L.D_DATE <= '$today'
+                    GROUP BY L.L_ID, L.SALE_ID, L.SN, 
+                    CUSTOMER_NAME, BUSINESS_NAME,
+                    L.TYPE, L.PRICE, L.S_DATE, L.D_DATE";
+        break;
+        case "004": // 무상 보증기간 만료
+            $sql = "SELECT L.L_ID, L.SALE_ID, L.SN, 
+                    C.NAME AS CUSTOMER_NAME, B.NAME AS BUSINESS_NAME, 
+                    L.TYPE, L.PRICE, L.S_DATE, L.D_DATE
+                    FROM LICENSE AS L
+                    LEFT JOIN CUSTOMER AS C ON L.C_ID = C.C_ID
+                    LEFT JOIN BUSINESS AS B ON L.C_ID = B.C_ID
+                    WHERE L.TYPE = '무상' AND L.D_DATE <= '$today'";
+        break;
+    }
+    return $sql;
+}
+
+
+
+//name 값들을 DB 컬럼값으로 고쳐줘야하므로 매핑을 하고
+$fieldToDbColumnMapping = [
+    'lId'       => 'L_ID',
+    'saleId'    => 'SALE_ID',
+    'SN'        => 'SN',
+    'type'      => 'TYPE',
+    'sDateFrom' => 'S_DATE',
+    'sDateTo'   => 'S_DATE',
+    'dDateFrom' => 'D_DATE',
+    'dDateTo'   => 'D_DATE'
+];
+
+$conditions = [];
+//기간->날짜 검색은 아래와 같이 처리해준다. 
+foreach ($fieldToDbColumnMapping as $field => $dbColumn) {
+    if (isset($_REQUEST[$field]) && !empty($_REQUEST[$field])) {
+        switch ($field) {
+            case 'sDateFrom':
+                // 유지보수 시작일 시작 날짜 범위 처리 (S_DATE의 시작 범위)
+                $conditions[] = $dbColumn . " >= '" . mysqli_real_escape_string($dbconnect, $_REQUEST[$field]) . "'";
+                break;
+            case 'sDateTo':
+                // 유지보수 시작일 종료 날짜 범위 처리 (S_DATE의 종료 범위)
+                $conditions[] = $dbColumn . " <= '" . mysqli_real_escape_string($dbconnect, $_REQUEST[$field]) . "'";
+                break;
+            case 'dDateFrom':
+                // 유지보수 종료일 시작 날짜 범위 처리 (D_DATE의 시작 범위)
+                $conditions[] = $dbColumn . " >= '" . mysqli_real_escape_string($dbconnect, $_REQUEST[$field]) . "'";
+                break;
+            case 'dDateTo':
+                // 유지보수 종료일 종료 날짜 범위 처리 (D_DATE의 종료 범위)
+                $conditions[] = $dbColumn . " <= '" . mysqli_real_escape_string($dbconnect, $_REQUEST[$field]) . "'";
+                break;
+            default:
+                // 일반 조건 처리
+                $conditions[] = $dbColumn . " = '" . mysqli_real_escape_string($dbconnect, $_REQUEST[$field]) . "'";
+                break;
+        }
+    }
+}
+
+// <<< 230907 hjkim - REFERER별 처리
+$from_url = parse_url($_SERVER['HTTP_REFERER']);
+switch($from_url["path"]) {
+    case "/dashboard.html": // 생성된 대시보드 페이지,
+    case "/dashboard.php": // 대시보드 페이지에서 유입될 경우,
+        if(!isset($_GET["cmd"])) { goto DEFAULT_PAGE; }
+        $query = get_sql_queried_from_dashboard($_GET["cmd"]);
+        break;
+    default: // 그외의 페이지에서 유입될 경우,
+    DEFAULT_PAGE:
+        // 검색 조건에 따른 SQL 쿼리 작성
+        // 기본적으로는 전체 목록을 보여주지만, 검색 조건이 salesSearch로 부터 전달될 경우 
+        // 해당 조건에 맞는 데이터만 필터링하여 보여줌.
+        $query = "SELECT 
+            L.L_ID, L.SALE_ID, L.SN, 
+            C.NAME AS CUSTOMER_NAME, B.NAME AS BUSINESS_NAME, 
+            L.TYPE, L.PRICE, L.S_DATE, L.D_DATE
+        FROM LICENSE AS L
+        LEFT JOIN CUSTOMER AS C ON L.C_ID = C.C_ID
+        LEFT JOIN BUSINESS AS B ON L.C_ID = B.C_ID";
+
+        if (!empty($conditions)) {
+            $query .= " WHERE " . implode(" AND ", $conditions);
+        }
+
+        $query .= " ORDER BY L.D_DATE DESC";
+
+    break;
+}
+// <<< 230907 hjkim - REFERER별 처리
+
+// 데이터베이스에서 데이터 가져오기
+$result = mysqli_query($dbconnect, $query);
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>라이센스 메인</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="salesMain.css">
+    <script src="https://unpkg.com/htmx.org@1.9.4"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous"></script>
+  </head>
+  <body>
+  <?php include 'navbar.php'; ?>
+  <div class="container-fluid mt-5  main-screen">
+    <div class="row">
+        <div class="col-12 text-center">
+            <header>라이센스</header>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-12 d-flex justify-content-start main-top-btn">
+            <button type="button" class="btn btn-primary insert mr-2" onclick="goToLicenseInsert()">신규</button>
+            <button type="button" class="btn btn-primary search" onclick="goToLicenseSearch()">검색</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="table-wrapper table-responsive">
+                <!-- The rest of the table here... -->
+                <table class="table main-tbl lcs-main-tbl">
+                <thead>
+                    <tr>
+                        <th scope="col" class="col-1">명세서번호</th>
+                        <th scope="col" class="col-3">SN</th>
+                        <th scope="col" class="col-2">거래처</th>
+                        <th scope="col" class="col-1">거래처담당자</th>
+                        <th scope="col" class="col-1 maintenance-type">유지보수 유형</th>
+                        <th scope="col" class="col-2">라이센스 가격</th>
+                        <th scope="col" class="col-1">유지보수 시작</th>
+                        <th scope="col" class="col-1">유지보수 종료</th>
+                    </tr>
+                </thead>
+                  <tbody class="main-screen">
+                    <?php 
+                      $counter = 1;  // 카운터를 사용하여 각 아코디언 항목의 ID를 생성.
+                      while ($row = mysqli_fetch_assoc($result)): 
+                      ?>
+                      <tr data-bs-toggle="collapse" data-bs-target="#flush-collapse<?php echo $counter; ?>" aria-expanded="false" aria-controls="flush-collapse<?php echo $counter; ?>">
+                          <td class="col-1"><?php echo $row['SALE_ID']; ?></td>
+                          <td class="col-3"><?php echo $row['SN']; ?></td>
+                          <td class="col-2"><?php echo $row['CUSTOMER_NAME']; ?></td>
+                          <td class="col-1"><?php echo $row['BUSINESS_NAME']; ?></td>
+                          <td class="col-1"><?php echo $row['TYPE']; ?></td>
+                          <td class="col-2"><?php echo number_format($row['PRICE'] ?? 0); ?><span>원</span></td>
+                          <td class="col-1"><?php echo $row['S_DATE']; ?></td>
+                          <td class="col-1"><?php echo $row['D_DATE']; ?></td>
+                      </tr>
+                      <tr>
+                          <td colspan="9">
+                              <div id="flush-collapse<?php echo $counter; ?>" class="collapse accor-style">
+                                <table class="detail-table">
+                                  <tr>
+                                      <th style="font-weight: bold;">(미정)</th>
+                                      <td></td>
+                                  </tr>
+                                  <tr>
+                                      <th style="font-weight: bold;"></th>
+                                      <td></td>
+                                  </tr>
+                                  <tr>
+                                          <td colspan="2" class="update-btn-container">
+                                              <a href="licenseUpdate.php?lId=<?php echo urlencode($row['L_ID']); ?>" class="btn btn-secondary accor-update" style="margin-left: 20px;">수정</a>
+                                          </td>
+                                      </tr>
+                                </table>
+                              </div>
+                          </td>
+                      </tr>
+                      <?php 
+                      $counter++;
+                      endwhile; 
+                      ?>
+                  </tbody>
+              </table>
+            </div>
+        </div>
+    </div>
+</div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+    <script src="salesMain.js"></script>
+    <script src="/.__/auto_complete.js"></script>
+</body>
+</html>

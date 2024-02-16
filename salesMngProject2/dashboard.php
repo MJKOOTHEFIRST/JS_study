@@ -1,9 +1,12 @@
 <?php
+//  dashboard.php
 //echo "PHP code is executed! TOP"; (OK)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+// session_start();
 
+// require_once "auth.php";
 require_once "sales_db.php";
 
 mysqli_set_charset($dbconnect, "utf8");
@@ -159,10 +162,6 @@ function get_eos($today, &$query_eos = "") {
 
 // Call the function and list the results
 list($eos, $start_date, $end_date) = get_eos($today, $eos_tobe_expired);
-
-// 쿼리확인 OK
-// : MariaDB [salesmng]> SELECT * FROM SALES WHERE CURRENT_DATE >= (DELIVER_DATE + 2190) AND CURRENT_DATE <=(DELIVER_DATE + 2735) ;
-// Empty set, 852 warnings (0.001 sec)
 
 
 

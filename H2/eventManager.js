@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 이후 다른 함수나 이벤트 핸들러에서 이 데이터를 참조할 때 사용
     // 설정 파일에서 로드된 데이터가 필요한 경우, currentConf 변수를 통해 접근(callback)
     let currentConf = null;
-    let currentOperationTimeUnit = 'e_day';  //발전량/가동율 초기 설정
+    let currentOperationTimeUnit = 'e_day';  //[발전량/가동율] 초기 설정
     let eSection; // [전기생산량]
     let tSection; // [열생산량]
 
