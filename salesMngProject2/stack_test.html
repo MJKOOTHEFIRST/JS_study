@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <!-- 헤시테그 -->
+<div class="scrollmini hashtag-outer" >
+  <div class="hashtag">
+    <button class="main">정상</button>
+    <a href="#" class="del" title="삭제">×</a>
+    <div class="deleted">
+      <button class="yes" title="삭제">×</button>
+    </div>
+  </div>
+</div>  
+
+
+<input type="text" id="new-tag-text"><button class="btn-of w-24" id="new-tag">태그생성</button>
+
+<script>
+  // stack_tag_manager.js
+// 태그 추가 
+document.getElementById('new-tag').addEventListener('click', function() {
+    const hashtagOuter = document.querySelector('.scrollmini.hashtag-outer');
+    const inputElement = document.getElementById('new-tag-text');
+    if (inputElement) {
+      const newTagText = inputElement.value;
+      if (newTagText.trim() !== '') {
+        const newHashtagDiv = document.createElement('div');
+        newHashtagDiv.classList.add('hashtag');
+        const newButton = document.createElement('button');
+        newButton.classList.add('main');
+        newButton.textContent = newTagText;
+        newHashtagDiv.appendChild(newButton);
+        hashtagOuter.appendChild(newHashtagDiv);
+                                       
+        inputElement.value='';
+
+        // 새 태그 파일에 저장하는 함수
+        saveTagToFile(newTagText);
+      }
+    } else {
+      console.error('필요한 요소를 찾을 수 없습니다.');
+    }
+  });
+
+ // 태그와 색상 저장(POST)
+function saveTagToFile(tagName, color) {
+    let postData = 'tag=' + encodeURIComponent(tagName);
+    if (color) { // color 값이 undefined가 아닐 때만 추가
+      postData += '&color=' + encodeURIComponent(color);
+    }
+  
+    fetch('/FDC/work/dev/js/main/save_tag.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: postData
+    })
+    .then(response => {
+      if (response.ok) {
+        console.log('태그가 성공적으로 보내졌습니다, response.');
+        return response.text();
+      }
+      throw new Error('태그 저장에 실패했습니다.');
+    })
+    .then(text => console.log(text))
+    .catch(error => console.error(error));
+  }
+
+
+
+// 태그 호출(GET, fetch는 HTTP 메소드를 별도로 지정하지 않으면 GET 요청이 기본적으로 수행된다.)
+// 태그 데이터를 불러와서 렌더링하는 함수
+function renderTags(tags) {
+    const hashtagOuter = document.querySelector('.scrollmini.hashtag-outer');
+    tags.forEach(tag => {
+        const hashtagDiv = document.createElement('div');
+        hashtagDiv.classList.add('hashtag');
+        const button = document.createElement('button');
+        button.classList.add('main');
+        
+        // 태그 이름에서 쉼표 제거
+        const cleanTagName = tag.name.replace(',', '').trim();
+        button.textContent = cleanTagName; // 쉼표가 제거된 태그 이름 설정
+        
+        // 태그 색상 설정 (tag.color가 존재한다면)
+        if (tag.color) {
+            button.style.backgroundColor = tag.color; // 태그 색상 설정
+        }
+        
+        hashtagDiv.appendChild(button);
+        hashtagOuter.appendChild(hashtagDiv);
+    });
+}
+
+// 태그 호출(GET, fetch는 HTTP 메소드를 별도로 지정하지 않으면 GET 요청이 기본적으로 수행된다.)
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/FDC/work/dev/js/main/load_tags.php')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('태그를 불러오는데 실패했습니다.');
+        }
+        return response.json();
+      })
+      .then(tags => {
+        renderTags(tags); // 여기에서 renderTags 함수를 호출하여 태그 렌더링 처리
+      })
+      .catch(error => console.error('Error loading tags:', error));
+});
+
+</script>
+  
+</body>
+</html>

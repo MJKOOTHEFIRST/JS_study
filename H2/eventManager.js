@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
         QoeManager.loadQoeData(conf); //[qoe]
         AlarmManager.loadAlarmData(conf); //[알람로그]
         realTimeProductionManager.loadRealTimeProductionData(); //[실시간생산량]
-        BopDiagramManager.loadBopData(conf); // [시스템구조도-BOP]
+        BopDiagramManager.loadBopAndEventData(); // [시스템구조도-BOP]
         initializeCharts(); // [전기생산량/열생산량]
 
         // [발전량 / 가동율] 초기 데이터 로드 및 차트 생성
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
         QoeManager.loadQoeData(conf); //[qoe]
         AlarmManager.loadAlarmData(conf); //[알람로그]
         realTimeProductionManager.loadRealTimeProductionData(); //[실시간생산량]
-        BopDiagramManager.loadBopData(conf); // [시스템구조도-BOP]
+        BopDiagramManager.loadBopAndEventData(); // [시스템구조도-BOP]
         // [전기생산량/열생산량 막대 차트]           
         // 라디오 버튼의 상태에 따라 eSection과 tSection 설정
         const eRadioValue = document.querySelector('.e-switch-field input[type="radio"]:checked').value;

@@ -13,7 +13,7 @@ document.querySelector('#stack_search_btn').addEventListener('click', function()
 
     // 검색 조건 수집 함수
     const getInputValue = (inputId) => {
-        console.log(`입력 값 가져오기: ${inputId}`); // ID 로깅
+        console.log(`Getting value for input: ${inputId}`); // ID 로깅
         const inputElement = document.getElementById(inputId);
         if (!inputElement) {
             console.log(`Element not found for ID: ${inputId}`);
@@ -72,17 +72,14 @@ function searchWithData(conditions) {
         }
     }).join('&');
 
-    // const url = `http://fuelcelldr.nstek.com/FDC/work/dev/js/main/stack_search.php?${query}`; 
-    const url = `http://192.168.100.111/FDC/work/dev/js/main/stack_search.php?${query}`; 
-    console.log('요청된 URL:', url); // 전체 URL 로깅(url에 문제 없음- 요청된 URL: http://192.168.100.111/FDC/work/dev/js/main/stack_search.php?H-M=65&H-MCondition=over)
-
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
+    // 동적으로 생성된 query를 사용하여 서버에 GET 요청을 보냄
+    xhr.open('GET', `http://192.168.100.111/FDC/work/dev/js/main/stack_search.php?${query}`, true);
 
     xhr.onload = function() {
         if (this.status === 200) {
             // 성공적으로 데이터를 받아온 경우의 처리 로직
-            // console.log("서버로부터의 응답:", this.responseText); // 잘 작동됨
+            console.log("서버로부터의 응답:", this.responseText);
             const results = JSON.parse(this.responseText);
             displayResults(results); // 결과를 표시하는 함수
         } else {
@@ -96,7 +93,7 @@ function searchWithData(conditions) {
         console.error('Request failed');
     };
 
-    console.log('요청된 Query:', query); //Query: H-M=65&H-MCondition=over 문제 없음
+    console.log('요청된 Query:', query);
     xhr.send(); // 실제 요청을 서버로 보냄
 }
 

@@ -1,0 +1,35 @@
+//stack_search.js (php 랑 연결 ver.)
+const xhr = new XMLHttpRequest();
+
+// PHP 스크립트의 URL로 GET 요청 설정
+xhr.open('GET', 'http://192.168.100.111/FDC/work/dev/js/main/stack_search.php', true);
+
+xhr.onload = function() {
+    if (this.status === 200) {
+        const results = JSON.parse(this.responseText);
+        const tbody = document.querySelector('.stack_search_table tbody');
+        results.forEach((row) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="checkbox" name="search-checkbox"></td>
+                <td>${row.DATE}</td>
+                <td>${row['H-M']}</td>
+                <td>${row['M-L']}</td>
+                <td>${row.X1}</td>
+                <td>${row.X2}</td>
+                <td>${row.Y1}</td>
+                <td>${row.Y2}</td>
+                <td>${row.M}</td>
+                <td>${row.L}</td>
+                <td>${row.SQ}</td>
+                <td>${row.BQ}</td>
+                <td>${row.LABEL}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } else {
+        console.error('Error fetching data:', this.statusText);
+    }
+};
+
+xhr.send();

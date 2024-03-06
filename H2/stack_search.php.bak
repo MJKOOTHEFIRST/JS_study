@@ -1,0 +1,50 @@
+<?php
+// stack_search.php
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+
+$host = 'localhost';
+$dbname = 'fuelcell';
+$username = 'root';
+$password = 'Taskqos0880*';
+// $csvFilePath = '/home/nstek/h2_system/patch_active/fuelcell_data/stack_search_data.csv';
+$csvFilePath = '/var/lib/mysql-files/stack_search_data.csv';
+
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    $query = "
+        LOAD DATA INFILE '" . $csvFilePath . "'
+        INTO TABLE search
+        FIELDS TERMINATED BY ','
+        ENCLOSED BY '\"'
+        LINES TERMINATED BY '\\n'
+        IGNORE 1 LINES
+        (DATE, @HM, @ML, @X1, @X2, @Y1, @Y2, @M, @L, @SQ, @BQ, LABEL)
+        SET `H-M` = IF(@HM = '', 0, @HM),
+            `M-L` = IF(@ML = '', 0, @ML),
+            X1 = IF(@X1 = '', 0, @X1),
+            X2 = IF(@X2 = '', 0, @X2),
+            Y1 = IF(@Y1 = '', 0, @Y1),
+            Y2 = IF(@Y2 = '', 0, @Y2),
+            M = IF(@M = '', 0, @M),
+            L = IF(@L = '', 0, @L),
+            SQ = IF(@SQ = '', 0, @SQ),
+            BQ = IF(@BQ = '', 0, @BQ);
+    ";
+
+    $pdo->exec($query);
+
+     // 데이터 조회 쿼리 실행
+     $fetchQuery = "SELECT DATE, `H-M`, `M-L`, X1, X2, Y1, Y2, M, L, SQ, BQ, LABEL FROM search";
+     $stmt = $pdo->query($fetchQuery);
+     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+ 
+     // 조회된 데이터를 JSON 형식으로 반환
+     echo json_encode($results);
+
+    // echo json_encode(['success' => true, 'message' => 'Data imported successfully']);
+} catch (PDOException $e) {
+    echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+}

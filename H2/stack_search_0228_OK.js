@@ -1,4 +1,5 @@
 //stack_search.js
+// GET 방식 - 작동 OK
 console.log('stack_search.js 도달!')
 
 
@@ -82,7 +83,7 @@ function searchWithData(conditions) {
     xhr.onload = function() {
         if (this.status === 200) {
             // 성공적으로 데이터를 받아온 경우의 처리 로직
-            // console.log("서버로부터의 응답:", this.responseText); // 잘 작동됨
+            // console.log("서버로부터의 응답:", this.responseText); 
             const results = JSON.parse(this.responseText);
             displayResults(results); // 결과를 표시하는 함수
         } else {
@@ -126,3 +127,22 @@ function displayResults(results) {
         tbody.appendChild(tr);
     });
 }
+
+// 초기화 버튼 이벤트 리스너 추가 
+document.querySelector('#stack_reset_btn').addEventListener('click', function() {
+    console.log('초기화 버튼 클릭 이벤트 발생');
+
+    // 모든 입력 필드 선택
+    const inputFields = document.querySelectorAll('input[type="text"], input[type="radio"]');
+
+    // 각 입력 필드의 값을 빈 문자열로 설정
+    inputFields.forEach(field => {
+        if (field.type === "text") {
+            field.value = '';
+        } else if (field.type === "radio") {
+            field.checked = false; // 라디오 버튼의 경우 선택 해제
+        }
+    });
+
+    console.log('입력 필드 초기화 완료');
+});
