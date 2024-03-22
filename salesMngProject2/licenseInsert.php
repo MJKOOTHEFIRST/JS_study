@@ -225,12 +225,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     <tr>
                         <td><label for="support">파트너지원</label></td>
                         <!-- T0: 지원없음, T1: 정기점검, T2:유지 보수-->
+                        <!-- 2024.03.20 변경 : T5: 지원없음, T3: 정기점검, T1:유지 보수-->
                         <td>
                             <select class="input short selectstyle" name="support" id="support">
                                 <option value="" <?php echo isset($html_values['SUPPORT']) && $html_values['SUPPORT'] == 'T0:tbd' ? 'selected' : ''; ?>>선택안함</option>
-                                <option value="T0:지원없음" <?php echo isset($html_values['SUPPORT']) && $html_values['SUPPORT'] == 'T0:지원없음' ? 'selected' : ''; ?>>T0:지원없음</option>
-                                <option value="T1:정기점검" <?php echo isset($html_values['SUPPORT']) && $html_values['SUPPORT'] == 'T1:정기점검' ? 'selected' : ''; ?>>T1:정기점검</option>
-                                <option value="T2:유지보수" <?php echo isset($html_values['SUPPORT']) && $html_values['SUPPORT'] == 'T2:유지보수' ? 'selected' : ''; ?>>T2:유지보수</option>
+                                <option value="T5:지원없음" <?php echo isset($html_values['SUPPORT']) && $html_values['SUPPORT'] == 'T5:지원없음' ? 'selected' : ''; ?>>T5:지원없음</option>
+                                <option value="T3:정기점검" <?php echo isset($html_values['SUPPORT']) && $html_values['SUPPORT'] == 'T3:정기점검' ? 'selected' : ''; ?>>T3:정기점검</option>
+                                <option value="T1:유지보수" <?php echo isset($html_values['SUPPORT']) && $html_values['SUPPORT'] == 'T1:유지보수' ? 'selected' : ''; ?>>T1:유지보수</option>
                             </select>
                             <span class="error-message" id="error-type"></span>
                         </td>

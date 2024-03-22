@@ -718,17 +718,26 @@
 
                         <td style="text-align: right !important;padding-right: 17px !important;">초과</td>
                         <td>
-                          <input type="radio" name="a01" id="o01"><label for="o01">&gt;</label>
+                          <input type="radio" name="a01" id="o01" class="search-condition"><label for="o01">&gt;</label>
                         </td>
-                        <td><input type="radio" name="a02" id="o02"><label for="o02">&gt;</label></td>
-                        <td><input type="radio" name="a03" id="o03"><label for="o03">&gt;</label></td>
-                        <td><input type="radio" name="a04" id="o04"><label for="o04">&gt;</label></td>
-                        <td><input type="radio" name="a05" id="o05"><label for="o05">&gt;</label></td>
-                        <td><input type="radio" name="a06" id="o06"><label for="o06">&gt;</label></td>
-                        <td><input type="radio" name="a07" id="o07"><label for="o07">&gt;</label></td>
-                        <td><input type="radio" name="a08" id="o08"><label for="o08">&gt;</label></td>
-                        <td><input type="radio" name="a09" id="o09"><label for="o09">&gt;</label></td>
-                        <td><input type="radio" name="a10" id="o10"><label for="o10">&gt;</label></td>
+                        <td><input type="radio" name="a02" id="o02" class="search-condition"><label
+                            for="o02">&gt;</label></td>
+                        <td><input type="radio" name="a03" id="o03" class="search-condition"><label
+                            for="o03">&gt;</label></td>
+                        <td><input type="radio" name="a04" id="o04" class="search-condition"><label
+                            for="o04">&gt;</label></td>
+                        <td><input type="radio" name="a05" id="o05" class="search-condition"><label
+                            for="o05">&gt;</label></td>
+                        <td><input type="radio" name="a06" id="o06" class="search-condition"><label
+                            for="o06">&gt;</label></td>
+                        <td><input type="radio" name="a07" id="o07" class="search-condition"><label
+                            for="o07">&gt;</label></td>
+                        <td><input type="radio" name="a08" id="o08" class="search-condition"><label
+                            for="o08">&gt;</label></td>
+                        <td><input type="radio" name="a09" id="o09" class="search-condition"><label
+                            for="o09">&gt;</label></td>
+                        <td><input type="radio" name="a10" id="o10" class="search-condition"><label
+                            for="o10">&gt;</label></td>
                         <td></td>
                       </tr>
                       <tr class="filter-input">
@@ -737,31 +746,42 @@
                           <button class="btn-of mx-1" id="stack_reset_btn">초기화</button>
                           <button class="btn-of w-25 float-end" id="stack_search_btn">검색</button>
                         </td>
-                        <td><input type="text" name="h-m" id="input-h-m"></td>
-                        <td><input type="text" name="m-l" id="input-m-l"></td>
-                        <td><input type="text" name="x1" id="input-x1"></td>
-                        <td><input type="text" name="x2" id="input-x2"></td>
-                        <td><input type="text" name="y1" id="input-y1"></td>
-                        <td><input type="text" name="y2" id="input-y2"></td>
-                        <td><input type="text" name="m" id="input-m"></td>
-                        <td><input type="text" name="l" id="input-l"></td>
-                        <td><input type="text" name="sq" id="input-sq"></td>
-                        <td><input type="text" name="bq" id="input-bq"></td>
-                        <td><input type="text" name="label" id="input-label"></td>
+                        <td><input type="number" name="h-m" id="input-h-m" class="search-condition"></td>
+                        <td><input type="number" name="m-l" id="input-m-l" class="search-condition"></td>
+                        <td><input type="number" name="x1" id="input-x1" class="search-condition"></td>
+                        <td><input type="number" name="x2" id="input-x2" class="search-condition"></td>
+                        <td><input type="number" name="y1" id="input-y1" class="search-condition"></td>
+                        <td><input type="number" name="y2" id="input-y2" class="search-condition"></td>
+                        <td><input type="number" name="m" id="input-m" class="search-condition"></td>
+                        <td><input type="number" name="l" id="input-l" class="search-condition"></td>
+                        <td><input type="number" name="sq" id="input-sq" class="search-condition"></td>
+                        <td><input type="number" name="bq" id="input-bq" class="search-condition"></td>
+                        <td><input type="text" name="label" id="input-label" class="search-condition">
+                          <!-- 텍스트 입력 필드 유지 -->
                       </tr>
                       <tr class="filter-label">
 
                         <td style="text-align: right !important;padding-right: 17px !important;">미만</td>
-                        <td><input type="radio" name="a01" id="u01"><label for="u01">&lt;</label></td>
-                        <td><input type="radio" name="a02" id="u02"><label for="u02">&lt;</label></td>
-                        <td><input type="radio" name="a03" id="u03"><label for="u03">&lt;</label></td>
-                        <td><input type="radio" name="a04" id="u04"><label for="u04">&lt;</label></td>
-                        <td><input type="radio" name="a05" id="u05"><label for="u05">&lt;</label></td>
-                        <td><input type="radio" name="a06" id="u06"><label for="u06">&lt;</label></td>
-                        <td><input type="radio" name="a07" id="u07"><label for="u07">&lt;</label></td>
-                        <td><input type="radio" name="a08" id="u08"><label for="u08">&lt;</label></td>
-                        <td><input type="radio" name="a09" id="u09"><label for="u09">&lt;</label></td>
-                        <td><input type="radio" name="a10" id="u10"><label for="u10">&lt;</label></td>
+                        <td><input type="radio" name="a01" id="u01" class="search-condition"><label
+                            for="u01">&lt;</label></td>
+                        <td><input type="radio" name="a02" id="u02" class="search-condition"><label
+                            for="u02">&lt;</label></td>
+                        <td><input type="radio" name="a03" id="u03" class="search-condition"><label
+                            for="u03">&lt;</label></td>
+                        <td><input type="radio" name="a04" id="u04" class="search-condition"><label
+                            for="u04">&lt;</label></td>
+                        <td><input type="radio" name="a05" id="u05" class="search-condition"><label
+                            for="u05">&lt;</label></td>
+                        <td><input type="radio" name="a06" id="u06" class="search-condition"><label
+                            for="u06">&lt;</label></td>
+                        <td><input type="radio" name="a07" id="u07" class="search-condition"><label
+                            for="u07">&lt;</label></td>
+                        <td><input type="radio" name="a08" id="u08" class="search-condition"><label
+                            for="u08">&lt;</label></td>
+                        <td><input type="radio" name="a09" id="u09" class="search-condition"><label
+                            for="u09">&lt;</label></td>
+                        <td><input type="radio" name="a10" id="u10" class="search-condition"><label
+                            for="u10">&lt;</label></td>
                         <td></td>
                       </tr>
                     </tbody>
@@ -782,7 +802,7 @@
                         <td>999.99</td>
                         <td>10</td>
                         <td>10</td>
-                        <td>LaBel-1</td>
+                        <td><input type="text" value="laBel-1></td> 
                       </tr>
                       -->
                     </tbody>
@@ -833,7 +853,7 @@
                 <div class="scrollmini hashtag-outer">
                   <!--
                   <div class="hashtag">
-                    <button class="main"><span style="background: red"></span>Test1</button>
+                    <button class="main tag-selector"><span style="background: red"></span>Test1</button>
                     <button class="del" title="삭제">×</button>
                     <button class="finish" title="삭제">×</button>
                   </div>
@@ -892,9 +912,38 @@
                 <input type="hidden" id="hidden-color">
                 <!-- 사용자에게 보이는 입력란, 색상 코드 표시 안 함 -->
                 <input type="text" id="new-tag-text" placeholder="태그명 입력">
-                <button class="btn-of w-24" id="new-tag">라벨 ᐧ 태그생성 / 수정</button>
+                <button class="btn-of w-24" id="new-tag">태그생성</button>
 
                 <script>
+                  const pickColors = {
+                    'color01': '#FFCC00',
+                    'color02': '#FF6B6B',
+                    'color03': '#6699CC',
+                    'color04': '#B0C4DE',
+                    'color05': '#4B9579',
+                    'color06': '#996699',
+                    'color07': '#D9BC78',
+                    'color08': '#474E20',
+                    'color09': '#BD9EB3',
+                    'color10': '#5B471F',
+                    'color11': '#66CCCC',
+                    'color12': '#8AC1A3',
+                    'color13': '#89CFEB',
+                    'color14': '#C1D98C',
+                    'color15': '#FFD5C2',
+                    'color16': '#D98981',
+                    'color17': '#C6E9F1',
+                    'color18': '#4A509B',
+                    'color19': '#8C684C',
+                    'color20': '#50607F',
+                  };
+
+                  function updateTagColor() {
+                    const selectedOption = document.querySelector('select.color-pick option:checked');
+                    const selectedColorCode = pickColors[selectedOption.value];
+                    return selectedColorCode;
+                  }
+
                   document.addEventListener('DOMContentLoaded', function () {
                     const colorPicker = document.querySelector('select.color-pick');
                     const hiddenColorInput = document.querySelector('#hidden-color');
@@ -909,28 +958,7 @@
                       console.error('색상 선택기 또는 숨겨진 입력란 요소를 찾을 수 없습니다.');
                     }
 
-                    const pickColors = {
-                      'color01': '#FFCC00',
-                      'color02': '#FF6B6B',
-                      'color03': '#6699CC',
-                      'color04': '#B0C4DE',
-                      'color05': '#4B9579',
-                      'color06': '#996699',
-                      'color07': '#D9BC78',
-                      'color08': '#474E20',
-                      'color09': '#BD9EB3',
-                      'color10': '#5B471F',
-                      'color11': '#66CCCC',
-                      'color12': '#8AC1A3',
-                      'color13': '#89CFEB',
-                      'color14': '#C1D98C',
-                      'color15': '#FFD5C2',
-                      'color16': '#D98981',
-                      'color17': '#C6E9F1',
-                      'color18': '#4A509B',
-                      'color19': '#8C684C',
-                      'color20': '#50607F',
-                    };
+
 
                     // 색상 선택기의 초기 색상 설정
                     colorPicker.style.color = pickColors[colorPicker.value];

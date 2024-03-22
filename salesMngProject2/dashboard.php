@@ -1,13 +1,19 @@
 <?php
 //  dashboard.php
-//echo "PHP code is executed! TOP"; (OK)
+require_once "auth.php";
+
+if (isset($_SESSION['success_message'])) {
+    echo "<script>alert('" . $_SESSION['success_message'] . "');</script>";
+    // 메시지를 표시한 후에는 세션에서 삭제
+    unset($_SESSION['success_message']);
+}
+
+require_once "sales_db.php";
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 // session_start();
-
-// require_once "auth.php";
-require_once "sales_db.php";
 
 mysqli_set_charset($dbconnect, "utf8");
 
@@ -30,6 +36,22 @@ function get_totalVendors() {
     return $totalVendors;
 }
 $totalVendors = get_totalVendors();
+
+// 2024.03.20 추가요청 : 장비수 
+function get_totalDevices(){
+    global $dbconnect;
+    $query_devices="SELECT COUNT(DISTINCT SN) as device_count FROM DEVICE";
+    $result_devices = mysqli_query($dbconnect, $query_devices);
+
+    if($result_devices){
+        $row_devices = mysqli_fetch_assoc($result_devices);
+        $totalDevices = $row_devices['device_count'];
+    }else{
+        $totalDevices = "Error";
+    }
+    return $totalDevices;
+}
+$totalDevices = get_totalDevices();
 
 // 2. 총 유지보수 고객 totalLicenses
 function get_totalLicenses($today, &$query_licenses = "") {
@@ -203,6 +225,10 @@ list($eos, $start_date, $end_date) = get_eos($today, $eos_tobe_expired);
                         <td><?= $totalVendors ?><span>건</span></td>
                     </tr>
                     <tr>
+                        <th>장비</th>
+                        <td><?= $totalDevices ?><span>대</span></td>
+                    </tr>
+                    <tr>
                         <th>진행중 유지보수</th>
                         <td><?= $totalLicenses ?><span>건</span></td>
                     </tr>
@@ -257,7 +283,7 @@ list($eos, $start_date, $end_date) = get_eos($today, $eos_tobe_expired);
     <script src="/.__/auto_complete.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        console.log("페이지 로딩 완료");
+        // console.log("페이지 로딩 완료");
 
         // 버튼 클릭 시 데이터 업데이트
         document.getElementById('refresh-button').addEventListener('click', function () {

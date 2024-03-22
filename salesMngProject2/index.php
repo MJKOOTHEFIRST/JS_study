@@ -1,22 +1,39 @@
 <?php
+// index.php
 // 에러 확인, 세션 시작, DB 연결 설정
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-session_start();
 
-// 세션 데이터를 디버깅하기 위해 출력
-echo "<pre>Session: ";
-print_r($_SESSION);
-echo "</pre>";
+// 세션 데이터 초기화
+// session_start(); // 세션 시작
+// session_unset(); // 모든 세션 변수 해제
+// session_destroy(); // 세션 파괴
+
+// 세션이 이미 시작되었는지 확인하고, 아니라면 세션을 시작
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+// 로그인 상태인 경우 대시보드 페이지로 리디렉션
+if (isset($_SESSION['user_id'])) {
+    header("Location: dashboard.php");
+    exit();
+}
+
+// echo "<pre>Session: ";
+// print_r($_SESSION);
+// echo "</pre>";
 
 require_once "sales_db.php";
 mysqli_set_charset($dbconnect, "utf8");
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['user_id']) && isset($_POST['pw'])) {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['user_id']) && isset($_POST['password'])) {
+    var_dump($_POST);
     $user_id = mysqli_real_escape_string($dbconnect, $_POST['user_id']);
+    $pw = mysqli_real_escape_string($dbconnect, $_POST['password']);
     // 준비된 명령문 사용하여 SQL 인젝션 방지
-    $stmt = $dbconnect->prepare("SELECT no, user_id, username, password FROM LOGIN WHERE user_id = ?");
+    $stmt = $dbconnect->prepare("SELECT user_no, user_name, user_id, password FROM LOGIN WHERE user_id = ?");
     if ($stmt) {
         $stmt->bind_param("s", $user_id);
         $stmt->execute();
@@ -24,13 +41,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['user_id']) && isset($_
 
         if ($result->num_rows === 1) {
             $user = $result->fetch_assoc();
-            if ($_POST['pw'] === $user['password']) {
+            // var_dump($user);
+            if ($pw === $user['password']) { // 평문 비밀번호 비교
                 // 세션에 사용자 고유 식별번호와 사용자 이름(username) 저장
-                $_SESSION['user_no'] = $user['no'];  // 데이터베이스의 `no` 컬럼
-                $_SESSION['username'] = $user['username'];  // 데이터베이스의 `username` 컬럼
+                $_SESSION['user_no'] = $user['user_no'];  // 데이터베이스의 `no` 컬럼
+                $_SESSION['user_name'] = $user['user_name'];  // 데이터베이스의 `username` 컬럼
                 $_SESSION['user_id'] = $user['user_id'];  // 데이터베이스의 `user_id` 컬럼
 
-                header("Location: salesMain.php");
+                // 로그인이 성공한 경우 콘솔에 로그를 출력
+                $_SESSION['success_message'] = "로그인 성공! " . $_SESSION['user_name'] . "님 환영합니다.";
+                header("Location: dashboard.php");
                 exit();
             } else {
                 echo "<script>alert('아이디 또는 비밀번호가 잘못되었습니다.');</script>";
@@ -44,9 +64,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['user_id']) && isset($_
 }
 
 ?>
-
-
-
 
 
 <!DOCTYPE html>
@@ -85,12 +102,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['user_id']) && isset($_
                         } else {
                             // 로그인 폼 표시
                         ?>
-                            <form action="dashboard.php" method="post" id="login-frm">
+                            <form action="index.php" method="post" id="login-frm">
                                 <div class="form-group">
                                     <input type="text" class="form-control mb-3" id="loginId" name="user_id" placeholder="아이디" style="max-width: 300px; margin: 0 auto;">
                                 </div>
                                 <div class="form-group">
-                                    <input type="password" class="form-control mb-3" id="loginPw" name="pw" placeholder="비밀번호" style="max-width: 300px; margin: 0 auto;">
+                                    <input type="password" class="form-control mb-3" id="loginPw" name="password" placeholder="비밀번호" style="max-width: 300px; margin: 0 auto;" autocomplete="off">
                                 </div>
                                 <div class="form-group text-center">
                                     <input type="submit" class="btn btn-primary" value="로그인" style="margin-top:30px;width: 100px; font-size: 17px; font-weight: 900; border-radius: 10px;">

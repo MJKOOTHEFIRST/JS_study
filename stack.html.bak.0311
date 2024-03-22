@@ -12,9 +12,8 @@
   <!-- <script src="js/include.js"></script> -->
   <script type="module" src="./js/main/stack_search.js"></script>
   <script type="module" src="./js/main/stack_tag_manager.js"></script>
-  <script type="module" src="./js/main/delete_tag.js"></script>
   <script type="module" src="./js/main/stack_dataManager.js"></script>
-  <script type="module" src="./js/main/stack_diagnosis_log.js"></script>
+  <script type="module" src="./js/main/stack_diagnosis_analysis_log.js"></script>
   <script type="module" src="./js/main/stack_stack_diagnosis.js"></script>
   <script type="module" src="./js/main/bop_dataManager.js"></script> <!--한번에 csv 파일 뿌려주기-->
   <script type="module" src="./js/main/bop_learning_data.js"></script> <!-- BOP 정상 학습 데이터-->
@@ -831,13 +830,22 @@
 
                 <!-- 헤시테그 -->
                 <div class="scrollmini hashtag-outer">
-                  <!--
+
                   <div class="hashtag">
                     <button class="main"><span style="background: red"></span>Test1</button>
                     <button class="del" title="삭제">×</button>
                     <button class="finish" title="삭제">×</button>
                   </div>
-                -->
+                  <div class="hashtag">
+                    <button class="main"><span style="background: blue"></span>Test2</button>
+                    <button class="del" title="삭제">×</button>
+                    <button class="finish" title="삭제">×</button>
+                  </div>
+                  <div class="hashtag">
+                    <button class="main"><span style="background: gold"></span>Test3</button>
+                    <button class="del" title="삭제">×</button>
+                    <button class="finish" title="삭제">×</button>
+                  </div>
                 </div>
 
                 <script>
@@ -862,32 +870,7 @@
                 </script>
                 <!-- <input type="color" onchange="colorValue()"><input type="text" id="new-tag-text"><button class="btn-of w-24" id="new-tag">라벨 ᐧ 태그생성 / 수정</button> -->
                 <!-- 사용자가 클릭할 수 있는 색상 선택기 -->
-                <!-- <input type="color" id="tag-color" onchange="updateTagColor()"> -->
-
-                <select class="color-pick scrollmini">
-                  <option disabled selected>⎕</option>
-                  <option title="Supernova" value="color01">▉ <!--Supernova     --> </option>
-                  <option title="Bittersweet" value="color02">▉ <!--Bittersweet   --> </option>
-                  <option title="Danube" value="color03">▉ <!--Danube        --> </option>
-                  <option title="Pigeon Post" value="color04">▉ <!--Pigeon Post   --> </option>
-                  <option title="Viridian" value="color05">▉ <!--Viridian      --> </option>
-                  <option title="Strikemaster" value="color06">▉ <!--Strikemaster  --> </option>
-                  <option title="Harvest Gold" value="color07">▉ <!--Harvest Gold  --> </option>
-                  <option title="Army Green" value="color08">▉ <!--Army Green    --> </option>
-                  <option title="Pastel Purple" value="color09">▉ <!--Pastel Purple --> </option>
-                  <option title="Otter Brown" value="color10">▉ <!--Otter Brown   --> </option>
-                  <option title="Downy" value="color11">▉ <!--Downy         --> </option>
-                  <option title="Summer Green" value="color12">▉ <!--Summer Green  --> </option>
-                  <option title="Seagull" value="color13">▉ <!--Seagull       --> </option>
-                  <option title="Deco" value="color14">▉ <!--Deco          --> </option>
-                  <option title="Romantic" value="color15">▉ <!--Romantic      --> </option>
-                  <option title="New York Pink" value="color16">▉ <!--New York Pink --> </option>
-                  <option title="Link Water" value="color17">▉ <!--Link Water    --> </option>
-                  <option title="Haiti" value="color18">▉ <!--Haiti         --> </option>
-                  <option title="Dull Brown" value="color19">▉ <!--Dull Brown    --> </option>
-                  <option title="Blue Bayoux" value="color20">▉ <!--Blue Bayoux   --> </option>
-                </select>
-
+                <input type="color" id="tag-color" onchange="updateTagColor()">
                 <!-- 숨겨진 입력란, 실제 색상 값 저장용 -->
                 <input type="hidden" id="hidden-color">
                 <!-- 사용자에게 보이는 입력란, 색상 코드 표시 안 함 -->
@@ -895,48 +878,17 @@
                 <button class="btn-of w-24" id="new-tag">라벨 ᐧ 태그생성 / 수정</button>
 
                 <script>
-                  document.addEventListener('DOMContentLoaded', function () {
-                    const colorPicker = document.querySelector('select.color-pick');
-                    const hiddenColorInput = document.querySelector('#hidden-color');
+                  // const colorValue = () => {
+                  //   document.querySelector('#new-tag-text').value = document.querySelector('input[type=color]').value
+                  // }
+                  // colorValue()
 
-                    if (colorPicker && hiddenColorInput) {
-                      colorPicker.addEventListener('change', function () {
-                        const selectedColorCode = pickColors[this.value];
-                        hiddenColorInput.value = selectedColorCode;
-                        this.style.color = selectedColorCode;
-                      });
-                    } else {
-                      console.error('색상 선택기 또는 숨겨진 입력란 요소를 찾을 수 없습니다.');
-                    }
+                  let selectedColor = '#ffffff'; // 기본 색상 값 설정
 
-                    const pickColors = {
-                      'color01': '#FFCC00',
-                      'color02': '#FF6B6B',
-                      'color03': '#6699CC',
-                      'color04': '#B0C4DE',
-                      'color05': '#4B9579',
-                      'color06': '#996699',
-                      'color07': '#D9BC78',
-                      'color08': '#474E20',
-                      'color09': '#BD9EB3',
-                      'color10': '#5B471F',
-                      'color11': '#66CCCC',
-                      'color12': '#8AC1A3',
-                      'color13': '#89CFEB',
-                      'color14': '#C1D98C',
-                      'color15': '#FFD5C2',
-                      'color16': '#D98981',
-                      'color17': '#C6E9F1',
-                      'color18': '#4A509B',
-                      'color19': '#8C684C',
-                      'color20': '#50607F',
-                    };
-
-                    // 색상 선택기의 초기 색상 설정
-                    colorPicker.style.color = pickColors[colorPicker.value];
-                  });
+                  function updateTagColor() {
+                    selectedColor = document.querySelector('#tag-color').value;
+                  }
                 </script>
-
 
                 <div class="float-end">
                   <button class="btn-of w-24">그래프 보기</button>

@@ -1,29 +1,18 @@
 <?php
+//  navbar.php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// 현재 페이지의 파일 이름을 가져옵니다.
+// 현재 페이지의 파일 이름을 가져옴
 $current_page = basename($_SERVER['PHP_SELF']);
 
-// 세션이 이미 시작되었는지 확인하고, 아니라면 세션을 시작합니다.
+// 세션이 이미 시작되었는지 확인하고, 아니라면 세션을 시작
 if (session_status() == PHP_SESSION_NONE) {
-    session_start();
+  session_start();
 }
 
-// // 세션 데이터를 디버깅을 위해 출력합니다.
-// echo "<pre>Session Data: ";
-// // var_dump($_SESSION);
-// echo "</pre>";
-
-// 로그인 상태를 확인하기 위해 세션에 저장된 username을 가져옵니다.
+// 로그인 상태를 확인하기 위해 세션에 저장된 username을 가져옴
 $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
-
-// // username 변수를 디버깅을 위해 출력합니다.
-// echo "<pre>Username: ";
-// // var_dump($username);
-// echo "</pre>";
-
-
 
 ?>
 
@@ -58,16 +47,27 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
       </li>
     </ul>
     <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <?php if ($username) : ?>
-            <!-- 로그인 상태일 때 사용자 이름 표시 -->
-            <a href="index.php" class="nav-link"><?=htmlspecialchars($username) ?>님이 로그인하셨습니다.</a>
-            <?php else: ?>
-            <a href="index.php" class="nav-link">
-                <img src="/img/password0901.png" alt="Login Image" style="height: 45px; width: auto; margin-right:5%;">
-            </a>
-            <?php endif; ?>
-        </li>
+      <li class="nav-item">
+        <?php
+        if (isset($_SESSION['user_id'])) {
+          // 로그인된 상태
+          $username = $_SESSION['user_name'];
+          echo "<div style=\"display: flex; align-items: center; background-color: #5a9bd5;\">";
+          echo "<p style=\"font-size: 20px; font-weight: bold; color: white; margin-right: 10px; margin-top:10px; padding: 10px 0;\">안녕하세요 " . htmlspecialchars($username) . "님, 로그인 되었습니다.</p>";
+          echo "<a href=\"logout.php\" class=\"nav-link\" style=\"font-size: 18px; font-weight:600; color: #505050; background-color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; transition: background-color 0.3s ease;\">로그아웃</a>";
+          echo "<style>";
+          echo ".nav-link:hover { text-shadow: none !important; }"; // 마우스 오버 시 텍스트 그림자 제거
+          echo "</style>";
+          echo "</div>";
+        } else {
+          // 로그아웃 상태일 때 로그인 이미지와 링크 표시
+          echo '<a href="index.php" class="nav-link">';
+          echo '<img src="/img/password0901.png" alt="Login Image" style="height: 45px; width: auto; margin-right:5%;">';
+          echo '</a>';
+        }
+        ?>
+
+      </li>
     </ul>
   </div>
 </nav>

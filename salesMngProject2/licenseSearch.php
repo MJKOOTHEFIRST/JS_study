@@ -13,9 +13,9 @@ $types = '';
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    echo "<pre>";
-    print_r($_POST);
-    echo "</pre>";
+    // echo "<pre>";
+    // print_r($_POST);
+    // echo "</pre>";
 
     $currentDate = new DateTime();
     $currentFormattedDate = $currentDate->format('Y-m-d');
@@ -234,10 +234,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     <td>
                         <select class="input short selectstyle" name="support" id="support">
                         <!-- T0: 지원없음, T1:정기점검, T2:유지보수-->
+                        <!-- 2024.03.20 변경 : T5: 지원없음, T3: 정기점검, T1:유지 보수-->
                           <option value="" <?php if(!isset($html_values['SUPPORT']) || empty($html_values['SUPPORT'])) echo 'selected'; ?>>선택안함</option>
-                          <option value="T0:지원없음" <?php if(isset($html_values['SUPPORT']) && $html_values['SUPPORT'] == 'T0:지원없음') echo 'selected'; ?>>T0:지원없음</option>
-                          <option value="T1:정기점검" <?php if(isset($html_values['SUPPORT']) && $html_values['SUPPORT'] == 'T1:정기점검') echo 'selected'; ?>>T1:정기점검</option>
-                          <option value="T2:유지보수" <?php if(isset($html_values['SUPPORT']) && $html_values['SUPPORT'] == 'T2:유지보수') echo 'selected'; ?>>T2:유지보수</option>
+                          <option value="T5:지원없음" <?php if(isset($html_values['SUPPORT']) && $html_values['SUPPORT'] == 'T5:지원없음') echo 'selected'; ?>>T5:지원없음</option>
+                          <option value="T3:정기점검" <?php if(isset($html_values['SUPPORT']) && $html_values['SUPPORT'] == 'T3:정기점검') echo 'selected'; ?>>T3:정기점검</option>
+                          <option value="T1:유지보수" <?php if(isset($html_values['SUPPORT']) && $html_values['SUPPORT'] == 'T1:유지보수') echo 'selected'; ?>>T1:유지보수</option>
                         </select>
                         <span class="error-message">&nbsp;</span>
                     </td>

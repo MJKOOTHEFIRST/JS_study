@@ -193,7 +193,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <tr>
                             <td><label for="intNum">회선수</label></td>
                             <td>
-                                <input type="text" class="input short" name="intNum" id="intNum">
+                                <input type="number" class="input short" name="intNum" id="intNum">
                                 <span class="error-message">&nbsp;</span>
                             </td>
                         </tr>
@@ -216,8 +216,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <td>
                                 <select class="input short selectstyle" name="HDD" id="HDD">
                                     <option value="" <?php echo isset($html_values['DEV_TYPE']) && $html_values['DEV_TYPE'] == '' ? 'selected' : ''; ?>>선택</option>
+                                    <option value="500G" <?php echo isset($html_values['DEV_TYPE']) && $html_values['DEV_TYPE'] == '500G' ? 'selected' : ''; ?>>500G</option>
                                     <option value="1TB" <?php echo isset($html_values['DEV_TYPE']) && $html_values['DEV_TYPE'] == '1T' ? 'selected' : ''; ?>>1T</option>
-                                    <option value="2TB * 1(EA)" <?php echo isset($html_values['DEV_TYPE']) && $html_values['DEV_TYPE'] == '2TB X 1(EA)' ? 'selected' : ''; ?>>2TB X 1(EA)</option>
+                                    <option value="2TB X 1(EA)" <?php echo isset($html_values['DEV_TYPE']) && $html_values['DEV_TYPE'] == '2TB X 1(EA)' ? 'selected' : ''; ?>>2TB X 1(EA)</option>
                                     <option value="2TB X 2(EA)" <?php echo isset($html_values['DEV_TYPE']) && $html_values['DEV_TYPE'] == '2TB X 2(EA)' ? 'selected' : ''; ?>>2TB X 2(EA)</option>
                                     <option value="8TB X 2(EA)" <?php echo isset($html_values['DEV_TYPE']) && $html_values['DEV_TYPE'] == '8TB X 2(EA)' ? 'selected' : ''; ?>>8TB X 2(EA)</option>
                                     <option value="8TB X 7(EA)" <?php echo isset($html_values['DEV_TYPE']) && $html_values['DEV_TYPE'] == '8TB X 7(EA)' ? 'selected' : ''; ?>>8TB X 7(EA)</option>
@@ -230,9 +231,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <td>
                                 <select class="input short selectstyle" name="memory" id="memory">
                                     <option value="" <?php echo isset($html_values['MEMORY']) && $html_values['MEMORY'] == '' ? 'selected' : ''; ?>>선택</option>
-                                    <option value="32G" <?php echo isset($html_values['MEMORY']) && $html_values['MEMORY'] == '32M' ? 'selected' : ''; ?>>32G</option>
-                                    <option value="64G" <?php echo isset($html_values['MEMORY']) && $html_values['MEMORY'] == '64M' ? 'selected' : ''; ?>>64G</option>
-                                    <option value="128G" <?php echo isset($html_values['MEMORY']) && $html_values['MEMORY'] == '128M' ? 'selected' : ''; ?>>128G</option>
+                                    <option value="4G" <?php echo isset($html_values['MEMORY']) && $html_values['MEMORY'] == '4G' ? 'selected' : ''; ?>>4G</option>
+                                    <option value="8G" <?php echo isset($html_values['MEMORY']) && $html_values['MEMORY'] == '8G' ? 'selected' : ''; ?>>8G</option>
+                                    <option value="16G" <?php echo isset($html_values['MEMORY']) && $html_values['MEMORY'] == '16G' ? 'selected' : ''; ?>>16G</option>
+                                    <option value="32G" <?php echo isset($html_values['MEMORY']) && $html_values['MEMORY'] == '32G' ? 'selected' : ''; ?>>32G</option>
+                                    <option value="64G" <?php echo isset($html_values['MEMORY']) && $html_values['MEMORY'] == '64G' ? 'selected' : ''; ?>>64G</option>
+                                    <option value="128G" <?php echo isset($html_values['MEMORY']) && $html_values['MEMORY'] == '128G' ? 'selected' : ''; ?>>128G</option>
                                 </select>
                                 <span class="error-message">&nbsp;</span>
                             </td>

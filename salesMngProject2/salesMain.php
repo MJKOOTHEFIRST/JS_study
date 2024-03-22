@@ -1,5 +1,7 @@
 <?php
 // sainsMain.php
+require_once "auth.php";
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -459,6 +461,7 @@ if (isset($_GET['condition']) && $_GET['condition'] == 'eos') {
                                                         } ?>><?php echo $row['ORDER_NO']; ?></td> <!--SN LIST 없는 경우 빨간색으로 추가요청사항-->
                                     <td class="col-1"><?php echo $row['WARRANTY']; ?><span>개월</span></td>
                                 </tr>
+                                <!-- 아코디언 -->
                                 <tr>
                                     <td colspan="12">
                                         <div id="flush-collapse<?php echo $counter; ?>" class="collapse accor-style">
@@ -561,15 +564,15 @@ if (isset($_GET['condition']) && $_GET['condition'] == 'eos') {
                         </tbody>
                     </table>
                 </div>
-                <div class="pagination">
+                <!-- <div class="pagination">
                     <ul class="pagination-list">
                         <?php
-                        require_once "pagination.php";
+                        // require_once "pagination.php";
                         // 페이지네이션 생성
-                        createPagination($totalItems, $itemsPerPage, $currentPage, $urlPattern);
+                        // createPagination($totalItems, $itemsPerPage, $currentPage, $urlPattern);
                         ?>
                     </ul>
-                </div>
+                </div> -->
             </div>
         </div>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
