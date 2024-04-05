@@ -29,7 +29,7 @@
     "[json]": {
         "editor.defaultFormatter": "vscode.json-language-features"
     },
-    "workbench.colorTheme": "Default Light Modern",
+    "workbench.colorTheme": "Bearded Themanopia (Experimental)",
     "[css]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },

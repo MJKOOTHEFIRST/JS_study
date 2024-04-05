@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="./css/common.css" rel="stylesheet">
+  <link href="./css/main.css" rel="stylesheet">
+  <link href="./css/diagram.css" rel="stylesheet">
+  <script src="./js/bootstrap.js"></script>
+  <!-- <script src="js/include.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
+  <script type="module" src="./js/main/dataManager.js"></script> <!--한번에 total_data.conf 뿌려주는 파일-->
+  <script type="module" src="./js/main/operation_rate.js"></script> <!--발전량 / 가동율 누적  차트-->
+  <script type="module" src="./js/main/eventManager.js"></script> <!-- DOMloaded때 이벤트 핸들링만 하는 파일--> 
+  <script type="module" src="./js/main/system-info.js"></script> <!--우측 하단 시스템정보-->
+  <script type="module" src="./js/main/alarm.js"></script> <!-- 알람로그 -->
+  <script type="module" src="./js/main/realTimeProduction.js"></script> <!-- 실시간 생산량 반도넛 -->
+  <script type="module" src="./js/main/operation_info.js"></script> <!-- 발전량 / 가동율 누적차트 -->
+  <script type="module" src="./js/main/dayMonthProductionBar.js"></script> <!--금일/금월 전기/열생산량 바그래프-->
+  <script type="module" src="./js/main/qoe.js"></script>
+  <script type="module" src="./js/main/bopDiagram.js"></script> <!--시스템구조도(BOP)-->
+  <title>막대선그래프 연습</title>
+</head>
+<body>
+</body>
+</html>
+<div class="widget-head">
+  전기생산량
+  <div class="widget-head-gadget">
+      <div class="d-inline-block pe-1">
+          <div class="d-inline-block">
+              <div class="switch-field e-switch-field">
+                  <input type="radio" id="hour-e" name="switch-e" value="hour" checked/>
+                  <label for="hour-e" class="e_production_time">시간</label>
+                  <input type="radio" id="day-e" name="switch-e" value="day" />
+                  <label for="day-e" class="e_production_time">일</label>
+                  <input type="radio" id="month-e" name="switch-e" value="month" />
+                  <label for="month-e" class="e_production_time">월</label>
+              </div>
+          </div>
+  </div>
+</div>
+<div class="widget-body">
+  <div class="myChartDiv position-relative">
+      <canvas id="eProduction-bar" height="100%"></canvas>
+  </div>
+</div>
+</div>
+</div>

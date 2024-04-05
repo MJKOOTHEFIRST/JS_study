@@ -13,20 +13,43 @@ mysqli_set_charset($dbconnect, "utf8");
 $today = date("Y-m-d");
 $message = "전체 : ";
 
+// 동적 조건을 생성하는 함수
+function addDynamicConditions($dbconnect, $params){
+    $conditions = [];
+    if (!empty($params['vendorName'])) {
+        $vendorName = mysqli_real_escape_string($dbconnect, $params['vendorName']);
+        $conditions[] = "V.NAME LIKE '%" . $vendorName . "%'";
+    }
+    // 다른 조건들도 이와 유사하게 추가
+    return $conditions;
+}
 
 // 기본 쿼리 
-$query = "SELECT L.SALE_ID, L.SN, L.TYPE, L.PRICE, L.S_DATE, L.D_DATE, L.WARRANTY, L.INSPECTION, L.SUPPORT, L.REF FROM LICENSE AS L";
+$query = "SELECT L.SALE_ID, L.SN, L.TYPE, L.PRICE, L.S_DATE, L.D_DATE, L.WARRANTY, L.INSPECTION, L.SUPPORT, L.REF, V.NAME AS VENDOR_NAME
+          FROM LICENSE AS L
+          JOIN SALES AS S ON L.SALE_ID = S.SALE_ID
+          JOIN VENDOR AS V ON S.V_ID = V.V_ID"; //쿼리 잘 작동됨
 
-// VENDOR NAME 추가한 쿼리
-// $query = "SELECT L.SALE_ID, L.SN, L.TYPE, L.PRICE, L.S_DATE, L.D_DATE, L.WARRANTY, L.INSPECTION, L.SUPPORT, L.REF, V.NAME AS VENDOR_NAME
-// FROM LICENSE AS L
-// JOIN SALES AS S ON L.SALE_ID = S.SALE_ID
-// JOIN VENDOR AS V ON S.V_ID = V.V_ID";
+// 사용자 입력 또는 기타 조건을 기반으로 한 파라미터 배열
+$params = []; // 예를 들어, $_GET 또는 $_POST에서 파라미터를 가져올 수 있습니다.
 
-// echo $query; //제대로 나온다.
+// 동적 조건 추가
+$conditions = addDynamicConditions($dbconnect, $params);
+if (!empty($conditions)) {
+    $query .= " WHERE " . implode(" AND ", $conditions);
+}
 
 // 조건이 추가된 쿼리를 바탕으로 데이터베이스에서 데이터 가져오기
 $result = mysqli_query($dbconnect, $query);
+if ($result) {
+    while ($row = mysqli_fetch_assoc($result)) {
+        // VENDOR_NAME이 결과 집합에 포함되어 있다고 가정하고 직접 사용
+        // 필요한 경우 여기에서 row 데이터를 처리하거나 출력
+        
+    }
+} else {
+    echo "Query failed: " . mysqli_error($dbconnect);
+}
 
 // 대시보드랑 연결
 // Check connection
@@ -81,16 +104,20 @@ function get_sql_queried_from_dashboard($cmd)
 
 //name 값들을 DB 컬럼값으로 고쳐줘야하므로 매핑을 하고
 $fieldToDbColumnMapping = [
-    'saleId'    => 'SALE_ID',
-    'SN'        => 'SN',
-    'type'      => 'TYPE',
-    'sDateFrom' => 'S_DATE',
-    'sDateTo'   => 'S_DATE',
-    'dDateFrom' => 'D_DATE',
-    'dDateTo'   => 'D_DATE',
-    'ref' => 'REF',
-    'warranty'  => 'WARRANTY'
+    'saleId'    => 'L.SALE_ID',
+    'SN'        => 'L.SN',
+    'type'      => 'L.TYPE',
+    'sDateFrom' => 'L.S_DATE',
+    'sDateTo'   => 'L.S_DATE',
+    'dDateFrom' => 'L.D_DATE',
+    'dDateTo'   => 'L.D_DATE',
+    'ref'       => 'L.REF',
+    'warranty'  => 'L.WARRANTY',
+    'inspection' => 'L.INSPECTION',
+    'support'   => 'L.SUPPORT',
+    'vendorName' => "V.NAME" // 별칭이 아니라 AS 전에 오는 컬럼명을 적어줘야한다. 
 ];
+
 
 $conditions = [];
 //기간->날짜 검색은 아래와 같이 처리해준다. 
@@ -115,9 +142,15 @@ foreach ($fieldToDbColumnMapping as $field => $dbColumn) {
                 break;
             default:
                 // 일반 조건 처리
-                $conditions[] = $dbColumn . " = '%" . mysqli_real_escape_string($dbconnect, trim($_REQUEST[$field])) . "%'"; // 230920 trim으로 공백을 제거해줘야 SQL이 유효함
+                // $conditions[] = $dbColumn . " = '%" . mysqli_real_escape_string($dbconnect, trim($_REQUEST[$field])) . "%'"; // 230920 trim으로 공백을 제거해줘야 SQL이 유효함
+                $conditions[] = $dbColumn . " LIKE '%" . mysqli_real_escape_string($dbconnect, trim($_REQUEST[$field])) . "%'";
                 break;
         }
+    }
+    // 조건이 있는 경우 WHERE 절 구성
+    if (!empty($conditions)) {
+        $where_clause = " WHERE " . implode(" AND ", $conditions);
+        $query .= $where_clause;
     }
 }
 
@@ -145,7 +178,13 @@ switch ($from_url_path) {
     case "/deviceMain.php":
         if (isset($_GET['SALE_ID'])) {
             $saleId = urldecode($_GET['SALE_ID']);
-            $query = "SELECT L.SALE_ID, L.SN, L.TYPE, L.PRICE, L.S_DATE, L.D_DATE, L.WARRANTY, L.INSPECTION, L.SUPPORT, L.REF FROM LICENSE AS L WHERE  L.SALE_ID = '" . mysqli_real_escape_string($dbconnect, $saleId) . "'";
+            // $query = "SELECT L.SALE_ID, L.SN, L.TYPE, L.PRICE, L.S_DATE, L.D_DATE, L.WARRANTY, L.INSPECTION, L.SUPPORT, L.REF FROM LICENSE AS L WHERE  L.SALE_ID = '" . mysqli_real_escape_string($dbconnect, $saleId) . "'";
+            // VENDOR_NAME을 포함하여 조회하는 쿼리로 수정
+            $query = "SELECT L.SALE_ID, L.SN, L.TYPE, L.PRICE, L.S_DATE, L.D_DATE, L.WARRANTY, L.INSPECTION, L.SUPPORT, L.REF, V.NAME AS VENDOR_NAME
+        FROM LICENSE AS L
+        JOIN SALES AS S ON L.SALE_ID = S.SALE_ID
+        JOIN VENDOR AS V ON S.V_ID = V.V_ID
+        WHERE L.SALE_ID = '" . mysqli_real_escape_string($dbconnect, $saleId) . "'";
             $message = "특정 SALE_ID에 대한 정보 조회: " . $saleId;
         }
         break;
@@ -154,13 +193,19 @@ switch ($from_url_path) {
         // 검색 조건에 따른 SQL 쿼리 작성
         // 기본적으로는 전체 목록을 보여주지만, 검색 조건이 salesSearch로 부터 전달될 경우 
         // 해당 조건에 맞는 데이터만 필터링하여 보여줌.
+        // $query = "SELECT 
+        //         L.SALE_ID, L.SN, L.TYPE, L.PRICE, L.S_DATE, L.D_DATE, L.WARRANTY, L.INSPECTION, L.SUPPORT, L.REF
+        //     FROM LICENSE AS L";
         $query = "SELECT 
-                L.SALE_ID, L.SN, L.TYPE, L.PRICE, L.S_DATE, L.D_DATE, L.WARRANTY, L.INSPECTION, L.SUPPORT, L.REF
-            FROM LICENSE AS L";
+            L.SALE_ID, L.SN, L.TYPE, L.PRICE, L.S_DATE, L.D_DATE, L.WARRANTY, L.INSPECTION, L.SUPPORT, L.REF, V.NAME AS VENDOR_NAME
+        FROM LICENSE AS L
+        JOIN SALES AS S ON L.SALE_ID = S.SALE_ID
+        JOIN VENDOR AS V ON S.V_ID = V.V_ID";
 
         if (!empty($conditions)) {
             $where_clause = " WHERE " . implode(" AND ", $conditions);
-            $query .= str_replace('=', 'LIKE', $where_clause);
+            // $query .= str_replace('=', 'LIKE', $where_clause); // 날짜에는 LIKE 들어가면 오류 일으킨다. 정확한 날짜와 BETWEEN이 있어야한다. 
+            $query .= $where_clause;
         }
 
         $query .= " ORDER BY L.SALE_ID DESC"; // 명세서번호로 정렬
@@ -268,7 +313,7 @@ $totalCount = $totalLicenseRow['total'];
                                 <!-- tablesorter 쓰면 안되고, 나중에 pagination이랑 함께 해야하기 때문에 각 th를 클릭했을 때, 각각 select 해서 정렬하도록 한다. -->
                                 <th scope="col" class="col-1">명세서번호</th>
                                 <th scope="col" class="col-2">SN</th>
-                                <th scope="col" class="col-1">거래처</th>
+                                <th scope="col" class="col-1">납품처</th>
                                 <th scope="col" class="col-1 maintenance-type">유형</th>
                                 <th scope="col" class="col-1" style="text-align:right; padding-right:2%;">가격</th>
                                 <th scope="col" class="col-1">보증기간</th>
@@ -286,14 +331,14 @@ $totalCount = $totalLicenseRow['total'];
 
                                 //0322 추가코드
                                 // 거래처 정보 가져오기
-                                $vendor_query = "SELECT NAME FROM VENDOR WHERE V_ID = (SELECT V_ID FROM SALES WHERE SALE_ID = '{$row['SALE_ID']}')";
-                                $vendor_result = mysqli_query($dbconnect, $vendor_query);
-                                if ($vendor_result) {
-                                    $vendor_row = mysqli_fetch_assoc($vendor_result);
-                                } else {
-                                    // 쿼리 실행 실패 처리
-                                    echo "쿼리 실행 실패";
-                                }
+                                // $vendor_query = "SELECT NAME FROM VENDOR WHERE V_ID = (SELECT V_ID FROM SALES WHERE SALE_ID = '{$row['SALE_ID']}')";
+                                // $vendor_result = mysqli_query($dbconnect, $vendor_query);
+                                // if ($vendor_result) {
+                                //     $vendor_row = mysqli_fetch_assoc($vendor_result);
+                                // } else {
+                                //     // 쿼리 실행 실패 처리
+                                //     echo "쿼리 실행 실패";
+                                // }
                             ?>
                                 <!-- 데이터 행 -->
                                 <tr data-bs-toggle="collapse" data-bs-target="#flush-collapse<?php echo $counter; ?>" aria-expanded="false" aria-controls="flush-collapse<?php echo $counter; ?>">
@@ -311,7 +356,8 @@ $totalCount = $totalLicenseRow['total'];
                                         <?php
                                         // $vendor_row가 null이 아니고, NAME 키에 해당하는 값이 존재하면 그 값을 출력
                                         // 그렇지 않으면 '정보없음'을 출력
-                                        echo isset($vendor_row['NAME']) ? $vendor_row['NAME'] : '-';
+                                        // echo isset($vendor_row['NAME']) ? $vendor_row['NAME'] : '-';
+                                        echo isset($row['VENDOR_NAME']) ? $row['VENDOR_NAME'] : '-';
                                         ?>
                                     </td>
                                     <td class="col-1"><?php echo $row['TYPE']; ?></td>

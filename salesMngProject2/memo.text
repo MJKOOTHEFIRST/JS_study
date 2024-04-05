@@ -50,58 +50,21 @@ MariaDB [salesmng]> DESC LICENSE;
 | REF        | varchar(300)        | YES  |     | NULL    |       |
 +------------+---------------------+------+-----+---------+-------+
 
-이 세 테이블의 관계를 보고, 나는 '거래처'(VENDOR 테이블의 NAME)를 이 페이지에 넣고싶다. 거래처를 제외한 명세서번호, SN, 등등은 LICENSE 테이블에서 온 것이다. 
-
-<table class="table main-tbl lcs-main-tbl">
-                        <thead>
-                            <tr>
-                                <!-- tablesorter 쓰면 안되고, 나중에 pagination이랑 함께 해야하기 때문에 각 th를 클릭했을 때, 각각 select 해서 정렬하도록 한다. -->
-                                <th scope="col" class="col-1">명세서번호</th>
-                                <th scope="col" class="col-1">SN</th>
-                                <th scope="col" class="col-1">거래처</th>
-                                <th scope="col" class="col-1 maintenance-type">유형</th>
-                                <th scope="col" class="col-1" style="text-align:right; padding-right:2%;">가격</th>
-                                <th scope="col" class="col-1">보증기간</th>
-                                <th scope="col" class="col-1">시작일</th>
-                                <th scope="col" class="col-1">종료일</th>
-                                <th scope="col" class="col-1">점검</th>
-                                <th scope="col" class="col-1">파트너지원</th>
-                                <th scope="col" class="col-1">비고</th>
-                                <th scope="col" class="col-1">수정</th>
-                            </tr>
-                        </thead>
-                        <tbody class="main-screen">
-                            <?php
-                            $counter = 1;  // 각 데이터 행과 세부 정보 행의 ID를 생성하는 카운터 변수
-                            while ($row = mysqli_fetch_assoc($result)) :
-                            ?>
-                                <!-- 데이터 행 -->
-                                <tr data-bs-toggle="collapse" data-bs-target="#flush-collapse<?php echo $counter; ?>" aria-expanded="false" aria-controls="flush-collapse<?php echo $counter; ?>">
-                                    <td class="col-1">
-                                        <span class="custom-link" onclick="window.location.href='salesMain.php?SALE_ID=<?php echo $row['SALE_ID']; ?>'">
-                                            <?php echo $row['SALE_ID']; ?>
-                                        </span>
-                                    </td>
-                                    <td class="col-1" style="text-align: left; padding-left: 3%;">
-                                        <span class="custom-link" onclick="window.location.href='deviceMain.php?SN=<?php echo $row['SN']; ?>'">
-                                            <?php echo $row['SN']; ?>
-                                        </span>
-                                    </td>
-                                    <td class="col-1"><!--VENDOR 테이블의 NAME--></td>
-                                    <td class="col-1"><?php echo $row['TYPE']; ?></td>
-                                    <td class="col-1" style="text-align:right; padding-right:2%;"><?php echo number_format($row['PRICE'] ?? 0); ?><span>원</span></td>
-                                    <td class="col-1">
-                                        <?php
-                                        if (isset($row['WARRANTY']) && !empty($row['WARRANTY'])) {
-                                            echo $row['WARRANTY'] . " 개월";
-                                        }
-                                        ?>
-                                    </td>
-                                    <td class="col-1"><?php echo $row['S_DATE']; ?></td>
-                                    <td class="col-1"><?php echo $row['D_DATE']; ?></td>
-                                    <td class="col-1"><?php echo $row['INSPECTION']; ?></td>
-                                    <td class="col-1"><?php echo $row['SUPPORT']; ?></td>
-                                    <td class="col-1"><?php echo $row['REF']; ?></td>
-                                    <td class="col-1"><button class="btn btn-secondary" onclick="location.href='licenseUpdate.php?saleId=<?php echo urlencode($row['SALE_ID']); ?>&SN=<?php echo urlencode($row['SN']); ?>';">수정</button></td>
-                                    </td>
-                                </tr>
+| DEVICE | CREATE TABLE `DEVICE` (
+  `SN` varchar(50) NOT NULL,
+  `MODEL` varchar(50) NOT NULL,
+  `DEV_TYPE` varchar(50) DEFAULT NULL,
+  `INTERFACE` varchar(50) DEFAULT NULL,
+  `IKIND` varchar(100) DEFAULT NULL,
+  `INTNUM` int(10) DEFAULT NULL,
+  `WDATE` date DEFAULT NULL,
+  `CAPACITY` varchar(10) DEFAULT NULL,
+  `HDD` varchar(20) DEFAULT NULL,
+  `MEMORY` varchar(20) DEFAULT NULL,
+  `ORDER_NO` varchar(50) NOT NULL,
+  `LF` int(1) DEFAULT 0,
+  `SF` int(1) DEFAULT 0,
+  `SALE_ID` varchar(50) DEFAULT '0',
+  `FV` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`SN`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci |

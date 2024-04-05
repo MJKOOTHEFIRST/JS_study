@@ -1,85 +1,143 @@
 <?php
+//deviceSearch.php
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$errorMsg="에러 로그 기록 테스트";
-
-$logFile="/var/log/httpd/error.log"; // 계속 에러뜸(Warning: error_log(/var/log/httpd/error.log): Failed to open stream: Permission denied in /var/www/html/deviceSearch.php on line 12 )
-
-// 에러 로그 메시지 기록
-error_log("에러 메시지", 3, "/tmp/custom_error.log");
-// error_log(date("[Y-m-d H:i:s]") . " " . $errorMsg . "\n", 3, $logFile);
-
 require_once "sales_db.php"; // 데이터베이스 연결 설정 파일
-
 mysqli_set_charset($dbconnect, "utf8");
 
+// 에러 로깅을 위한 함수
+function log_error($message)
+{
+    error_log($message);
+    echo "<script>alert('오류가 발생했습니다.');</script>";
+}
+
+// SQL 삽입 공격 방지를 위한 함수
+function sanitize_input($input)
+{
+    global $dbconnect;
+    return mysqli_real_escape_string($dbconnect, trim($input));
+}
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // 사용자가 입력한 값을 받아옵니다.
-    $SN = isset($_POST["SN"]) ? trim($_POST["SN"]) : '';
-    $orderNo = isset($_POST["orderNo"]) ? trim($_POST["orderNo"]) : '';
-    $model = isset($_POST["model"]) ? $_POST["model"] : '';
-    $devType = isset($_POST["devType"]) ? $_POST["devType"] : '';
-    $interface = isset($_POST["interface"]) ? $_POST["interface"] : '';
-    $ikind = isset($_POST["ikind"]) ? $_POST["ikind"] : '';
-    $intNum = isset($_POST["intNum"]) ? $_POST["intNum"] : '';
-    $capacity = isset($_POST["capacity"]) ? $_POST["capacity"] : '';
-    $HDD = isset($_POST["HDD"]) ? $_POST["HDD"] : '';
-    $memory = isset($_POST["memory"]) ? $_POST["memory"] : '';
+    // 기본 쿼리
+    $query = "SELECT * FROM DEVICE WHERE 1=1";
+    $params = [];
+    $types = "";
 
-    // 모든 필드가 비어 있는지 확인
-    if (empty($SN) && empty($orderNo) && empty($model) && empty($devType) && empty($interface) && empty($ikind) && empty($intNum) && empty($capacity) && empty($HDD) && empty($memory)) {
-        echo "<script>alert('적어도 하나 이상의 검색 조건을 입력해주세요.')</script>";
+    // 각 필드에 대한 입력 검사 및 쿼리 업데이트
+    if (!empty($_POST["SN"])) {
+        $query .= " AND SN LIKE ?";
+        $params[] = "%" . sanitize_input($_POST["SN"]) . "%";
+        $types .= "s";
+    }
+
+    if (!empty($_POST["orderNo"])) {
+        $query .= " AND ORDER_NO LIKE ?";
+        $params[] = "%" . sanitize_input($_POST["orderNo"]) . "%";
+        $types .= "s";
+    }
+
+    if (!empty(trim($_POST["model"]))) {
+        $query .= " AND MODEL LIKE ?";
+        $params[] = "%" . trim($_POST["model"]) . "%";
+        $types .= "s";
+    }
+
+    if (!empty(trim($_POST["FV"]))) {
+        $query .= "AND FV LIKE ?";
+        $params[] = "%" . trim($_POST["FV"]) . "%";
+        $types .= "s";
+    }
+
+    if (!empty(trim($_POST["devType"]))) {
+        $query .= " AND DEV_TYPE LIKE ?";
+        $params[] = "%" . trim($_POST["devType"]) . "%";
+        $types .= "s";
+    }
+
+    if (!empty(trim($_POST["interface"]))) {
+        $query .= " AND INTERFACE LIKE ?";
+        $params[] = "%" . trim($_POST["interface"]) . "%";
+        $types .= "s";
+    }
+
+    if (!empty(trim($_POST["ikind"]))) {
+        $query .= " AND IKIND LIKE ?";
+        $params[] = "%" . trim($_POST["ikind"]) . "%";
+        $types .= "s";
+    }
+
+    if (!empty(trim($_POST["intNum"]))) {
+        $query .= " AND INTNUM = ?";
+        $params[] = trim($_POST["intNum"]);
+        $types .= "i";
+    }
+
+    if (!empty(trim($_POST["capacity"]))) {
+        $query .= " AND CAPACITY LIKE ?";
+        $params[] = "%" . trim($_POST["capacity"]) . "%";
+        $types .= "s";
+    }
+
+    if (!empty(trim($_POST["HDD"]))) {
+        $query .= " AND HDD LIKE ?";
+        $params[] = "%" . trim($_POST["HDD"]) . "%";
+        $types .= "s";
+    }
+
+    if (!empty(trim($_POST["memory"]))) {
+        $query .= " AND MEMORY LIKE ?";
+        $params[] = "%" . trim($_POST["memory"]) . "%";
+        $types .= "s";
+    }
+
+    // 모든 입력이 비어 있는지 확인
+    if (empty($types)) {
+        echo "<script>alert('적어도 하나 이상의 검색값을 입력해주세요.');</script>";
     } else {
-        // 사용자 입력에서 공백 제거
-        $SN = "%" . $SN . "%"; // 와일드카드 추가
-        $orderNo = "%" . $orderNo . "%"; // 와일드카드 추가
-        $model = $model !== '' ? "%" . $model . "%" : '';
-        $devType = $devType !== '' ? "%" . $devType . "%" : '';
-        $interface = $interface !== '' ? "%" . $interface . "%" : '';
-        $ikind = $ikind !== '' ? "%" . $ikind . "%" : '';
-        $intNum = $intNum !== '' ? $intNum : '';
-        $capacity = $capacity !== '' ? "%" . $capacity . "%" : '';
-        $HDD = $HDD !== '' ? "%" . $HDD . "%" : '';
-        $memory = $memory !== '' ? "%" . $memory . "%" : '';
-
-        $query = "SELECT * FROM DEVICE WHERE SN LIKE ? AND ORDER_NO LIKE ? AND MODEL LIKE ? AND DEV_TYPE LIKE ? AND INTERFACE LIKE ? AND IKIND LIKE ? AND INTNUM = ? AND CAPACITY LIKE ? AND HDD LIKE ? AND MEMORY LIKE ?";
         $stmt = mysqli_prepare($dbconnect, $query);
         if (!$stmt) {
-            // 쿼리 준비에 실패했을 때의 에러 메시지 출력
-            die("mysqli_prepare failed: " . mysqli_error($dbconnect));
+            log_error("mysqli_prepare failed: " . mysqli_error($dbconnect));
+            exit();
         }
 
-        // mysqli_stmt_bind_param 호출 직전에 추가
-        error_log("Executing query with params: SN={$SN}, orderNo={$orderNo}, model={$model}, devType={$devType}, interface={$interface}, ikind={$ikind}, intNum={$intNum}, capacity={$capacity}, HDD={$HDD}, memory={$memory}");
-
-        mysqli_stmt_bind_param($stmt, "ssssssisss", $SN, $orderNo, $model, $devType, $interface, $ikind, $intNum, $capacity, $HDD, $memory);
+        mysqli_stmt_bind_param($stmt, $types, ...$params);
 
         if (!mysqli_stmt_execute($stmt)) {
-            // 쿼리 실행에 실패했을 때의 에러 메시지 출력
-            die("mysqli_stmt_execute failed: " . mysqli_stmt_error($stmt));
+            log_error("mysqli_stmt_execute failed: " . mysqli_stmt_error($stmt));
+            exit();
         }
 
         $result = mysqli_stmt_get_result($stmt);
         if (!$result) {
-            // 결과 가져오기에 실패했을 때의 에러 메시지 출력
-            die("mysqli_stmt_get_result failed: " . mysqli_error($dbconnect));
+            log_error("mysqli_stmt_get_result failed: " . mysqli_error($dbconnect));
+            exit();
         }
 
+        // 데이터베이스 결과가 있을 때
         if (mysqli_num_rows($result) > 0) {
-            // 결과가 있을 때
-            header("Location: deviceMain.php");
-            exit();
-        } else {
-            // 결과가 없을 때
-            echo "<script>alert('해당되는 장비를 찾을 수 없습니다.')</script>";
+            // GET 매개변수를 사용하여 쿼리 스트링 생성
+            $queryString = http_build_query($_GET);
+            // 에러 로그에 쿼리 스트링 기록
+            error_log("리다이렉트될 URL: deviceMain.php?" . $queryString);
+            // 사용자를 deviceMain.php로 리다이렉트하고 쿼리 스트링을 전달
+            header("Location: deviceMain.php?" . $queryString);
+        }
+        // 데이터베이스 결과가 없을 때
+        else {
+            // GET 매개변수를 사용하여 쿼리 스트링 생성
+            $queryString = http_build_query($_GET);
+            // 에러 로그에 쿼리 스트링 기록
+            error_log("쿼리 결과가 없습니다. 쿼리 스트링: " . $queryString);
+            // 해당되는 장비를 찾을 수 없다는 경고 메시지 출력
+            echo "<script>alert('해당되는 장비를 찾을 수 없습니다.');</script>";
         }
     }
 }
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -108,7 +166,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <div class="btn-cancel position-relative top-0">
                     <button type="button" class="btn-close" aria-label="Close" onclick="goToDeviceMain(event)"></button>
                 </div>
-                <form id="deviceSearchForm" method="post" action="deviceSearch.php">
+                <form id="deviceSearchForm" method="post">
                     <table class="inputTbl">
                         <tr>
                             <td><label for="SN">시리얼번호</label></td>
@@ -151,6 +209,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     <option value="S200" <?php echo isset($html_values['MODEL']) && $html_values['MODEL'] == 'S200' ? 'selected' : ''; ?>>S200</option>
                                 </select>
                                 <span class="error-message">&nbsp;</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label for="FV">FV</label></td>
+                            <td>
+                            <input type="text" class="input" name="FV" id="FV">
+                            <span class="error-message">&nbsp;</span>
                             </td>
                         </tr>
                         <tr>
@@ -255,11 +320,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
     <script src="salesMain.js"></script>
+    <script src="/.__/auto_complete.js"></script>
     <script>
         function goToDeviceMain(event) {
             event.preventDefault();
             window.location.href = "deviceMain.php";
         }
+
+        document.getElementById('deviceSearchForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // 폼의 기본 제출 동작을 방지
+
+            var form = this; // 현재 폼 요소를 변수 form에 할당
+            var formData = new FormData(form); // formData 객체를 사용하여 폼 요소의 데이터를 가져온다. 이 객체로 HTML 폼을 통해 전송된 키-값 처리
+            var queryString = new URLSearchParams(formData).toString(); // formData 객체를 URL 쿼리 문자열로 변환
+
+            window.location.href = "deviceMain.php?" + queryString; // 쿼리 스트링을 포함하여 deviceMain.php로 리다이렉션(GET으로 요청됨)
+        });
     </script>
 </body>
 

@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="css/common.css" rel="stylesheet">
+  <link href="css/main.css" rel="stylesheet">
+  <!-- <link href="css/diagram.css" rel="stylesheet"> -->
+  <script src="js/bootstrap.js"></script>
+  <!-- <script src="js/include.js"></script> -->
+  <script type="module" src="./js/main/bop_dataManager.js"></script> <!--한번에 csv 파일 뿌려주기-->
+  <script type="module" src="./js/main/bop_eventManager.js"></script> <!-- 이벤트 핸들링-->
+  <script type="module" src="./js/main/bop_learning_data.js"></script> <!-- BOP 정상 학습 데이터-->
+  <script type="module" src="./js/main/bop_sensor_data.js"></script> <!--BOP 센서 데이터-->
+  <script type="module" src="./js/main/bop_HWSensorList.js"></script> <!--HW BOP 센서 리스트 -->
+  <script type="module" src="./js/main/index_bop_interaction.js"></script> <!-- HW BOP 센서 모니터링 차트 - 리스트 상호작용-->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
+  <script type="module" src="js/main/dataManager.js"></script> <!--한번에 total_data.conf 뿌려주는 파일 -->
+  <script type="module" src="js/main/system-info.js"></script> <!--우측 하단 시스템정보-->
+  <script type="module" src="js/main/dayMonthProductionBar.js"></script><!--금일/금월 전기/열생산량 바그래프-->
+  <title>FuelCellDR. : BOP진단</title>
+</head>
+
+<body>
+
+  <header>
+    <nav class="navbar navbar-expand-xxl bg-body-tertiary">
+      <div class="container-fluid">
+        <div class="logo-container">
+          <a href="./index.html">
+            <div class="logo"></div>
+          </a>
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarToggler" aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarToggler">
+          <ul class="navbar-nav">
+            <li><a href="index.html"><span class="icon-quality-management"></span>대시보드</a></li>
+            <li><a href="bop.html" class="active-link"><span class="icon-BOP-diagnosis"></span>BOP진단</a></li>
+            <li><a href="stack.html"><span class="icon-stack-diagnosis"></span>스택진단</a></li>
+            <li><a href="analyze.html"><span class="icon-h2s-realtime-chart"></span>분석</a></li>
+            <!-- <li><a href="#"><span class="icon-device-manage"></span>장치관리</a></li> -->
+          </ul>
+          <div class="login">
+            <div class="site-select">
+              <select class="">
+                  <option value="1">부안연료전지 #1호기</option>
+                  <option value="2" selected>부안연료전지 #2호기</option>
+              <select>    
+            </div>
+            <button class="btn btn-primary float-end"><span class="icon-exit"></span><span class="xxl-only">로그아웃</span></button>
+          </div>
+        </div>
+      </div>
+    </nav>    
+  </header>
+
+  <main>
+
+    <div class="row">
+
+      <div class="col-xxl-2 col-12" class="BOP-column-left">
+        <div class="row">
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget qoe-BOP">
+              <div class="widget-head">
+                품질 지수 (BOP)
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body">
+                <div class="title">QOE(BOP)</div>
+                <div class="result" id="qoe-stack-Value">10</div>
+              </div>
+            </div>
+          </div>    
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget bop-ananlyse">
+              <div class="widget-head">
+                BOP 진단 적용
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body scrollmini scrollmini-noborder">
+                <div class="widget-body-inner">
+                  <h3 class="float-start">진단 모델 적용</h3>
+
+                  <div class="justify-content-center">
+                    <div class="progress col-4 status float-end">
+                      <div class="progress-bar progress-bar-striped bg-success progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+                        동작중
+                      </div>
+                    </div>
+                  </div>
+
+                  <select name="" id="" class="form-select">
+                    <option value="">부안진단모델</option>
+                  </select>
+                  
+                  <!-- <hr> -->
+                  <h3 class="h3-column smaller">진단 모델 재적용</h3>
+                  <div class="text-center">
+                    <select name="" id="">
+                      <option value="">2023</option>
+                    </select>
+                    <select name="" id="">
+                      <option value="">12</option>
+                    </select>
+                    <select name="" id="">
+                      <option value="">31</option>
+                    </select>
+                    ~
+                    <select name="" id="">
+                      <option value="">2023</option>
+                    </select>
+                    <select name="" id="">
+                      <option value="">12</option>
+                    </select>
+                    <select name="" id="">
+                      <option value="">31</option>
+                    </select>
+                  </div>
+                  <div class="row box-grey smaller">
+                    <div class="col-6 ps-1">
+                        <button class="box half">
+                          <span class="icon-h2s-pause-2"></span>
+                          재시작
+                        </button>
+                          <button class="box half">
+                          <span class="icon-h2s-stop-2"></span>
+                          중지
+                        </button>
+                    </div>
+                    <div class="col-6 text-end mt-1 pe-2">
+                      <div class="d-inline-block" style="width: 70%;">
+                        <span class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar" style="width: 80%;"></div>
+                        </span>
+                      </div>
+                      <div class="d-inline-block w-25">80%</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-xxl-12 col-12">
+            <div class="widget data-learning">
+              <div class="widget-head">
+                정상 데이터 학습
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body scrollmini scrollmini-noborder">
+                <div class="widget-body-inner">
+                  <h3>회귀 분석 알고리즘 선택</h3>
+                  <select name="" id="" class="form-select">
+                    <option value="">서포트 벡터 머신</option>
+                  </select>
+                  <div class="mt-2">
+                    <h3 class="d-inline">모델 이름 설정</h3>
+                    <div class="float-end"> 
+                      <input type="text" class="h20">
+                      <button class="btn-of">확인</button>
+                    </div>
+                  </div>
+
+                  <div class="row box-grey smaller mt-3">
+                    <div class="col-6 ps-1">
+                      <!-- <div class="col-6"> -->
+                        <button class="box half">
+                          <span class="icon-play3"></span>
+                          시작
+                        </button>
+                    <!-- </div> -->
+                    </div>
+                    <div class="col-6 text-end mt-1 pe-2">
+                      <div class="d-inline-block" style="width: 70%;">
+                        <span class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar" style="width: 80%;"></div>
+                        </span>
+                      </div>
+                      <div class="d-inline-block w-25">80%</div>
+                    </div>
+                  </div>
+
+
+                  <!-- <hr> -->
+                  <div class="position-relative mt-2">
+                    <h3 class="d-inline">표준 편차 설정</h3>                
+                    <select name="" id="" class="float-end" style="z-index: 999">
+                      <option value="">서포트 벡터 머신</option>
+                    </select>
+                    <div class="deviation-base">
+                      <div class="deviation-base-inner">
+                        <div class="deviation-svg">
+                          <svg width="202" height="105" viewBox="0 0 202 105" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g id="SDG">
+                            <path id="Vector" d="M13 50.0004C13 50.0004 44.7143 52.914 62.2857 30.9338C84 0.50526 96.5 2.00025 96.5 2.00025" stroke="black" stroke-width="2"/>
+                            <path id="Vector_2" d="M179.286 50.0119C179.286 50.0119 147.571 52.9256 130 30.9453C108.286 0.516802 96.5 2.01197 96.5 2.01197" stroke="black" stroke-width="2"/>
+                            <path id="Arrow 2" d="M201.707 50.713C202.098 50.3224 202.098 49.6893 201.707 49.2988L195.343 42.9348C194.953 42.5443 194.319 42.5443 193.929 42.9348C193.538 43.3253 193.538 43.9585 193.929 44.349L199.586 50.0059L193.929 55.6627C193.538 56.0532 193.538 56.6864 193.929 57.0769C194.319 57.4675 194.953 57.4675 195.343 57.0769L201.707 50.713ZM0 51.0059H201V49.0059H0V51.0059Z" fill="black"/>
+                            <line id="Line 102" x1="68.5" y1="23.0059" x2="68.5" y2="73.0059" stroke="black"/>
+                            <line id="Line 103" x1="123.5" y1="23.0059" x2="123.5" y2="73.0059" stroke="black"/>
+                            <line id="Line 104" x1="150.5" y1="46.0059" x2="150.5" y2="89.0059" stroke="black"/>
+                            <line id="Line 105" x1="41.5" y1="46.0059" x2="41.5" y2="89.0059" stroke="black"/>
+                            <line id="Line 106" x1="14.5" y1="50.0059" x2="14.5" y2="105.006" stroke="black"/>
+                            <line id="Line 107" x1="177.5" y1="50.0059" x2="177.5" y2="105.006" stroke="black"/>
+                            <line id="Line 108" x1="96.5" y1="2.00586" x2="96.5" y2="50.0059" stroke="black" stroke-dasharray="2 2"/>
+                            <path id="Line 109" d="M69 70.0059L74 72.8926L74 67.1191L69 70.0059ZM123 70.0059L118 67.1191L118 72.8926L123 70.0059ZM73.5 70.5059L118.5 70.5059L118.5 69.5059L73.5 69.5059L73.5 70.5059Z" fill="black"/>
+                            <path id="Line 110" d="M42 86.0059L47 88.8926L47 83.1191L42 86.0059ZM150 86.0059L145 83.1191L145 88.8926L150 86.0059ZM46.5 86.5059L145.5 86.5059L145.5 85.5059L46.5 85.5059L46.5 86.5059Z" fill="black"/>
+                            <path id="Line 112" d="M15 102.006L20 104.893L20 99.1191L15 102.006ZM177 102.006L172 99.1191L172 104.893L177 102.006ZM19.5 102.506L172.5 102.506L172.5 101.506L19.5 101.506L19.5 102.506Z" fill="black"/>
+                            <g id="Group 169">
+                            <text id="10" fill="black" xml:space="preserve" style="white-space: pre" font-family="Noto Sans" font-size="8" letter-spacing="0em"><tspan x="22.6914" y="59.1235">10</tspan></text>
+                            <path id="Line 102_2" d="M15.7139 52.2461C15.7139 52.2461 17.7831 54.399 22.9857 54.4278" stroke="black"/>
+                            <path id="Line 103_2" d="M40.0527 52.2461C40.0527 52.2461 37.9835 54.399 32.7809 54.4278" stroke="black"/>
+                            </g>
+                            <g id="Group 170">
+                            <text id="10_2" fill="black" xml:space="preserve" style="white-space: pre" font-family="Noto Sans" font-size="8" letter-spacing="0em"><tspan x="49.3027" y="59.1235">10</tspan></text>
+                            <path id="Line 102_3" d="M42.3252 52.2461C42.3252 52.2461 44.3944 54.399 49.597 54.4278" stroke="black"/>
+                            <path id="Line 103_3" d="M66.6641 52.2461C66.6641 52.2461 64.5949 54.399 59.3922 54.4278" stroke="black"/>
+                            </g>
+                            <g id="Group 171">
+                            <text id="10_3" fill="black" xml:space="preserve" style="white-space: pre" font-family="Noto Sans" font-size="8" letter-spacing="0em"><tspan x="77.5723" y="59.1235">10</tspan></text>
+                            <path id="Line 102_4" d="M70.5947 52.2461C70.5947 52.2461 72.6639 54.399 77.8666 54.4278" stroke="black"/>
+                            <path id="Line 103_4" d="M94.9336 52.2461C94.9336 52.2461 92.8644 54.399 87.6618 54.4278" stroke="black"/>
+                            </g>
+                            <g id="Group 172">
+                            <text id="10_4" fill="black" xml:space="preserve" style="white-space: pre" font-family="Noto Sans" font-size="8" letter-spacing="0em"><tspan x="104.659" y="59.1235">10</tspan></text>
+                            <path id="Line 102_5" d="M97.6816 52.2461C97.6816 52.2461 99.7508 54.399 104.953 54.4278" stroke="black"/>
+                            <path id="Line 103_5" d="M122.021 52.2461C122.021 52.2461 119.951 54.399 114.749 54.4278" stroke="black"/>
+                            </g>
+                            <g id="Group 173">
+                            <text id="10_5" fill="black" xml:space="preserve" style="white-space: pre" font-family="Noto Sans" font-size="8" letter-spacing="0em"><tspan x="131.929" y="59.1235">10</tspan></text>
+                            <path id="Line 102_6" d="M124.951 52.2461C124.951 52.2461 127.02 54.399 132.223 54.4278" stroke="black"/>
+                            <path id="Line 103_6" d="M149.29 52.2461C149.29 52.2461 147.221 54.399 142.018 54.4278" stroke="black"/>
+                            </g>
+                            <g id="Group 174">
+                            <text id="10_6" fill="black" xml:space="preserve" style="white-space: pre" font-family="Noto Sans" font-size="8" letter-spacing="0em"><tspan x="159.289" y="59.1235">10</tspan></text>
+                            <path id="Line 102_7" d="M152.312 52.2461C152.312 52.2461 154.381 54.399 159.583 54.4278" stroke="black"/>
+                            <path id="Line 103_7" d="M176.65 52.2461C176.65 52.2461 174.581 54.399 169.379 54.4278" stroke="black"/>
+                            </g>
+                            </g>
+                            </svg>                          
+                        </div>
+                        <div class="deviation-button">
+                          <div class="deviation-button-inner">
+                            <button class="btn-of">0.6262</button>
+                            <button class="btn-of">0.9514</button>
+                            <button class="btn-of">0.9974</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-xxl-12 col-12">
+            <div class="widget bop-data-learning">
+              <div class="widget-head">
+                BOP 정상 학습 데이터
+                <div class="widget-head-gadget" id="bop-data-learning-btn-wrap">
+                  <!-- <div class="btn-wrapper"> -->
+                    <button class="mini">모든기간</button>
+                    <button class="mini">그리기</button>
+                    <button class="mini critical-C">삭제</button>
+                  <!-- </div> -->
+                  <span class="icon-arrow-right2"></span>
+                </div>
+              </div>
+              <div class="widget-body scrollmini scrollmini-noborder">
+
+                <div class="table-responsive">
+                  <table class="table table-fixed table-striped" id="bop-learning-data-table">
+                    <thead>
+                      <tr>
+                        <th><input type="checkbox"></th>
+                        <th>기간</th>
+                      </tr>
+                    </thead>
+                    <tbody class="scrollmini overflow-auto">
+                      <!-- bop_learning_data.csv  -->
+                      <!--
+                      <tr>
+                        <td><input type="checkbox"></td>
+                        <td>2023-07-31 15:17 ~ 2023-07-31 15:17</td>
+                      </tr>
+                      -->
+                    </tbody>
+                  </table>
+                </div>
+                <div class="d-grid">
+                  <nav class="pagination-wrap">
+                    <ul class="pagination" id="bop-learning-data-pagination">
+                      <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
+                      <!--
+                      <li class="page-item"><a class="page-link active" href="#">1</a></li>
+                      <li class="page-item"><a class="page-link" href="#">2</a></li>
+                      -->
+                      <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xxl-8 col-12" class="BOP-column-center">
+        <div class="row">
+          <div class="col-xxl-12 col-12">
+            <div class="widget soft-senser-monitoring">
+              <div class="widget-head ">
+                소프트센서 / BOP 진단결과​
+                <div class="widget-head-gadget">
+                  <span class="icon-arrow-right2"></span>
+                </div>
+              </div>
+              <div class="widget-body">
+                <h3 style="float: left">Current: 30A</h3>
+                <div class="chart-filter-widget">
+                  <div class="btn-wrapper">
+                      <button ontouchstart="zoom_in()" onclick="zoom_in()" class="btn-of mid-size w50px "><span class="icon-zoom-in"></span></button>
+                      <button ontouchstart="zoom_out()" onclick="zoom_out()" class="btn-of mid-size w50px"><span class="icon-zoom-out"></span></button>
+                      <select id="yearly"><option value="-1">-년 선택-</option><option value="2022">2022</option><option value="2023">2023</option></select> <select id="monthly"><option value="-1">-월(11개)-</option><option value="01/">01/</option><option value="03/">03/</option><option value="04/">04/</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select> <select id="daily"><option value="-1">-일(10개)-</option><option value="04/">04/</option><option value="05/">05/</option><option value="06/">06/</option><option value="07/">07/</option><option value="12/">12/</option><option value="13/">13/</option><option value="14/">14/</option><option value="18/">18/</option><option value="19/">19/</option><option value="20/">20/</option></select><select id="timely"><option value="-1">-시(4개)-</option><option value="1_20231220.csv">1_20231220.csv</option><option value="1_20231220_ma.csv">1_20231220_ma.csv</option><option value="2_20231220.csv">2_20231220.csv</option><option value="2_20231220_ma.csv" selected="">2_20231220_ma.csv</option></select>
+                  </div>
+                </div>                
+                <img src="./img/soft-senser-graph.png" alt="">
+                <div class="result">
+                  <div class="stack">
+                    <div class="title">Stack</div>
+                    <div class="graph">
+                      <div class="outline">
+
+                        <div class="line stack-bg-color" style="width: 1%;left: 10%">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">Stack 측정</div>
+                            </div>
+                          </span>
+                        </div>
+
+                        <!-- <div class="line">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">측정중지</div>
+                            </div>
+                          </span>                          
+                        </div> -->
+                        
+                        <div class="line stack-bg-color" style="width: 3%;left: 12%">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">Stack 측정</div>
+                            </div>
+                          </span>
+                        </div>
+
+                        <!-- <div class="line">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">측정중지</div>
+                            </div>
+                          </span>                          
+                        </div> -->
+                        
+                        <div class="line stack-bg-color" style="left: 10%">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">Stack 측정</div>
+                            </div>
+                          </span>
+                        </div>
+
+                        <!-- <div class="line">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">측정중지</div>
+                            </div>
+                          </span>                          
+                        </div> -->
+                        
+                        <!-- <div class="line stack-bg-color">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">Stack 측정</div>
+                            </div>
+                          </span>
+                        </div> -->
+
+                        <!-- <div class="line">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">측정중지</div>
+                            </div>
+                          </span>                          
+                        </div> -->
+                        
+                        <!-- <div class="line stack-bg-color">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">Stack 측정</div>
+                            </div>
+                          </span>
+                        </div> -->
+
+                        <!-- <div class="line">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">측정중지</div>
+                            </div>
+                          </span>                          
+                        </div> -->
+                        
+                        <!-- <div class="line stack-bg-color">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">Stack 측정</div>
+                            </div>
+                          </span>
+                        </div> -->
+
+                        <!-- <div class="line">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">측정중지</div>
+                            </div>
+                          </span>                          
+                        </div> -->
+                        
+                        <!-- <div class="line stack-bg-color">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">Stack 측정</div>
+                            </div>
+                          </span>
+                        </div> -->
+
+                        <!-- <div class="line">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">측정중지</div>
+                            </div>
+                          </span>                          
+                        </div> -->
+                        
+                        <!-- <div class="line stack-bg-color">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">Stack 측정</div>
+                            </div>
+                          </span>
+                        </div> -->
+
+                        <!-- <div class="line">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">측정중지</div>
+                            </div>
+                          </span>                          
+                        </div> -->
+                        
+                        <!-- <div class="line stack-bg-color">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">Stack 측정</div>
+                            </div>
+                          </span>
+                        </div> -->
+
+                        <!-- <div class="line">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">측정중지</div>
+                            </div>
+                          </span>                          
+                        </div> -->
+                        
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="bop">
+                    <div class="title">BOP</div>
+                    <div class="graph">
+                      <div class="outline">
+                        <div class="line water-bg-color" style="width: calc(4.166% * 0.5)">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">측정중지</div>
+                            </div>
+                          </span>    
+                        </div>
+                        <div class="line heat-bg-color" style="width: calc(4.166% * 1)">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">측정중지</div>
+                            </div>
+                          </span>    
+                        </div>
+                        <div class="line water-bg-color" style="width: calc(4.166% * 0.8)">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">측정중지</div>
+                            </div>
+                          </span>    
+                        </div>
+                        <div class="line heat-bg-color" style="width: calc(4.166% * 0.7)">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">측정중지</div>
+                            </div>
+                          </span>    
+                        </div>
+                        <div class="line" style="width: calc(4.166% * 13)">
+                        </div>
+                        <div class="line air-bg-color" style="width: calc(4.166% * 2)">
+                          <span class="tooltip-box">
+                            <div class="tooltip-box-inner">
+                              <div class="date">10:45~10:50</div>
+                              <div class="text">측정중지</div>
+                            </div>
+                          </span>    
+                        </div>                        
+                      </div>
+                    </div>
+                  </div>
+                
+                </div>
+              </div>
+             
+            </div>
+          </div>            
+          <div class="col-xxl-12 col-12">
+            <div class="widget HW-bop-senser-monitoring">
+              <div class="widget-head ">
+                HW BOP 센서 모니터링
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body">
+
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+
+      <div class="col-xxl-2 col-12" class="BOP-column-right">
+        <div class="row">
+
+          <div class="col-xxl-12 col-6">
+            <div class="widget soft-senser-list" id="soft-sensor-list">
+              <div class="widget-head">
+                소프트 센서 리스트
+                <div class="widget-head-gadget">
+                  <!-- <div class="widget-head-gadget"> -->
+                    <button class="mini">모두 선택</button>
+                    <button class="mini">선택 해제</button>
+                    <!-- <span class="icon-arrow-right2"></span> -->
+                  <!-- </div> -->
+                </div>
+              </div>
+              <div class="widget-body">
+                <div class="widget-body-inner scrollmini">
+                  <div class="tree-ui">
+                   <ul class="tree">
+                      <li>
+                          <span class="group-title">공기공급계</span>
+                          <details open>
+                              <summary><span class="deco air square"><input type="checkbox"></span></summary>
+                              <ul>
+                                  <li><span class="deco air-1"><input type="checkbox">R_Air_deltaP​</span></li>
+                                  <li><span class="deco air-2"><input type="checkbox">R_Air_U​</span></li>
+                                  <li><span class="deco air-3"><input type="checkbox">R_Air_P1</span></li>
+                                  <li><span class="deco air-4"><input type="checkbox">R_Air_V</span></li>
+                              </ul>
+                          </details>
+                      </li>
+                      <li>
+                          <span class="group-title">물관리계</span>
+                          <details open>
+                              <summary><span class="deco water square"><input type="checkbox"></span></summary>
+                              <ul>
+                                  <li><span class="deco water-1"><input type="checkbox">R_Water_R1​​</span></li>
+                                  <li><span class="deco water-2"><input type="checkbox">R_Water_R2​​</span></li>
+                                  <li><span class="deco water-3"><input type="checkbox">R_Water_R3​</span></li>
+                              </ul>
+                          </details>
+                      </li>
+                      <li>
+                          <span class="group-title">열공급계</span>
+                          <details open>
+                              <summary><span class="deco heat square"><input type="checkbox"></span></summary>
+                              <ul>
+                                  <li><span class="deco heat-1"><input type="checkbox">R_heat​​</span></li>
+                                  <li><span class="deco heat-2"><input type="checkbox">R_Ms</span></li>
+                                  <li><span class="deco heat-3"><input type="checkbox">R_Mr​​</span></li>
+                              </ul>
+                          </details>
+                      </li>
+                   </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-12 col-6">
+            <div class="widget HW-bop-senser-list" id="hw-bop-sensor-list">
+              <div class="widget-head">
+                HW BOP 센서 리스트
+                <div class="widget-head-gadget">
+                  <!-- <div class="widget-head-gadget"> -->
+                    <!-- <div class="widget-head-gadget"> -->
+                      <button class="mini">모두 선택</button>
+                      <button class="mini">선택 해제</button>
+                      <!-- <span class="icon-arrow-right2"></span> -->
+                    <!-- </div> -->
+                  <!-- </div>                   -->
+                </div>
+              </div>
+              <div class="widget-body">
+                <div class="widget-body-inner scrollmini">
+                  <div class="tree-ui">
+                   <ul class="tree hw-bop-sensor-list-tree">
+                      <li>
+                          <span class="group-title">공기공급계</span>
+                          <details open>
+                              <summary><span class="deco air square"><input type="checkbox"  id="air-supply-sys"></span></summary>
+                              <ul>
+                                  <li><span class="deco air-1"><input type="checkbox">T_A_B_in(116)​</span></li>
+                                  <li><span class="deco air-2"><input type="checkbox">P_A_B_in(105)​</span></li>
+                                  <li><span class="deco air-3"><input type="checkbox">MFM3(Air)</span></li>
+                                  <li><span class="deco air-4"><input type="checkbox">Air(%)</span></li>
+                                  <li><span class="deco air-5"><input type="checkbox">P_A_m_out(102)</span></li>
+                                  <li><span class="deco air-6"><input type="checkbox">T_A_m_out(110)</span></li>
+                              </ul>
+                          </details>
+                      </li>
+                      <li>
+                          <span class="group-title">물관리계</span>
+                          <details open>
+                              <summary><span class="deco water square"><input type="checkbox" id="water-mng-sys"></span></summary>
+                              <ul>
+                                  <li><span class="deco water-1"><input type="checkbox">T_A_S_in(113)​​</span></li>
+                                  <li><span class="deco water-2"><input type="checkbox">T_A_S_out(109)​​</span></li>
+                                  <li><span class="deco water-3"><input type="checkbox">T_A_vent(115)​</span></li>
+                                  <li><span class="deco water-4"><input type="checkbox">P_A_S_in(101)​</span></li>
+                                  <li><span class="deco water-5"><input type="checkbox">P_A_S_out(104)​</span></li>
+                              </ul>
+                          </details>
+                      </li>
+                      <li>
+                        <span class="group-title">열관리계</span>
+                          <details open>
+                              <summary><span class="deco heat square"><input type="checkbox" id="thermal-mng-sys"></span></summary>
+                              <ul>
+                                  <li><span class="deco heat-1"><input type="checkbox">T_w_t_in(101)​​</span></li>
+                                  <li><span class="deco heat-2"><input type="checkbox">T_w_t_out(102)​​</span></li>
+                                  <li><span class="deco heat-3"><input type="checkbox">P_w_p_in(1)​​</span></li>
+                                  <li><span class="deco heat-4"><input type="checkbox">P_w_p_out(2)​​</span></li>
+                                  <li><span class="deco heat-5"><input type="checkbox">MFM1(Water)​​</span></li>
+                                  <li><span class="deco heat-6"><input type="checkbox">Water(%)​​</span></li>
+                                  <li><span class="deco heat-7"><input type="checkbox">T_w_h_out(103)​​</span></li>
+                                  <li><span class="deco heat-8"><input type="checkbox">T_w_h_in(104)​​</span></li>
+                                  <li><span class="deco heat-9"><input type="checkbox">P_w_h_out(6)​</span></li>
+                                  <li><span class="deco heat-10"><input type="checkbox">T_DI_h_out(107)​​</span></li>
+                                  <li><span class="deco heat-11"><input type="checkbox">T_DI_S_out(108)​​</span></li>
+                                  <li><span class="deco heat-12"><input type="checkbox">DI_Conductivity​​</span></li>
+                                  <li><span class="deco heat-13"><input type="checkbox">P_DI_p_in(4)​​</span></li>
+                                  <li><span class="deco heat-14"><input type="checkbox">DI(%)​​</span></li>
+                                  <li><span class="deco heat-15"><input type="checkbox">P_DI_p_out(5)​​</span></li>
+                                  <li><span class="deco heat-16"><input type="checkbox">MFM2(DI)​​</span></li>
+                                  <li><span class="deco heat-17"><input type="checkbox">T_DI_S_in(114)​​</span></li>
+                              </ul>
+                          </details>
+                      </li>
+                      <li>
+                        <span class="group-title">열관리계</span>
+                          <details open>
+                              <summary><span class="deco fuel square"><input type="checkbox" id="thermal-mng-sys"></span></summary>
+                              <ul>
+                                  <li><span class="deco fuel-1"><input type="checkbox">T_F_S_in(112)</span></li>
+                                  <li><span class="deco fuel-2"><input type="checkbox">T_F_S_out(111)</span></li>
+                                  <li><span class="deco fuel-3"><input type="checkbox">P_F_S_in(103)</span></li>
+                                  <li><span class="deco fuel-4"><input type="checkbox">MFC1(H2)</span></li>
+                                  <li><span class="deco fuel-5"><input type="checkbox">MFC2(N2)​​</span></li>
+                                  <li><span class="deco fuel-6"><input type="checkbox">Current​​</span></li>
+                                  <li><span class="deco fuel-7"><input type="checkbox">Voltage​​</span></li>
+
+                              </ul>
+                          </details>
+                      </li>                      
+                   </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-12 col-12">
+          <!-- <div class="col-xxl-12 col-12 order-xxl-first"> -->
+            <div class="widget bop-senser-data">
+              <div class="widget-head">
+                BOP 센서 데이터
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body">
+                <div class="table-responsive">
+                  <table class="table table-fixed table-striped" id="bop-sensor-data-table">
+                    <thead>
+                      <tr>
+                        <th><input type="checkbox"></th>
+                        <th>시간</th>
+                        <th>QOE</th>
+                      </tr>
+                    </thead>
+                    <tbody class="scrollmini overflow-auto">
+                      <!--
+                      <tr>
+                        <td><input type="checkbox"></td>
+                        <td>2023-07-31 15:17~2023-07-31 15:17</td>
+                        <td>10</td>
+                      </tr>
+                      -->
+                    </tbody>
+                  </table>
+                </div>
+                <div class="d-grid">
+                  <nav class="pagination-wrap">
+                    <ul class="pagination" id="bop-sensor-data-pagination">
+                      <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
+                      <!--
+                      <li class="page-item"><a class="page-link active" href="#">1</a></li>
+                      <li class="page-item"><a class="page-link" href="#">2</a></li>
+                      -->
+                      <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>            
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+</body>
+
+</html>
+<script src="js/main.js?type=1&graph=.BOP-graph>.widget-body>div"></script>
+<script src="js/imp.js"></script>

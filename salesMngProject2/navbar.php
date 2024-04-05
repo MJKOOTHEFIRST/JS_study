@@ -62,7 +62,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
         } else {
           // 로그아웃 상태일 때 로그인 이미지와 링크 표시
           echo '<a href="index.php" class="nav-link">';
-          echo '<img src="/img/password0901.png" alt="Login Image" style="height: 45px; width: auto; margin-right:5%;">';
+          echo '<img src="/img/login.png" alt="Login" style="height: 45px; width: auto; margin-right:5%;">';
           echo '</a>';
         }
         ?>

@@ -1,0 +1,60 @@
+// stack_search_transformCSV.js
+const fs = require('fs');
+const path = require('path');
+const mysql = require('mysql');
+const fastcsv = require('fast-csv');
+const moment = require('moment');
+
+require('dotenv').config();
+
+// MySQL 데이터베이스 연결 설정
+const connection = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME
+});
+
+// 데이터베이스 연결
+connection.connect(error => {
+  if (error) throw error;
+  console.log('데이터베이스에 성공적으로 연결되었습니다.');
+});
+
+// CSV 파일 읽기 및 데이터 변환
+let csvData = [];
+fs.createReadStream('/home/nstek/h2_system/patch_active/fuelcell_data/stack_search_data.csv')
+  .pipe(fastcsv.parse({ headers: true }))
+  .on('data', function (row) {
+    // 날짜 형식 변환
+    row['Date'] = moment(row['Date'], 'YYYY-MM-DD-HH-mm').format('YYYY-MM-DD HH:mm:ss');
+
+    //  빈 데이터 처리 
+    row['SQ'] = row['SQ'] ? parseInt(row['SQ'], 10) : 0;
+    row['BQ'] = row['BQ'] ? parseInt(row['BQ'], 10) : 0;
+
+    csvData.push([
+      row['Date'],
+      row['H-M'],
+      row['M-L'],
+      row['X1'],
+      row['X2'],
+      row['Y1'],
+      row['Y2'],
+      row['M'],
+      row['L'],
+      row['SQ'],
+      row['BQ'],
+      row['LABEL'],
+    ]);
+  })
+  .on('end', function () {
+    // MySQL에 데이터 삽입
+    const query = 'INSERT INTO search (Date, `H-M`, `M-L`, X1, X2, Y1, Y2, M, L, SQ, BQ, LABEL) VALUES ?';
+    connection.query(query, [csvData], (error, response) => {
+      if (error) throw error;
+      console.log('Data successfully inserted into the database.');
+      connection.end();
+    });
+  });
+

@@ -21,86 +21,45 @@ if ($totalDeviceResult && $totalDeviceResult->num_rows > 0) {
     echo "0 results";
 }
 
-// URL 매개변수로부터 SN 값을 가져오기
-$SN = isset($_GET["SN"]) ? $_GET["SN"] : "";
-$saleId = isset($_GET["SALE_ID"]) ? $_GET["SALE_ID"] : "";
-
-/* 
-에러 : 젤 윗줄에 빈 데이터가 있고 라이센스 정보에 데이터들이 들어있다. 처음 조회할때 페이지에서는 라이센스 정보 내용은 뜨지 않아야하는데.
-$SN 변수는 URL 매개변수로부터 가져오고 $SN이 비어있지 않은 경우에만 특정 SN 값을 가진 DEVICE 테이블의 레코드를 검색한다. 
-만약 $SN이 비어 있다면 DEVICE 테이블의 모든 레코드를 검색한다.
-라이센스 정보를 표시하는 부분에서는 LICENSE 테이블에서 특정 SN 값을 가진 레코드를 검색하는데, 이 SN 값이 URL 매개변수에서 가져온 값이기 때문에, 
-처음 페이지가 로드될 때는 $SN이 설정되지 않았을 것이고 따라서 빈 문자열로 처리되는 것이다.
-이 문제를 해결하기 위해서는 라이센스 정보 섹션에서 SN 값이 비어있는 경우 해당 쿼리를 실행하지 않도록 해야한다.
-*/
-
-// SN 값에 따라 SQL 쿼리 작성(쿼리 맞는거 확인함)
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // 1. 사용자가 웹 폼을 통해 시리얼번호를 입력하고 검색 버튼을 클릭하여 들어올 때
-    $SN = trim($_POST["SN"]); // 사용자 입력에서 공백 제거
-    $SN = "%" . $SN . "%"; // 와일드카드 추가
-
-    $query = "SELECT * FROM DEVICE WHERE SN LIKE ?";
-    $stmt = mysqli_prepare($dbconnect, $query);
-    if (!$stmt) {
-        die("mysqli_prepare failed: " . mysqli_error($dbconnect));
+// URL 매개변수로부터 검색 조건 가져오기
+$searchConditions = [];
+if (!empty($_GET)) {
+    foreach ($_GET as $key => $value) {
+        if (!empty(trim($value))) {
+            $searchConditions[$key] = $value;
+        }
     }
+}
 
-    mysqli_stmt_bind_param($stmt, "s", $SN);
-
-    if (!mysqli_stmt_execute($stmt)) {
-        die("mysqli_stmt_execute failed: " . mysqli_stmt_error($stmt));
-    }
-
-    $result = mysqli_stmt_get_result($stmt);
-    if (!$result) {
-        die("mysqli_stmt_get_result failed: " . mysqli_error($dbconnect));
-    }
-
-    if ($row = mysqli_fetch_assoc($result)) {
-        echo "Found device with SN: " . $row["SN"];
-    } else {
-        echo "해당 시리얼번호에 대한 장비를 찾을 수 없습니다.";
-    }
-    // 결과의 총 건수 업데이트
-    $totalCount = mysqli_num_rows($result);
-} elseif (isset($_GET["SN"]) && !empty(trim($_GET["SN"]))) {
-    // 2. 사용자가 시리얼번호를 특정해서 직접 검색할 경우
-    $SN = trim($_GET["SN"]);
-
-    $query = "SELECT D.*, S.SALE_ID FROM DEVICE D
-              LEFT JOIN SALES S ON D.ORDER_NO = S.ORDER_NO
-              WHERE D.SN = ?";
-    $stmt = mysqli_prepare($dbconnect, $query);
-    if (!$stmt) {
-        die("mysqli_prepare failed: " . mysqli_error($dbconnect));
-    }
-
-    mysqli_stmt_bind_param($stmt, "s", $SN);
-
-    if (!mysqli_stmt_execute($stmt)) {
-        die("mysqli_stmt_execute failed: " . mysqli_stmt_error($stmt));
-    }
-
-    $result = mysqli_stmt_get_result($stmt);
-    if (!$result) {
-        die("mysqli_stmt_get_result failed: " . mysqli_error($dbconnect));
-    }
-
-    // 결과의 총 건수 업데이트
-    $totalCount = mysqli_num_rows($result);
-} else {
-    // 3. 사용자가 특정 조건 없이 전체 장비를 보고자 할 경우 (페이지 로딩 시나 특정 조건 없이 접근할 때)
+// SN 값이 비어있는 경우에만 라이센스 정보 쿼리를 실행
+if (empty($searchConditions)) {
+    // 모든 장비를 조회하는 쿼리 실행
     $query = "SELECT D.*, S.SALE_ID FROM DEVICE D
               LEFT JOIN SALES S ON D.ORDER_NO = S.ORDER_NO
               ORDER BY D.WDATE DESC";
-    $result = mysqli_query($dbconnect, $query);
-    if (!$result) {
-        die("Query Failed: " . mysqli_error($dbconnect));
+} else {
+    // 검색 조건에 따라 SQL 쿼리 작성
+    $query = "SELECT D.*, S.SALE_ID FROM DEVICE D
+              LEFT JOIN SALES S ON D.ORDER_NO = S.ORDER_NO
+              WHERE ";
+    $conditions = [];
+    foreach ($searchConditions as $key => $value) {
+        if ($key === "SN" || $key === "FV") {
+            $conditions[] = "D.$key LIKE '%$value%'";
+        } else {
+            $conditions[] = "D.$key = '$value'";
+        }
     }
-    // 결과의 총 건수 업데이트
-    $totalCount = mysqli_num_rows($result);
+    $query .= implode(" AND ", $conditions);
 }
+
+
+$result = mysqli_query($dbconnect, $query);
+if (!$result) {
+    die("Query Failed: " . mysqli_error($dbconnect));
+}
+// 결과의 총 건수 업데이트
+$totalCount = mysqli_num_rows($result);
 
 ?>
 
@@ -297,5 +256,4 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </script>
 
 </body>
-
 </html>

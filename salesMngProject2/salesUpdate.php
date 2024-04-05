@@ -252,7 +252,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <table class="inputTbl">
                         <tr>
                             <td><label for="saleId">판매번호</label></td>
-                            <td><input type="text" class="input" name="saleId" id="saleId" value="<?php echo $html_values['SALE_ID']; ?>"></td>
+                            <td><input type="text" class="input" name="saleId" id="saleId" value="<?php echo $html_values['SALE_ID']; ?>" readonly></td>
                         </tr>
                         <tr>
                             <td><label for="orderNo">주문번호</label></td>
