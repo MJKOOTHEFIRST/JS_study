@@ -47,7 +47,7 @@
           </ul>
           <div class="login">
             <div class="site-select">
-                <select id="selectSite" onchange="redirectToIndex()">
+                <select id="site-select" onchange="redirectToIndex()">
                     <option value="0">부안발전소</option>
                     <option value="1" selected>부안연료전지 1호기</option>
                     <option value="2">부안연료전지 2호기</option>
@@ -55,7 +55,7 @@
             </div>
             <script>
                 function redirectToIndex() {
-                    var selectElement = document.getElementById("selectSite");
+                    var selectElement = document.getElementById("site-select");
                     var selectedValue = selectElement.value;
             
                     if (selectedValue) {

@@ -1,5 +1,6 @@
 <?php
 
+// stack_search.php
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
@@ -31,7 +32,7 @@ $offset = ($page - 1) * $perPage; // 예)한 페이지에 10개의 항목을 보
 // $perPage = (int)$perPage;
 
 // $offset과 $perPage 값을 계산하거나 할당한 후
-error_log("Offset: " . $offset . ", PerPage: " . $perPage);
+// error_log("Offset: " . $offset . ", PerPage: " . $perPage);
 
 try {
     $pdo = new PDO($dsn, $username, $password);
@@ -93,7 +94,7 @@ $query .= " ORDER BY DATE DESC LIMIT :offset, :perPage";
 $stmt = $pdo->prepare($query);
 
 // 바인딩할 파라미터 로그 기록
-error_log("바인딩할 파라미터 - offset: $offset, perPage: $perPage");
+// error_log("바인딩할 파라미터 - offset: $offset, perPage: $perPage");
 
 // 페이지네이션 파라미터만 바인딩
 $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
@@ -110,7 +111,7 @@ $filteredCountStmt = $pdo->prepare($filteredCountQuery);
 // 조건 파라미터 바인딩
 foreach ($params as $key => $val) {
     $paramName = ":" . str_replace('-', '_', $key); // 하이픈을 언더스코어로 변경
-    error_log("바인딩된 파라미터: " . $paramName . " - " . $val);
+    // error_log("바인딩된 파라미터: " . $paramName . " - " . $val);
     $stmt->bindValue($paramName, $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
 }
 
@@ -119,9 +120,9 @@ $filteredCountStmt->execute($params);
 $filteredTotalRows = $filteredCountStmt->fetchColumn(); // 할당 연산자 수정
 
 
-error_log("실행할 쿼리:" . $query);
-error_log("바인딩된 파라미터 수: $bindingCount");
-error_log("필터링 된 전체 데이터 수".$filteredTotalRows);//필터링 된 전체 데이터 수 로깅
+// error_log("실행할 쿼리:" . $query);
+// error_log("바인딩된 파라미터 수: $bindingCount");
+// error_log("필터링 된 전체 데이터 수".$filteredTotalRows);//필터링 된 전체 데이터 수 로깅
 
 // 바인딩된 파라미터 목록 로깅
 $boundParamsLog = "바인딩된 파라미터 목록: \n";

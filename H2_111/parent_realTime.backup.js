@@ -113,12 +113,6 @@ const parentRealTimeManager = {
   // 가로 막대 차트 생성 함수
   createHorizontalBarChart: function (canvasId, data) {
     const ctx = document.getElementById(canvasId).getContext('2d');
-
-    // 기존 차트 파괴
-    if(this.charts[canvasId]){
-      this.charts[canvasId].destroy();
-    }
-
     // 데이터셋을 조정하여 각 차트에 맞는 데이터만 표시하도록 설정
     const dataset = canvasId === 'eProductionBarChart' ? [data.e_realtime_production] : [data.t_realtime_production];
     const backgroundColor = canvasId === 'eProductionBarChart' ? '#4CB9E7' : '#FF8F8F';
@@ -138,34 +132,26 @@ const parentRealTimeManager = {
       options: {
         indexAxis: 'y',
         scales: {
-          x:{ 
-            beginAtZero: true,
-            display: false,
-            // grid: {display: false},
-            // ticks: {display: false}
-          },
-          y: {
-            display: false,
-            // grid: {display: false},
-            // ticks: {display: false}
-          }},
+          x: {
+            beginAtZero: true
+          }
+        },
         plugins: {
           legend: {
             display: false // 범례를 표시하지 않도록 설정
           },
-          tooltip: false,
-          // tooltip: {
-          //   callbacks: {
-          //     label: function (context) {
-          //       let label = context.dataset.label || '';
-          //       if (label) {
-          //         label += ': ';
-          //       }
-          //       label += context.parsed.x;
-          //       return label;
-          //     }
-          //   }
-          // }
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                let label = context.dataset.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                label += context.parsed.x;
+                return label;
+              }
+            }
+          }
         }
       }
     });
@@ -175,32 +161,22 @@ const parentRealTimeManager = {
   // 가로 막대 차트 업데이트 함수
   updateHorizontalBarChart: function (canvasId, newData) {
     const chart = this.charts[canvasId];
-    if (chart && newData && newData.e_realtime_production !== undefined && newData.t_realtime_production !== undefined) {
-        chart.data.datasets.forEach((dataset) => {
-            dataset.data = [newData.e_realtime_production, newData.t_realtime_production];
-        });
-        chart.update();
-    } else {
-        console.error('데이터 업데이트 실패: newData가 유효하지 않거나 필수 필드가 누락되었습니다.');
+    if (chart) {
+      chart.data.datasets.forEach((dataset) => {
+        dataset.data = [newData.e_realtime_production, newData.t_realtime_production];
+      });
+      chart.update();
     }
-},
+  },
 
-
-updateHorizontalBarCharts: function (newData) {
-  // 모든 가로 막대 차트의 ID를 배열로 정의
-  const chartIds = ['eProductionBarChart', 'tProductionBarChart'];
-
-  // newData 객체가 유효한지 확인
-  if (!newData || !newData.e_realtime_production || !newData.t_realtime_production) {
-      console.error('데이터 업데이트 실패: newData가 유효하지 않습니다.');
-      return; // newData가 유효하지 않으면 함수 실행을 중단
-  }
-
-  // 각 차트 ID에 대해 updateHorizontalBarChart 함수를 호출
-  chartIds.forEach((chartId) => {
+  updateHorizontalBarCharts: function (newData) {
+    // 모든 가로 막대 차트의 ID를 배열로 정의
+    const chartIds = ['eProductionBarChart', 'tProductionBarChart'];
+    // 각 차트 ID에 대해 updateHorizontalBarChart 함수를 호출
+    chartIds.forEach((chartId) => {
       this.updateHorizontalBarChart(chartId, newData);
-  });
-}
+    });
+  }
 
 };
 

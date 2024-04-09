@@ -1,6 +1,6 @@
 // stack_search.js 192.168.100.111
 // GET 방식 - 작동 OK
-// console.log('stack_search.js 도달!')
+console.log('stack_search.js 도달!')
 
 let currentSearchConditions = {};
 let totalRowsFiltered = 0; //필터링 된 데이터의 총 수를 저장할 변수
@@ -10,7 +10,7 @@ const currentDate = new Date();
 const formattedDate = currentDate.toISOString().slice(0, 19).replace('T', ' ');
 
 // 페이지 이동 함수
-function goToPage(pageNumber){
+export function goToPage(pageNumber){
     currentPage = pageNumber; //현재 페이지 번호 업데이트
     searchWithData(currentSearchConditions, pageNumber);
 }
@@ -121,14 +121,14 @@ function searchWithData(conditions, page = 1) {
     // 페이지 정보 추가
     query += `&page=${page}`;
 
-    const url = `/FDC/work/dev/js/main/stack_search.php?${query}`; 
+    const url = `/FDC/Proj/trunk/js/main/stack_search.php?${query}`; 
 
     const xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
 
     xhr.onload = function () {
         if (this.status === 200) {
-            console.log("서버로부터의 응답:", this.responseText);
+            // console.log("서버로부터의 응답:", this.responseText);
             const response = JSON.parse(this.responseText);
             if (Array.isArray(response.data)) {
                 totalRowsFiltered = response.totalRows; // 필터링 된 데이터의 총 수 업데이트
@@ -156,7 +156,7 @@ function searchWithData(conditions, page = 1) {
 }
 
 // 결과를 표시하는 함수
-function displayResults(results) {
+export function displayResults(results) {
     const tbody = document.querySelector('#stack_search_table');
     tbody.innerHTML = ''; // 기존 내용을 비움
 
@@ -165,8 +165,19 @@ function displayResults(results) {
             const tr = document.createElement('tr');
             // 현재 페이지 번호를 데이터 속성으로 추가
             tr.setAttribute('data-page', currentPage);
-            tr.innerHTML = `
-                <td><input type="checkbox" name="search-checkbox"></td>
+
+            // 체크박스 생성 및 data-no 속성 설정
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox'; //<input type="checkbox"
+            checkbox.name = 'search-checkbox'; // <input type="checkbox" name="search-checkbox">
+            checkbox.setAttribute('data-no', row.NO); // 데이터 속성으로  'data-no'를 설정하여 체크박스에 관련 정보 추가 
+
+            const tdCheckbox = document.createElement('td');
+            tdCheckbox.appendChild(checkbox);
+            tr.appendChild(tdCheckbox);
+
+            // 나머지 셀들을 추가
+            tr.innerHTML += `
                 <td>${row.DATE}</td>
                 <td>${row['H-M']}</td>
                 <td>${row['M-L']}</td>
@@ -180,11 +191,16 @@ function displayResults(results) {
                 <td>${row.BQ}</td>
                 <td><input type="text" class="label-input" value="${row.LABEL}" data-id="${row.ID}" data-date="${row.DATE}"></td>
             `;
+
             tbody.appendChild(tr);
         });
+
+        // 모든 결과가 DOM에 추가된 후에 커스텀 이벤트 발생
+        document.dispatchEvent(new CustomEvent('resultsDisplayed'));
     } else {
         console.error('Results is not an array');
     }
+}
 
     // 라벨 입력 필드에 대한 엔터 키 이벤트 리스너 추가(엔터 치면 수정사항 저장되도록)
     document.querySelectorAll('.label-input').forEach(input=>{
@@ -197,7 +213,6 @@ function displayResults(results) {
             }
         });
     });
-}
 
 // 라벨 수정
 function updateLabel(date, label){
