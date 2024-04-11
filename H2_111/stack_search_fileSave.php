@@ -1,8 +1,7 @@
 <?php
 //stack_search_fileSave.php
-// 체크박스 클릭하면 해당 체크박스의 NO을 통해 /home/nstek/h2_system/patch_active/FDC/work/bjy/impedance/time_series 에서 /home/nstek/h2_system/patch_active/FDC/work/bjy/impedance//selected로 파일 옮기기
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+
+header('Content-Type: application/json'); // JSON 형식으로 변경
 
 $no = $_GET['no'];
 
@@ -20,19 +19,31 @@ $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if ($row) {
     $fileName = $row['NAME'];
+    // 파일 이름에서 캐리지 리턴(\r) 문자 제거 및 인코딩 변환
+    $fileName = str_replace("\r", "", $fileName);
+    $fileName = mb_convert_encoding($fileName, 'UTF-8', mb_detect_encoding($fileName));
+
+    // 절대 경로 설정
+    $sourcePath = '/home/nstek/h2_system/patch_active/FDC/work/bjy/impedance/time_series/' . $fileName;
+    $destinationPath = '/home/nstek/h2_system/patch_active/FDC/work/bjy/impedance/selected/' . $fileName;
+
+    // 파일 존재 확인
+    if (!file_exists($sourcePath)) {
+        echo json_encode(['message' => '이동할 파일이 존재하지 않습니다.']);
+        exit;
+    }
+
+    // 파일 이동 로직
+    if (!rename($sourcePath, $destinationPath)) {
+        echo json_encode(['message' => '파일 이동 실패', 'error' => error_get_last()]);
+    } else {
+        echo json_encode(['message' => '파일 이동 성공', 'fileName' => $fileName]);
+    }
 } else {
     echo json_encode(['message' => '해당 번호의 파일을 찾을 수 없습니다.']);
     exit;
 }
 
-// 필요한 경로 조합
-$sourcePath = '/FDC/work/bjy/impedance/time_series/' . $fileName;
-$destinationPath = '/FDC/work/bjy/impedance/selected/' . $fileName;
-
-if(rename($sourcePath, $destinationPath)) {
-    echo json_encode(['message' => '파일 이동 성공', 'fileName' => $fileName]);
-} else {
-    echo json_encode(['message' => '파일 이동 실패']);
-}
-
+error_log("Source Path: " . $sourcePath);
+error_log("Destination Path: " . $destinationPath);
 ?>

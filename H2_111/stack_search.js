@@ -1,6 +1,7 @@
 // stack_search.js 192.168.100.111
 // GET 방식 - 작동 OK
 console.log('stack_search.js 도달!')
+import { moveFile } from './search_moveFile.js';
 
 let currentSearchConditions = {};
 let totalRowsFiltered = 0; //필터링 된 데이터의 총 수를 저장할 변수
@@ -9,16 +10,17 @@ let currentPage = 1;
 const currentDate = new Date();
 const formattedDate = currentDate.toISOString().slice(0, 19).replace('T', ' ');
 
-// 페이지 이동 함수
-export function goToPage(pageNumber){
-    currentPage = pageNumber; //현재 페이지 번호 업데이트
-    searchWithData(currentSearchConditions, pageNumber);
-}
-
 // 페이지 로드 시 전체 데이터 불러오기
 document.addEventListener('DOMContentLoaded', function () {
     searchWithData({}); // 초기 검색 조건 없이 호출하여 전체 데이터를 호출
+    setupSelectAllCheckbox();
 });
+
+// 페이지 이동 함수
+export function goToPage(pageNumber) {
+    currentPage = pageNumber; //현재 페이지 번호 업데이트
+    searchWithData(currentSearchConditions, pageNumber);
+}
 
 // 초기화 버튼
 document.querySelector('#stack_reset_btn').addEventListener('click', function () {
@@ -118,10 +120,18 @@ function searchWithData(conditions, page = 1) {
         }
     }).join('&');
 
+    // '전체 선택' 체크박스 상태 초기화
+    const selectAllCheckbox = document.getElementById('search-all-checkbox');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = false;
+        console.log('전체 선택 체크박스 초기화됨');
+    }
+
+
     // 페이지 정보 추가
     query += `&page=${page}`;
 
-    const url = `/FDC/Proj/trunk/js/main/stack_search.php?${query}`; 
+    const url = `/FDC/Proj/trunk/js/main/stack_search.php?${query}`;
 
     const xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
@@ -168,9 +178,9 @@ export function displayResults(results) {
 
             // 체크박스 생성 및 data-no 속성 설정
             const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox'; //<input type="checkbox"
-            checkbox.name = 'search-checkbox'; // <input type="checkbox" name="search-checkbox">
-            checkbox.setAttribute('data-no', row.NO); // 데이터 속성으로  'data-no'를 설정하여 체크박스에 관련 정보 추가 
+            checkbox.type = 'checkbox';
+            checkbox.name = 'search-checkbox';
+            checkbox.setAttribute('data-no', row.NO);
 
             const tdCheckbox = document.createElement('td');
             tdCheckbox.appendChild(checkbox);
@@ -194,53 +204,75 @@ export function displayResults(results) {
 
             tbody.appendChild(tr);
         });
-
-        // 모든 결과가 DOM에 추가된 후에 커스텀 이벤트 발생
-        document.dispatchEvent(new CustomEvent('resultsDisplayed'));
-    } else {
-        console.error('Results is not an array');
     }
 }
 
-    // 라벨 입력 필드에 대한 엔터 키 이벤트 리스너 추가(엔터 치면 수정사항 저장되도록)
-    document.querySelectorAll('.label-input').forEach(input=>{
-        input.addEventListener('keypress', function(e){ // keypress: 키 눌렀을 때, keydown: 키 누르는 동안, keyup: 키에서 손 땔 때
-            // console.log(e.currentTarget.dataset.date);
-            if(e.key === 'Enter'){
-                e.preventDefault(); // 폼 제출 방지
-                updateLabel(e.currentTarget.dataset.date, e.currentTarget.value); // 데이터 업데이트 함수 호출
-                e.currentTarget.blur(); // 입력 필드 포커스 제거
-            }
-        });
+// 이벤트 리스너로 사용될 명명된 함수
+function handleSelectAllChange() {
+    // 체크박스 처리 로직
+    const allCheckboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]');
+    console.log(`전체 선택 체크박스 상태: ${this.checked}`); // 전체 선택 체크박스 상태 로깅
+    allCheckboxes.forEach(checkbox => {
+        checkbox.checked = this.checked; // 'this'는 selectAllCheckbox
+        console.log(`체크박스 ${checkbox.getAttribute('data-no')} 상태: ${checkbox.checked}`); // 각 체크박스 상태 로깅
+        const no = checkbox.getAttribute('data-no');
+        if (no) {
+            console.log(`현재 페이지 전체 선택으로 이동할 파일 NO : ${no}`);
+            moveFile(no); // search_moveFile.js 에서  import한 함수
+        }
     });
+}
+
+// 페이지 로드 또는 페이지 변경 시 호출될 함수
+function setupSelectAllCheckbox() {
+    const selectAllCheckbox = document.getElementById('search-all-checkbox');
+    if (selectAllCheckbox) {
+        // 기존 이벤트 리스너 제거
+        selectAllCheckbox.removeEventListener('change', handleSelectAllChange);
+        // 새 이벤트 리스너 등록
+        selectAllCheckbox.addEventListener('change', handleSelectAllChange);
+    }
+}
+
+// 라벨 입력 필드에 대한 엔터 키 이벤트 리스너 추가(엔터 치면 수정사항 저장되도록)
+document.querySelectorAll('.label-input').forEach(input => {
+    input.addEventListener('keypress', function (e) { // keypress: 키 눌렀을 때, keydown: 키 누르는 동안, keyup: 키에서 손 땔 때
+        // console.log(e.currentTarget.dataset.date);
+        if (e.key === 'Enter') {
+            e.preventDefault(); // 폼 제출 방지
+            updateLabel(e.currentTarget.dataset.date, e.currentTarget.value); // 데이터 업데이트 함수 호출
+            e.currentTarget.blur(); // 입력 필드 포커스 제거
+        }
+    });
+});
 
 // 라벨 수정
-function updateLabel(date, label){
+function updateLabel(date, label) {
     // console.log(`date:${date}, label:${label}`);
     // 데이터를 쿼리 문자열로 변환
     const queryString = `date=${encodeURIComponent(date)}&label=${encodeURIComponent(label)}`;
 
     // fetch 요청 URL에 쿼리 문자열 추가
-    fetch(`/FDC/work/dev/js/main/stack_label_update.php?${queryString}`, {
+    fetch(`/FDC/Proj/trunk/js/main/stack_label_update.php?${queryString}`, {
         method: 'GET', // GET 요청 명시
-        mode:'no-cors', //CORS 정책 우회
+        mode: 'no-cors', //CORS 정책 우회
         headers: {
             'Content-Type': 'application/json',
         },
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('네트워크 응답이 올바르지 않습니다.');
-        }
-        return response.json(); // 응답을 JSON으로 파싱
-    })
-    .then(data => {
-        console.log('Success:', data);
-        // 성공 메세지 표시 또는 페이지 새로고침 등의 후속 조치
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('네트워크 응답이 올바르지 않습니다.');
+            }
+            return response.json(); // 응답을 JSON으로 파싱
+        })
+        .then(data => {
+            console.log('Success:', data);
+            // 성공 메세지 표시 또는 페이지 새로고침 등의 후속 조치
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
 }
 
 function displayPagination(totalRows, currentPage) {

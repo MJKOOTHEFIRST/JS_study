@@ -24,7 +24,7 @@ document.querySelector('.color-pick').addEventListener('change', updateTagColor)
 // 환경상 GET으로 태그 데이터를 저장하는 것으로 개발
 // 태그와 색상을 서버로 전송하는 함수 
 function saveTagWithGet(tagName, color) {
-  const url = new URL('/FDC/work/dev/js/main/save_tag.php', window.location.origin);
+  const url = new URL('/FDC/Proj/trunk/js/main/save_tag.php', window.location.origin);
   const params = { tag: tagName, color: color };
   url.search = new URLSearchParams(params).toString();
 
@@ -155,7 +155,7 @@ function renderTags(tags) {
 
 // 태그 호출(GET, fetch는 HTTP 메소드를 별도로 지정하지 않으면 GET 요청이 기본적으로 수행된다.)
 document.addEventListener('DOMContentLoaded', function () {
-  fetch('/FDC/work/dev/js/main/load_tags.php')
+  fetch('/FDC/Proj/trunk/js/main/load_tags.php')
     .then(response => {
       if (!response.ok) {
         throw new Error('태그를 불러오는데 실패했습니다.');
@@ -226,7 +226,7 @@ document.addEventListener('click', function (event) {
 // 태그 삭제 함수
 function removeTag(tagName) {
   // 태그 삭제를 위한 서버 요청
-  const url = new URL('/FDC/work/dev/js/main/delete_tag.php', window.location.origin);
+  const url = new URL('/FDC/Proj/trunk/js/main/delete_tag.php', window.location.origin);
   const params = { tag: tagName };
   url.search = new URLSearchParams(params).toString();
 

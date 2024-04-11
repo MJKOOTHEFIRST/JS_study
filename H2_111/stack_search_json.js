@@ -5,8 +5,8 @@ console.log('stack_search.js 도달!');
 // 서버에 검색 조건을 전송하고 결과를 받아 테이블에 표시하는 함수
 function searchWithData(conditions) {
     const xhr = new XMLHttpRequest();
-    // xhr.open('POST', 'http://192.168.100.111/FDC/work/dev/js/main/stack_search.php', true);
-    xhr.open('POST', 'http://fuelcelldr.nstek.com/FDC/work/dev/js/main/stack_search.php', true);
+    // xhr.open('POST', 'http://192.168.100.111/FDC/Proj/trunk/js/main/stack_search.php', true);
+    xhr.open('POST', 'http://fuelcelldr.nstek.com/FDC/Proj/trunk/js/main/stack_search.php', true);
     xhr.setRequestHeader('Content-Type', 'application/json');
 
     xhr.onload = function () {
