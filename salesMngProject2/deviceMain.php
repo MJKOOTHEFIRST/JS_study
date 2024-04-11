@@ -1,4 +1,5 @@
 <?php
+// echo "deviceMain.php 출력";
 // deviceMain.php
 require_once "auth.php";
 ini_set('display_errors', 1);
@@ -8,6 +9,9 @@ error_reporting(E_ALL);
 require_once "sales_db.php";
 require 'deviceLFSF.php';
 mysqli_set_charset($dbconnect, "utf8");
+
+$SN = isset($_GET['SN']) ? $_GET['SN'] : '';
+// error_log("SN 값: " . $SN); // 이를 통해 error.log 파일에서 SN의 값을 확인할 수 있습니다.
 
 $message = "전체 : ";
 
@@ -187,7 +191,13 @@ $totalCount = mysqli_num_rows($result);
                                 <?php
                                 if (!empty($SN)) { // SN 값이 비어있지 않은 경우에만 쿼리 실행
                                     $licenseQuery = "SELECT * FROM LICENSE WHERE SN = '$SN'";
+                                    // echo "실행할 쿼리: " . $licenseQuery;
                                     $licenseResult = mysqli_query($dbconnect, $licenseQuery);
+                                    // if (!$licenseResult) {
+                                    //     echo "쿼리 실행 실패: " . mysqli_error($dbconnect);
+                                    // } else {
+                                    //     echo "쿼리 실행 성공";
+                                    // }
 
                                     if ($licenseResult && mysqli_num_rows($licenseResult) > 0) {
                                         while ($licenseRow = mysqli_fetch_assoc($licenseResult)) {
@@ -203,7 +213,7 @@ $totalCount = mysqli_num_rows($result);
                                             echo " | 점검: " . $licenseRow['SUPPORT'];
                                             echo " | 비고: " . $licenseRow['REF'];
                                             // '수정' 버튼 추가
-                                            echo "<a href='licenseUpdate.php?saleId=" . urlencode($licenseRow['SALE_ID']) . "&SN=" . urldecode($licenseRow['SN']) . "'class='btn btn-primary' style='font-size:0.8em; height: 40px;'>수정</a>";
+                                            echo "<a href='licenseUpdate.php?saleId=" . urlencode($licenseRow['SALE_ID']) . "&SN=" . urldecode($licenseRow['SN']) . "'class='btn btn-primary' style='font-size:0.9em; height: 40px;'>수정</a>";
                                             echo "</div>";
                                         }
                                     } else {
