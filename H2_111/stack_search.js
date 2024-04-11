@@ -13,7 +13,7 @@ const formattedDate = currentDate.toISOString().slice(0, 19).replace('T', ' ');
 // 페이지 로드 시 전체 데이터 불러오기
 document.addEventListener('DOMContentLoaded', function () {
     searchWithData({}); // 초기 검색 조건 없이 호출하여 전체 데이터를 호출
-    setupSelectAllCheckbox();
+    setupSelectAllCheckbox(); 
 });
 
 // 페이지 이동 함수
@@ -22,7 +22,7 @@ export function goToPage(pageNumber) {
     searchWithData(currentSearchConditions, pageNumber);
 }
 
-// 초기화 버튼
+// 필터 검색 초기화 버튼
 document.querySelector('#stack_reset_btn').addEventListener('click', function () {
     console.log('초기화 버튼 클릭 이벤트 발생');
     resetSearchConditions(); // 검색 조건 초기화 함수 호출
@@ -207,7 +207,7 @@ export function displayResults(results) {
     }
 }
 
-// 이벤트 리스너로 사용될 명명된 함수
+// 전체 선택 체크박스의 변경 이벤트 처리. 전체 선택/해제 + 파일이동
 function handleSelectAllChange() {
     // 체크박스 처리 로직
     const allCheckboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]');
@@ -281,7 +281,7 @@ function displayPagination(totalRows, currentPage) {
     const paginationContainer = document.getElementById('stack-search-pagination');
     paginationContainer.innerHTML = ''; // 기존 페이지네이션 초기화
 
-    const maxPageVisible = 5; // 한 번에 표시할 최대 페이지 수
+    const maxPageVisible = 10; // 한 번에 표시할 최대 페이지 수
     let startPage = Math.max(currentPage - Math.floor(maxPageVisible / 2), 1);
     let endPage = Math.min(startPage + maxPageVisible - 1, totalPages);
 
@@ -293,14 +293,15 @@ function displayPagination(totalRows, currentPage) {
     paginationContainer.appendChild(createPageItem(1, '<<', currentPage > 1));
 
     // 항상 '<' 버튼을 표시하되, 첫 페이지인 경우 비활성화합니다.
-    paginationContainer.appendChild(createPageItem(Math.max(1, currentPage - 1), '<', currentPage > 1));
+    paginationContainer.appendChild(createPageItem(Math.max(1, currentPage - maxPageVisible), '<', currentPage > 1));
+
 
     for (let i = startPage; i <= endPage; i++) {
         paginationContainer.appendChild(createPageItem(i, i.toString(), currentPage !== i));
     }
 
     // 항상 '>' 버튼을 표시하되, 마지막 페이지인 경우 비활성화합니다.
-    paginationContainer.appendChild(createPageItem(Math.min(totalPages, currentPage + 1), '>', currentPage < totalPages));
+    paginationContainer.appendChild(createPageItem(Math.min(totalPages, currentPage + maxPageVisible), '>', currentPage < totalPages));
 
     // 항상 '>>' 버튼을 표시하되, 마지막 페이지인 경우 비활성화합니다.
     paginationContainer.appendChild(createPageItem(totalPages, '>>', currentPage < totalPages));
