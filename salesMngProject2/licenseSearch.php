@@ -216,7 +216,6 @@ WHERE 1=1";
                   <option value="" <?php if (!isset($html_values['TYPE']) || empty($html_values['TYPE'])) echo 'selected'; ?>>선택안함</option>
                   <option value="유상" <?php if (isset($html_values['TYPE']) && $html_values['TYPE'] == '유상') echo 'selected'; ?>>유상</option>
                   <option value="무상" <?php if (isset($html_values['TYPE']) && $html_values['TYPE'] == '무상') echo 'selected'; ?>>무상</option>
-                  <option value="건당" <?php if (isset($html_values['TYPE']) && $html_values['TYPE'] == '건당') echo 'selected'; ?>>건당</option>
                 </select>
                 <span class="error-message">&nbsp;</span>
               </td>
@@ -246,6 +245,7 @@ WHERE 1=1";
                   <!-- 선택하지 않은 경우를 나타내는 추가적인 <option>을 만드는 것이 좋다. -->
                   <!--건별, 월 방문, 월 원격, 분기 방문, 분기 원격, 반기 방문, 반기 원격, 비고참조-->
                   <option value="" <?php if (!isset($html_values['INSPECTION']) || empty($html_values['INSPECTION'])) echo 'selected'; ?>>선택안함</option>
+                  <option value="건별" <?php if (isset($html_values['INSPECTION']) && $html_values['INSPECTION'] == '건별') echo 'selected'; ?>>건별</option>
                   <option value="월방문" <?php if (isset($html_values['INSPECTION']) && $html_values['INSPECTION'] == '월방문') echo 'selected'; ?>>월방문</option>
                   <option value="월원격" <?php if (isset($html_values['INSPECTION']) && $html_values['INSPECTION'] == '월원격') echo 'selected'; ?>>월원격</option>
                   <option value="분기방문" <?php if (isset($html_values['INSPECTION']) && $html_values['INSPECTION'] == '분기방문') echo 'selected'; ?>>분기방문</option>
