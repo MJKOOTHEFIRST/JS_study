@@ -8,11 +8,25 @@ error_reporting(E_ALL);
 
 // Include the database connection file
 require_once "sales_db.php";
-// include "auth.php"; // 사용자 로그인 상태 확인
 
 // UTF-8 인코딩 설정
 mysqli_set_charset($dbconnect, "utf8");
 
+
+// 사용자 권한 확인
+$userPermission = ''; //기본값 설정
+if (isset($_SESSION['user_id'])) {
+    $userId = $_SESSION['user_id'];
+    $permissionQuery = "SELECT permission FROM LOGIN WHERE user_id=?";
+    $stmt = $dbconnect->prepare($permissionQuery);
+    $stmt->bind_param("s", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        $userPermission = $row['permission'];
+    }
+    $stmt->close();
+}
 
 $today = date("Y-m-d");
 $message = "전체 : ";
@@ -65,7 +79,7 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
     // AJAX 요청으로부터 페이지 번호 받기
     $currentPage = isset($_GET['page']) ? intval($_GET['page']) : 1;
     $offset = ($currentPage - 1) * $itemsPerPage;
-    
+
     // selectSales 함수를 사용하여 쿼리 실행
     $sortBy = 'SALE_ID'; // 또는 다른 정렬 기준
     $sql = selectSales($sortBy);
@@ -240,7 +254,7 @@ function searchFunction(
     if (!empty($conditions)) {
         $sql .= "WHERE " . implode(" AND ", $conditions) . " ";
     }
-    
+
     $sql .= "ORDER BY s.SALE_ID DESC";
     return $sql;
 }
@@ -422,17 +436,19 @@ if (isset($_GET['condition']) && $_GET['condition'] == 'eos') {
                         <thead>
                             <tr>
                                 <!-- tablesorter 쓰면 안되고, 나중에 pagination이랑 함께 해야하기 때문에 각 th를 클릭했을 때, 각각 select 해서 정렬하도록 한다. -->
-                                <th scope="col" class="col-1" data-sortable="true">판매번호<img src="/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
-                                <th scope="col" class="col-1" data-sortable="true">납품처<img src="/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
-                                <th scope="col" class="col-1" data-sortable="true">거래처<img src="/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
-                                <th scope="col" class="col-1" data-sortable="true">거래처영업<img src="/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
-                                <th scope="col" class="col-1" data-sortable="true">담당자명<img src="/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
-                                <th scope="col" class="col-2" data-sortable="true">공급가액합계<img src="/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
-                                <th scope="col" class="col-1" data-sortable="true">납품일<img src="/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
-                                <th scope="col" class="col-1" data-sortable="true">유지보수시작일<img src="/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
-                                <th scope="col" class="col-1" data-sortable="true">유지보수종료일<img src="/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
-                                <th scope="col" class="col-1" data-sortable="true">주문번호<img src="/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
-                                <th scope="col" class="col-1" data-sortable="true">보증기간<img src="/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
+                                <th scope="col" class="col-1" data-sortable="true">판매번호<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
+                                <th scope="col" class="col-1" data-sortable="true">납품처<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
+                                <th scope="col" class="col-1" data-sortable="true">거래처<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
+                                <th scope="col" class="col-1" data-sortable="true">거래처영업<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
+                                <th scope="col" class="col-1" data-sortable="true">담당자명<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
+                                <?php if ($userPermission == 'admin' || $userPermission == 'sales') : ?>
+                                    <th scope="col" class="col-2" data-sortable="true">공급가액합계<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
+                                <?php endif; ?>
+                                <th scope="col" class="col-1" data-sortable="true">납품일<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
+                                <th scope="col" class="col-1" data-sortable="true">유지보수시작일<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
+                                <th scope="col" class="col-1" data-sortable="true">유지보수종료일<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
+                                <th scope="col" class="col-1" data-sortable="true">주문번호<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
+                                <th scope="col" class="col-1" data-sortable="true">보증기간<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
                             </tr>
                         </thead>
                         <tbody style="width:50%;">
@@ -447,12 +463,14 @@ if (isset($_GET['condition']) && $_GET['condition'] == 'eos') {
                                     <td class="col-1"><?php echo $row['C_NAME']; ?></td>
                                     <td class="col-1"><?php echo $row['CBIZ_NAME']; ?></td>
                                     <td class="col-1"><?php echo $row['BIZ_NAME']; ?></td>
-                                    <td class="col-2" style="text-align: right; padding-right: 5%;">
-                                        <?php
-                                        $price = isset($row['TOT_PRICE']) ? $row['TOT_PRICE'] : 0;
-                                        echo number_format($price);
-                                        ?><span>원</span>
-                                    </td>
+                                    <?php if ($userPermission == 'admin' || $userPermission == 'sales') : ?>
+                                        <td class="col-2" style="text-align: right; padding-right: 5%;">
+                                            <?php
+                                            $price = isset($row['TOT_PRICE']) ? $row['TOT_PRICE'] : 0;
+                                            echo number_format($price) . '<span>원</span>';
+                                            ?>
+                                        </td>
+                                    <?php endif; ?>
                                     <td class="col-1"><?php echo $row['DELIVER_DATE']; ?></td>
                                     <td class="col-1"><?php echo $row['S_DATE']; ?></td>
                                     <td class="col-1"><?php echo $row['D_DATE']; ?></td>
@@ -575,16 +593,12 @@ if (isset($_GET['condition']) && $_GET['condition'] == 'eos') {
                 </div> -->
             </div>
         </div>
-        <script src="/salesMain.js"></script>
+        <script src="salesMain.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
         <script>
             var el = document.createElement("script");
-            el.src = "/.__/auto_complete.js";
+            el.src = "./.__/auto_complete.js";
             document.body.appendChild(el);
-        </script>
-        <script>
-
-
         </script>
 </body>
 
