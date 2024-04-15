@@ -280,7 +280,7 @@ list($eos, $start_date, $end_date) = get_eos($today, $eos_tobe_expired);
 </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
     <script src="salesMain.js"></script>
-    <script src="/.__/auto_complete.js"></script>
+    <script src=".__/auto_complete.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         // console.log("페이지 로딩 완료");
@@ -306,5 +306,6 @@ list($eos, $start_date, $end_date) = get_eos($today, $eos_tobe_expired);
         });
     });
 </script>
+
 </body>
 </html>

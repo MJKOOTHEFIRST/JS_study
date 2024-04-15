@@ -28,6 +28,7 @@ if (isset($_SESSION['user_id'])) {
 require_once "sales_db.php";
 mysqli_set_charset($dbconnect, "utf8");
 
+//로그인 폼 데이터 처리
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['user_id']) && isset($_POST['password'])) {
     var_dump($_POST);
     $user_id = mysqli_real_escape_string($dbconnect, $_POST['user_id']);
@@ -95,8 +96,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['user_id']) && isset($_
                         // 로그인 상태 확인
                         if (isset($_SESSION['user_id'])) {
                             // 로그인된 상태
-                            $username = $_SESSION['username'];
-                            echo "<p style=\"font-size: 20px;\">안녕하세요 {$username}님, 로그인 되었습니다.</p>";
+                            $user_name = $_SESSION['user_name'];
+                            echo "<p style=\"font-size: 20px;\">안녕하세요 {$user_name}님, 로그인 되었습니다.</p>";
                             // 로그아웃 버튼 표시
                             echo '<a href="logout.php" class="btn btn-secondary" style="margin-top:30px;width: 120px; font-size: 16px; font-weight: 900; border-radius: 10px;">로그아웃</a>';
                         } else {
@@ -124,7 +125,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['user_id']) && isset($_
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
     <script src="salesMain.js"></script>
-    <script src="/.__/auto_complete.js"></script>
+    <script src="./.__/auto_complete.js"></script>
 </body>
 
 </html>

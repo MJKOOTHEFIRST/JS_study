@@ -14,7 +14,8 @@ $today = date("Y-m-d");
 $message = "전체 : ";
 
 // 동적 조건을 생성하는 함수
-function addDynamicConditions($dbconnect, $params){
+function addDynamicConditions($dbconnect, $params)
+{
     $conditions = [];
     if (!empty($params['vendorName'])) {
         $vendorName = mysqli_real_escape_string($dbconnect, $params['vendorName']);
@@ -45,7 +46,7 @@ if ($result) {
     while ($row = mysqli_fetch_assoc($result)) {
         // VENDOR_NAME이 결과 집합에 포함되어 있다고 가정하고 직접 사용
         // 필요한 경우 여기에서 row 데이터를 처리하거나 출력
-        
+
     }
 } else {
     echo "Query failed: " . mysqli_error($dbconnect);
@@ -281,6 +282,27 @@ $totalCount = $totalLicenseRow['total'];
     <link rel="stylesheet" href="salesMain.css">
     <script src="https://unpkg.com/htmx.org@1.9.4"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous"></script>
+    <style>
+        .item-separator td {
+            padding: 5px 0;
+            /* 위아래로 패딩을 줘서 구분선과의 간격을 만듭니다. */
+        }
+
+        .item-separator td::after {
+            content: "";
+            /* 가상 요소를 사용하여 구분선을 만듭니다. */
+            display: block;
+            margin: 10px 0;
+            /* 구분선 위아래로 마진을 줘서 공간을 만듭니다. */
+            border-bottom: 1px solid #ccc;
+            /* 구분선 스타일 */
+        }
+
+        .detail-table tbody tr th,
+        .detail-table tbody tr td {
+            text-align: left;
+        }
+    </style>
 </head>
 
 <body>
@@ -386,52 +408,63 @@ $totalCount = $totalLicenseRow['total'];
                                         <div id="flush-collapse<?php echo $counter; ?>" class="collapse accor-style">
                                             <table class="detail-table">
                                                 <?php
-                                                // 데이터 행의 LICENSE 테이블에서 온 SALE_ID와 SN이
-                                                // LICENSE_HISTORY 테이블의 SALE_ID와 SN이 일치하는 경우 정보 출력할 쿼리
                                                 $stmt = $dbconnect->prepare("SELECT * FROM LICENSE_HISTORY WHERE SALE_ID=? AND SN=?");
-                                                // SALE_ID와 SN 값을 바인딩
                                                 $stmt->bind_param("ss", $row['SALE_ID'], $row['SN']);
-                                                // 쿼리 실행
                                                 $stmt->execute();
-                                                // 결과 가져오기
-                                                $details = $stmt->get_result()->fetch_assoc();
+                                                $details_result = $stmt->get_result();
+
+                                                if ($details_result->num_rows > 0) {
+                                                    echo "<tr><td colspan='2'> 총 갱신 횟수: " . $details_result->num_rows . "회</td></tr>";
+                                                    echo "<tr class='item-separator'><td colspan='2'></td></tr>";
+                                                    while ($details = $details_result->fetch_assoc()) {
                                                 ?>
-                                                <tr>
-                                                    <th style="margin-left:10px; font-weight: bold;">갱신번호 :</th>
-                                                    <td><?php echo !empty($details['NO']) ? $details['NO'] : '-'; ?></td>
-                                                </tr>
-                                                <tr>
-                                                    <th style="margin-left:10px; font-weight: bold;">유형 :</th>
-                                                    <td><?php echo !empty($details['TYPE']) ? $details['TYPE'] : '-'; ?></td>
-                                                </tr>
-                                                <tr>
-                                                    <th style="margin-left:10px; font-weight: bold;">가격 :</th>
-                                                    <td><?php echo number_format($row['PRICE'] ?? 0); ?>원</td>
-                                                </tr>
-                                                <tr>
-                                                    <th style="margin-left:10px; font-weight: bold;">시작일 :</th>
-                                                    <td><?php echo !empty($details['S_DATE']) ? $details['S_DATE'] : '-'; ?></td>
-                                                </tr>
-                                                <tr>
-                                                    <th style="margin-left:10px; font-weight: bold;">종료일 :</th>
-                                                    <td><?php echo !empty($details['D_DATE']) ? $details['D_DATE'] : '-'; ?></td>
-                                                </tr>
-                                                <tr>
-                                                    <th style="margin-left:10px; font-weight: bold;">보증기간 :</th>
-                                                    <td><?php echo !empty($details['WARRANTY']) ? $details['WARRANTY'] : '-'; ?></td>
-                                                </tr>
-                                                <tr>
-                                                    <th style="margin-left:10px; font-weight: bold;">검사 :</th>
-                                                    <td><?php echo !empty($details['INSPECTION']) ? $details['INSPECTION'] : '-'; ?></td>
-                                                </tr>
-                                                <tr>
-                                                    <th style="margin-left:10px; font-weight: bold;">지원 :</th>
-                                                    <td><?php echo !empty($details['SUPPORT']) ? $details['SUPPORT'] : '-'; ?></td>
-                                                </tr>
+                                                        <tr>
+                                                            <th style="margin-left:10px; font-weight: bold;">갱신번호 :</th>
+                                                            <td><?php echo !empty($details['NO']) ? $details['NO'] : '-'; ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th style="margin-left:10px; font-weight: bold;">유형 :</th>
+                                                            <td><?php echo !empty($details['TYPE']) ? $details['TYPE'] : '-'; ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th style="margin-left:10px; font-weight: bold;">가격 :</th>
+                                                            <td><?php echo number_format($row['PRICE'] ?? 0); ?>원</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th style="margin-left:10px; font-weight: bold;">시작일 :</th>
+                                                            <td><?php echo !empty($details['S_DATE']) ? $details['S_DATE'] : '-'; ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th style="margin-left:10px; font-weight: bold;">종료일 :</th>
+                                                            <td><?php echo !empty($details['D_DATE']) ? $details['D_DATE'] : '-'; ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th style="margin-left:10px; font-weight: bold;">보증기간 :</th>
+                                                            <td><?php echo !empty($details['WARRANTY']) ? $details['WARRANTY'] . ' 개월' : '-'; ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th style="margin-left:10px; font-weight: bold;">검사 :</th>
+                                                            <td><?php echo !empty($details['INSPECTION']) ? $details['INSPECTION'] : '-'; ?></td>
+                                                        </tr>
+                                                        <tr class="detail-row">
+                                                            <th style="margin-left:10px; font-weight: bold;">지원 :</th>
+                                                            <td><?php echo !empty($details['SUPPORT']) ? $details['SUPPORT'] : '-'; ?></td>
+                                                        </tr>
+                                                        <tr class="item-separator">
+                                                            <td colspan="2"></td>
+                                                        </tr>
+                                                <?php
+                                                    }
+                                                } else {
+                                                    // 일치하는 데이터가 없는 경우 처리
+                                                    echo "<tr><td colspan='2'>해당 라이센스 히스토리가 없습니다.</td></tr>";
+                                                }
+                                                ?>
                                             </table>
                                         </div>
                                     </td>
                                 </tr>
+                                <!-- 아코디언 내용 끝 -->
                             <?php
                                 $counter++;
                             endwhile;
@@ -443,7 +476,7 @@ $totalCount = $totalLicenseRow['total'];
         </div>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
         <script src="salesMain.js"></script>
-        <script src="/.__/auto_complete.js"></script>
+        <script src=".__/auto_complete.js"></script>
 </body>
 
 </html>

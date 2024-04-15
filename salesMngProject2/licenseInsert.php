@@ -3,10 +3,12 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-session_start();
-$html_values = [];
 require_once "sales_db.php";
 mysqli_set_charset($dbconnect, "utf8");
+
+session_start();
+
+$html_values = [];
 
 //유입경로 1 : 일반적으로 들어올 때
 
@@ -289,6 +291,59 @@ document.addEventListener('DOMContentLoaded', function() {
     typeSelect.dispatchEvent(new Event('change'));
     console.log('typeSelect 변경 이벤트 발생');
 });
+
+
+/* -------------------------------------------------------------------------- */
+/*                          licenseInsert 페이지       유효성검사                      */
+/* -------------------------------------------------------------------------- */
+document.addEventListener('DOMContentLoaded', function () {
+    debugger;
+    console.log("licenseInsert JS 도달!");
+
+    document.getElementById('lcsInsertForm').addEventListener('submit', function (event) {
+        console.log("licenseInsert form 제출");
+        event.preventDefault(); // 유효성 검사 후 조건 만족할 때만 폼 제출
+
+        let SN = document.getElementById('SN').value;
+        console.log('SN 값 : ', SN);
+        let saleId = document.getElementById('saleId').value;
+        console.log('saleId 값 : ', saleId);
+        let price = document.getElementById('price').value;
+        let type = document.getElementById('type').value;
+        let errors = [];
+
+        // 에러 메시지 초기화
+        document.getElementById('error-saleId').textContent = '';
+        document.getElementById('error-SN').textContent = '';
+        document.getElementById('error-type').textContent = '';
+        document.getElementById('error-price').textContent = '';
+
+        if (!saleId) {
+            console.log('saleId가 없음!');
+            errors['saleId'] = "명세서번호(SALE_ID)를 입력해주세요.";
+            document.getElementById('error-saleId').textContent = errors['saleId'];
+        }
+
+        if (type !== "무상" && !SN) {
+            errors['SN'] = "유상일 경우 시리얼번호(SN)를 입력해주세요.";
+            document.getElementById('error-SN').textContent = errors['SN'];
+        }
+
+        if (type === "유상" && price === "") {
+            errors['price'] = "유상인 경우 금액을 입력해주세요.";
+            document.getElementById('error-price').textContent = errors['price'];
+        }
+
+        if (Object.keys(errors).length) {
+            console.log('에러 발생!', errors);
+        } else {
+            console.log("에러 없음");
+            this.submit();
+        }
+    });
+
+});
+// 
     </script>
 </body>
 </html>

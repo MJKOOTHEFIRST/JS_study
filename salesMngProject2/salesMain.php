@@ -441,8 +441,10 @@ if (isset($_GET['condition']) && $_GET['condition'] == 'eos') {
                                 <th scope="col" class="col-1" data-sortable="true">거래처<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
                                 <th scope="col" class="col-1" data-sortable="true">거래처영업<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
                                 <th scope="col" class="col-1" data-sortable="true">담당자명<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
-                                <?php if ($userPermission == 'admin' || $userPermission == 'sales') : ?>
-                                    <th scope="col" class="col-2" data-sortable="true">공급가액합계<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
+                                <?php if (($userPermission == 'admin' || $userPermission == 'sales') || substr($_SERVER['REMOTE_ADDR'], 0, 3) === '192') : ?>
+                                    <th scope="col" class="col-2" data-sortable="true">
+                                        공급가액합계<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon">
+                                    </th>
                                 <?php endif; ?>
                                 <th scope="col" class="col-1" data-sortable="true">납품일<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
                                 <th scope="col" class="col-1" data-sortable="true">유지보수시작일<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
@@ -463,14 +465,15 @@ if (isset($_GET['condition']) && $_GET['condition'] == 'eos') {
                                     <td class="col-1"><?php echo $row['C_NAME']; ?></td>
                                     <td class="col-1"><?php echo $row['CBIZ_NAME']; ?></td>
                                     <td class="col-1"><?php echo $row['BIZ_NAME']; ?></td>
-                                    <?php if ($userPermission == 'admin' || $userPermission == 'sales') : ?>
-                                        <td class="col-2" style="text-align: right; padding-right: 5%;">
+                                    <td class="col-2" style="text-align: right; padding-right: 5%;">
+                                        <?php if (($userPermission == 'admin' || $userPermission == 'sales') || substr($_SERVER['REMOTE_ADDR'], 0, 3) === '192') : ?>
                                             <?php
                                             $price = isset($row['TOT_PRICE']) ? $row['TOT_PRICE'] : 0;
                                             echo number_format($price) . '<span>원</span>';
                                             ?>
-                                        </td>
-                                    <?php endif; ?>
+                                        <?php endif; ?>
+                                    </td>
+
                                     <td class="col-1"><?php echo $row['DELIVER_DATE']; ?></td>
                                     <td class="col-1"><?php echo $row['S_DATE']; ?></td>
                                     <td class="col-1"><?php echo $row['D_DATE']; ?></td>
@@ -597,7 +600,8 @@ if (isset($_GET['condition']) && $_GET['condition'] == 'eos') {
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
         <script>
             var el = document.createElement("script");
-            el.src = "./.__/auto_complete.js";
+            el.src = ".__/auto_complete.js";
+            // el.src = "/sales/.__/auto_complete.js";
             document.body.appendChild(el);
         </script>
 </body>

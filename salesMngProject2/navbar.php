@@ -12,7 +12,7 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 // 로그인 상태를 확인하기 위해 세션에 저장된 username을 가져옴
-$username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
+$user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : '';
 
 ?>
 
@@ -51,9 +51,9 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
         <?php
         if (isset($_SESSION['user_id'])) {
           // 로그인된 상태
-          $username = $_SESSION['user_name'];
+          $user_name = $_SESSION['user_name'];
           echo "<div style=\"display: flex; align-items: center; background-color: #5a9bd5;\">";
-          echo "<p style=\"font-size: 20px; font-weight: bold; color: white; margin-right: 10px; margin-top:10px; padding: 10px 0;\">안녕하세요 " . htmlspecialchars($username) . "님, 로그인 되었습니다.</p>";
+          echo "<p style=\"font-size: 20px; font-weight: bold; color: white; margin-right: 10px; margin-top:10px; padding: 10px 0;\">안녕하세요 " . htmlspecialchars($user_name) . "님, 로그인 되었습니다.</p>";
           echo "<a href=\"logout.php\" class=\"nav-link\" style=\"font-size: 18px; font-weight:600; color: #505050; background-color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; transition: background-color 0.3s ease;\">로그아웃</a>";
           echo "<style>";
           echo ".nav-link:hover { text-shadow: none !important; }"; // 마우스 오버 시 텍스트 그림자 제거
@@ -62,7 +62,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
         } else {
           // 로그아웃 상태일 때 로그인 이미지와 링크 표시
           echo '<a href="index.php" class="nav-link">';
-          echo '<img src="/img/login.png" alt="Login" style="height: 45px; width: auto; margin-right:5%;">';
+          echo '<img src="/sales/img/login.png" alt="Login" style="height: 45px; width: auto; margin-right:5%;">';
           echo '</a>';
         }
         ?>
