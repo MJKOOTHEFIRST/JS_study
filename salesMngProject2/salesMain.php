@@ -13,8 +13,12 @@ require_once "sales_db.php";
 mysqli_set_charset($dbconnect, "utf8");
 
 
+// 가격 볼수 있는 권한 제한(LOGIN 테이블의 permission열이 admin이나 sales 이고 IP가 내부일때만  TOT_PRICE 볼 수 있다.)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // 사용자 권한 확인
 $userPermission = ''; //기본값 설정
+$isExternalAccess = false; // 기본적으로 내부 액세스로 설정
+
 if (isset($_SESSION['user_id'])) {
     $userId = $_SESSION['user_id'];
     $permissionQuery = "SELECT permission FROM LOGIN WHERE user_id=?";
@@ -27,6 +31,12 @@ if (isset($_SESSION['user_id'])) {
     }
     $stmt->close();
 }
+
+// 사용자의 IP 주소가 '192'로 시작하지 않는 경우, 외부 접속으로 간주
+if (substr($_SERVER['REMOTE_ADDR'], 0, 3) !== '192') {
+    $isExternalAccess = true;
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 $today = date("Y-m-d");
 $message = "전체 : ";
@@ -441,11 +451,13 @@ if (isset($_GET['condition']) && $_GET['condition'] == 'eos') {
                                 <th scope="col" class="col-1" data-sortable="true">거래처<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
                                 <th scope="col" class="col-1" data-sortable="true">거래처영업<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
                                 <th scope="col" class="col-1" data-sortable="true">담당자명<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
-                                <?php if (($userPermission == 'admin' || $userPermission == 'sales') || substr($_SERVER['REMOTE_ADDR'], 0, 3) === '192') : ?>
+
+                                <?php if (($userPermission == 'admin' || $userPermission == 'sales') && !$isExternalAccess) : ?>
                                     <th scope="col" class="col-2" data-sortable="true">
                                         공급가액합계<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon">
                                     </th>
                                 <?php endif; ?>
+
                                 <th scope="col" class="col-1" data-sortable="true">납품일<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
                                 <th scope="col" class="col-1" data-sortable="true">유지보수시작일<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
                                 <th scope="col" class="col-1" data-sortable="true">유지보수종료일<img src="/sales/img/up-down-arrow.png" alt="sort" class="arrow-icon"></th>
@@ -465,14 +477,15 @@ if (isset($_GET['condition']) && $_GET['condition'] == 'eos') {
                                     <td class="col-1"><?php echo $row['C_NAME']; ?></td>
                                     <td class="col-1"><?php echo $row['CBIZ_NAME']; ?></td>
                                     <td class="col-1"><?php echo $row['BIZ_NAME']; ?></td>
-                                    <td class="col-2" style="text-align: right; padding-right: 5%;">
-                                        <?php if (($userPermission == 'admin' || $userPermission == 'sales') || substr($_SERVER['REMOTE_ADDR'], 0, 3) === '192') : ?>
+
+                                    <?php if (($userPermission == 'admin' || $userPermission == 'sales') && !$isExternalAccess) : ?>
+                                        <td class="col-2" style="text-align: right; padding-right: 5%;">
                                             <?php
                                             $price = isset($row['TOT_PRICE']) ? $row['TOT_PRICE'] : 0;
                                             echo number_format($price) . '<span>원</span>';
                                             ?>
-                                        <?php endif; ?>
-                                    </td>
+                                        </td>
+                                    <?php endif; ?>
 
                                     <td class="col-1"><?php echo $row['DELIVER_DATE']; ?></td>
                                     <td class="col-1"><?php echo $row['S_DATE']; ?></td>
