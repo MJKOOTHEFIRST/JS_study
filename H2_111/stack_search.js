@@ -1,7 +1,7 @@
 // stack_search.js 192.168.100.111
 // GET 방식 - 작동 OK
 console.log('stack_search.js 도달!')
-import { moveFile } from './search_moveFile.js';
+import { copyFile } from './search_copyFile.js';
 
 let currentSearchConditions = {};
 let totalRowsFiltered = 0; //필터링 된 데이터의 총 수를 저장할 변수
@@ -207,19 +207,23 @@ export function displayResults(results) {
     }
 }
 
-// 전체 선택 체크박스의 변경 이벤트 처리. 전체 선택/해제 + 파일이동
+// 전체 선택 체크박스의 변경 이벤트 처리. 전체 선택/해제 로직만 수행
 function handleSelectAllChange() {
-    // 체크박스 처리 로직
     const allCheckboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]');
     console.log(`전체 선택 체크박스 상태: ${this.checked}`); // 전체 선택 체크박스 상태 로깅
     allCheckboxes.forEach(checkbox => {
         checkbox.checked = this.checked; // 'this'는 selectAllCheckbox
         console.log(`체크박스 ${checkbox.getAttribute('data-no')} 상태: ${checkbox.checked}`); // 각 체크박스 상태 로깅
+    });
+}
+
+// 버튼 클릭 이벤트 처리. 파일 복사 로직 수행
+function handleGraphButtonClick() {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]:checked');
+    checkboxes.forEach(checkbox => {
         const no = checkbox.getAttribute('data-no');
-        if (no) {
-            console.log(`현재 페이지 전체 선택으로 이동할 파일 NO : ${no}`);
-            moveFile(no); // search_moveFile.js 에서  import한 함수
-        }
+        console.log(`선택된 체크박스로 이동할 파일 NO: ${no}`);
+        copyFile(no); // search_copyFile.js 에서 import한 함수
     });
 }
 
@@ -231,6 +235,12 @@ function setupSelectAllCheckbox() {
         selectAllCheckbox.removeEventListener('change', handleSelectAllChange);
         // 새 이벤트 리스너 등록
         selectAllCheckbox.addEventListener('change', handleSelectAllChange);
+    }
+
+    const graphButton = document.getElementById('graph-btn');
+    if (graphButton) {
+        // 새 이벤트 리스너 등록
+        graphButton.addEventListener('click', handleGraphButtonClick);
     }
 }
 

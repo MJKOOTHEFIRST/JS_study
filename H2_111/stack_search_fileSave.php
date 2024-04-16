@@ -24,20 +24,26 @@ if ($row) {
     $fileName = mb_convert_encoding($fileName, 'UTF-8', mb_detect_encoding($fileName));
 
     // 절대 경로 설정
-    $sourcePath = '/home/nstek/h2_system/patch_active/FDC/work/bjy/impedance/time_series/' . $fileName;
+    $sourcePath = '/home/nstek/h2_system/patch_active/ALL/data/impedance/imp_data/post_data/' . $fileName;
     $destinationPath = '/home/nstek/h2_system/patch_active/FDC/work/bjy/impedance/selected/' . $fileName;
 
     // 파일 존재 확인
     if (!file_exists($sourcePath)) {
-        echo json_encode(['message' => '이동할 파일이 존재하지 않습니다.']);
+        echo json_encode(['message' => '복사할 파일이 존재하지 않습니다.']);
+        exit;
+    }
+
+     // 대상 디렉토리에 이미 파일이 존재하는지 확인
+     if (file_exists($destinationPath)) {
+        echo json_encode(['message' => '이미 해당 파일이 대상 디렉토리에 존재합니다.', 'fileName' => $fileName]);
         exit;
     }
 
     // 파일 이동 로직
-    if (!rename($sourcePath, $destinationPath)) {
-        echo json_encode(['message' => '파일 이동 실패', 'error' => error_get_last()]);
+    if (!copy($sourcePath, $destinationPath)) {
+        echo json_encode(['message' => '파일 복사 실패!', 'error' => error_get_last()]);
     } else {
-        echo json_encode(['message' => '파일 이동 성공', 'fileName' => $fileName]);
+        echo json_encode(['message' => '파일 복사 성공!', 'fileName' => $fileName]);
     }
 } else {
     echo json_encode(['message' => '해당 번호의 파일을 찾을 수 없습니다.']);
