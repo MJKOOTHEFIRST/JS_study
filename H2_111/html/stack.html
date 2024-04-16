@@ -10,11 +10,13 @@
   <!-- <link href="css/diagram.css" rel="stylesheet"> -->
   <script src="js/bootstrap.js"></script>
   <!-- <script src="js/include.js"></script> -->
-  <script type="module" src="./js/main/stack_search.js"></script>
-  <script type="module" src="./js/main/stack_tag_manager.js"></script>
-  <script type="module" src="./js/main/stack_dataManager.js"></script>
-  <script type="module" src="./js/main/stack_diagnosis_log.js"></script>
-  <script type="module" src="./js/main/stack_stack_diagnosis.js"></script>
+  <script type="module" src="./js/main/search_copyFile.js"></script> <!--파일복사-->
+  <script type="module" src="./js/main/stack_search.js"></script> <!--스택 검색 데이터 불러오고 디스플레이-->
+  <script type="module" src="./js/main/stack_search_fileSave.js"></script> <!--스택 검색에서 파일 저장-->
+  <script type="module" src="./js/main/stack_tag_manager.js"></script> <!--태그 관리-->
+  <script type="module" src="./js/main/stack_dataManager.js"></script><!--w진단로그관리, 스택진단데이터 데이터관리-->
+  <script type="module" src="./js/main/stack_diagnosis_log.js"></script><!--진단 로그-->
+  <script type="module" src="./js/main/stack_stack_diagnosis.js"></script> <!--스택진단-->
   <!-- <script type="module" src="./js/main/bop_dataManager.js"></script> 한번에 csv 파일 뿌려주기 -->
   <!-- <script type="module" src="./js/main/bop_learning_data.js"></script> BOP 정상 학습 데이터 -->
   <!-- <script type="module" src="./js/main/bop_sensor_data.js"></script> BOP 센서 데이터 -->
@@ -50,6 +52,7 @@
           <div class="login">
             <div class="site-select">
               <select class="">
+                <option value="0">부안발전소</option>
                 <option value="1" selected>부안연료전지 #1호기</option>
                 <option value="2">부안연료전지 #2호기</option>
                 <select>
@@ -966,9 +969,9 @@
 
 
                 <div class="float-end">
-                  <button class="btn-of w-24">그래프 보기</button>
-                  <button class="btn-of w-24">정상 학습</button>
-                  <button class="btn-of w-24">라벨 수정</button>
+                  <button class="btn-of w-24" id="graph-btn">그래프 보기</button>
+                  <button class="btn-of w-24" id="normal-btn">정상 학습</button>
+                  <button class="btn-of w-24" id="label-btn">라벨 수정</button>
                 </div>
 
 
