@@ -34,6 +34,17 @@ if (!file_exists($filePath)) {
     echo json_encode($response);
     exit;
 } else {
+      $file = fopen($filePath, 'a+'); // 'a+' 모드는 읽기와 쓰기를 위해 파일을 열고, 파일이 존재하지 않으면 생성합니다. 파일 포인터는 파일의 끝에 위치합니다.
+
+    // 파일의 마지막 문자가 줄바꿈 문자인지 확인
+    fseek($file, -1, SEEK_END); // 파일의 마지막 문자로 이동
+    $lastChar = fgetc($file); // 마지막 문자 읽기
+
+    // 마지막 문자가 줄바꿈 문자가 아니라면, 줄바꿈 추가
+    if ($lastChar !== "\n" && $lastChar !== false) {
+        fwrite($file, PHP_EOL);
+    }
+    
     // 태그와 색상 정보를 파일에 추가
     $dataToSave = $tag; // 태그 이름을 먼저 추가
     if (!empty($color)) {

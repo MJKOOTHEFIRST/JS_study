@@ -14,6 +14,9 @@ const formattedDate = currentDate.toISOString().slice(0, 19).replace('T', ' ');
 document.addEventListener('DOMContentLoaded', function () {
     searchWithData({}); // 초기 검색 조건 없이 호출하여 전체 데이터를 호출
     setupSelectAllCheckbox(); 
+
+    //그래프 보기('graph-btn') 버튼 클릭 이벤트 리스너 
+    document.getElementById('graph-btn').addEventListener('click', handleGraphButtonClick);
 });
 
 // 페이지 이동 함수
@@ -219,11 +222,21 @@ function handleSelectAllChange() {
 
 // 버튼 클릭 이벤트 처리. 파일 복사 로직 수행
 function handleGraphButtonClick() {
-    const checkboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]:checked');
-    checkboxes.forEach(checkbox => {
-        const no = checkbox.getAttribute('data-no');
-        console.log(`선택된 체크박스로 이동할 파일 NO: ${no}`);
-        copyFile(no); // search_copyFile.js 에서 import한 함수
+    // `/selected` 디렉터리 내의 파일을 모두 삭제하는 서버 측 스크립트 호출
+    fetch('/FDC/Proj/trunk/js/main/delete_files_in_selected.php')
+    .then(response => response.json())
+    .then(data => {
+        console.log(data.message); // 성공 메시지 로깅
+        // 파일 삭제 성공 후, 기존 로직 수행
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]:checked');
+        checkboxes.forEach(checkbox => {
+            const no = checkbox.getAttribute('data-no');
+            console.log(`선택된 체크박스로 이동할 파일 NO: ${no}`);
+            copyFile(no); // search_copyFile.js 에서 import한 함수
+        });
+    })
+    .catch(error => {
+        console.error('Error:', error);
     });
 }
 
@@ -239,7 +252,7 @@ function setupSelectAllCheckbox() {
 
     const graphButton = document.getElementById('graph-btn');
     if (graphButton) {
-        // 새 이벤트 리스너 등록
+        // 새 이벤트 리스너 등록('그래프 보기')
         graphButton.addEventListener('click', handleGraphButtonClick);
     }
 }
@@ -286,7 +299,7 @@ function updateLabel(date, label) {
 }
 
 function displayPagination(totalRows, currentPage) {
-    const perPage = 10; // 페이지 당 표시할 데이터 수
+    const perPage = 100; // 페이지 당 표시할 데이터 수
     const totalPages = Math.ceil(totalRows / perPage);
     const paginationContainer = document.getElementById('stack-search-pagination');
     paginationContainer.innerHTML = ''; // 기존 페이지네이션 초기화

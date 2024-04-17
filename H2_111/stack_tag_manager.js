@@ -19,13 +19,24 @@ if (featureFlags.updateTagButtonLabel) {
 }
 
 // 색상 선택기의 이벤트 리스너 설정
-document.querySelector('.color-pick').addEventListener('change', updateTagColor);
+// document.querySelector('.color-pick').addEventListener('change', updateTagColor);
+
+//랜덤 컬러 생성
+function generateRandomColor() {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
 
 // 환경상 GET으로 태그 데이터를 저장하는 것으로 개발
 // 태그와 색상을 서버로 전송하는 함수 
-function saveTagWithGet(tagName, color) {
+function saveTagWithGet(tagName) {
+  const randomColor= generateRandomColor(); // 랜덤 색상 생성
   const url = new URL('/FDC/Proj/trunk/js/main/save_tag.php', window.location.origin);
-  const params = { tag: tagName, color: color };
+  const params = { tag: tagName, color: randomColor };
   url.search = new URLSearchParams(params).toString();
 
   fetch(url)
@@ -38,16 +49,14 @@ function saveTagWithGet(tagName, color) {
     .then(data => {
       if (data.message === '태그가 성공적으로 저장되었습니다.') {
         // 서버로부터의 응답이 성공적일 때만 태그를 DOM에 추가
-        renderTags([{
-          name: tagName,
-          color: color
-        }]);
+        renderTags([{name: tagName, color: randomColor}]);
         // 입력 필드 초기화
         document.getElementById('new-tag-text').value = '';
       }
     })
     .catch(error => console.error(error));
 }
+
 
 
 // 태그 추가 및 서버로 전송

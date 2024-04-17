@@ -1,5 +1,5 @@
 <?php
-//stack_search_fileSave.php
+//search_copyFile.php
 
 header('Content-Type: application/json'); // JSON 형식으로 변경
 
@@ -33,17 +33,17 @@ if ($row) {
         exit;
     }
 
-     // 대상 디렉토리에 이미 파일이 존재하는지 확인
-     if (file_exists($destinationPath)) {
+    // 대상 디렉토리에 이미 파일이 존재하는지 확인
+    if (file_exists($destinationPath)) {
         echo json_encode(['message' => '이미 해당 파일이 대상 디렉토리에 존재합니다.', 'fileName' => $fileName]);
         exit;
     }
 
     // 파일 이동 로직
     if (!copy($sourcePath, $destinationPath)) {
-        echo json_encode(['message' => '파일 복사 실패!', 'error' => error_get_last()]);
+        echo json_encode(['message' => '파일 복사 실패', 'error' => error_get_last()]);
     } else {
-        echo json_encode(['message' => '파일 복사 성공!', 'fileName' => $fileName]);
+        echo json_encode(['message' => '파일 복사 성공', 'fileName' => $fileName]);
     }
 } else {
     echo json_encode(['message' => '해당 번호의 파일을 찾을 수 없습니다.']);

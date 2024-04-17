@@ -24,7 +24,7 @@ $dsn = "mysql:host=$host;dbname=$dbname";
 
 // 페이지네이션을 위한 변수
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$perPage = 10; // 한 페이지당 데이터 수
+$perPage = 100; // 한 페이지당 데이터 수
 $offset = ($page - 1) * $perPage; // 예)한 페이지에 10개의 항목을 보여줄 때, 첫 번째 페이지의 offset은 0, 두 번째 페이지의 offset은 10
 
 // 정수로 캐스팅하여 SQL 인젝션 방지
