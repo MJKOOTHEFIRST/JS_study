@@ -18,9 +18,6 @@ if (featureFlags.updateTagButtonLabel) {
   });
 }
 
-// 색상 선택기의 이벤트 리스너 설정
-// document.querySelector('.color-pick').addEventListener('change', updateTagColor);
-
 //랜덤 컬러 생성
 function generateRandomColor() {
   const letters = '0123456789ABCDEF';
@@ -34,7 +31,7 @@ function generateRandomColor() {
 // 환경상 GET으로 태그 데이터를 저장하는 것으로 개발
 // 태그와 색상을 서버로 전송하는 함수 
 function saveTagWithGet(tagName) {
-  const randomColor= generateRandomColor(); // 랜덤 색상 생성
+  const randomColor = generateRandomColor(); // 랜덤 색상 생성
   const url = new URL('/FDC/Proj/trunk/js/main/save_tag.php', window.location.origin);
   const params = { tag: tagName, color: randomColor };
   url.search = new URLSearchParams(params).toString();
@@ -49,7 +46,7 @@ function saveTagWithGet(tagName) {
     .then(data => {
       if (data.message === '태그가 성공적으로 저장되었습니다.') {
         // 서버로부터의 응답이 성공적일 때만 태그를 DOM에 추가
-        renderTags([{name: tagName, color: randomColor}]);
+        renderTags([{ name: tagName, color: randomColor }]);
         // 입력 필드 초기화
         document.getElementById('new-tag-text').value = '';
       }
@@ -66,13 +63,12 @@ document.getElementById('new-tag').addEventListener('click', function () {
   if (tagText) {
     // 중복된 태그 검사
     if (isDuplicateTag(tagText)) {
-     alert("중복된 태그입니다.", document.getElementById('new-tag-text'));
-     tagInput.value=''; // 입력 필드를 빈칸으로 설정
+      alert("중복된 태그입니다.", document.getElementById('new-tag-text'));
+      tagInput.value = ''; // 입력 필드를 빈칸으로 설정
     } else {
       // 태그명과 선택된 색상을 서버로 전송하는 로직 구현
-      const selectedColor = updateTagColor(); // 색상 선택 로직
       if (featureFlags.saveTagWithGet) { // 조건 추가
-        saveTagWithGet(tagText, selectedColor); // 서버로 태그 저장
+        saveTagWithGet(tagText); // 서버로 태그 저장
       }
     }
   } else {
@@ -84,9 +80,9 @@ document.getElementById('new-tag').addEventListener('click', function () {
 function isDuplicateTag(tagName) {
   const existingTags = document.querySelectorAll('.main.tag-selector');
   for (const tag of existingTags) {
-      if (tag.textContent.trim() === tagName) {
-          return true;
-      }
+    if (tag.textContent.trim() === tagName) {
+      return true;
+    }
   }
   return false;
 }
@@ -107,12 +103,6 @@ function renderTags(tags) {
 
     // 태그 이름 설정
     newSpan.textContent = tag.name;
-
-    // 배경색 설정
-    if (tag.color && tag.color !== 'undefined') {
-      newSpan.dataset.color = tag.color;
-      button.style.setProperty('--tag-color', tag.color); //CSS 변수 설정을 button에 적용
-    }
 
     // 버튼에 span 추가
     button.appendChild(newSpan);
@@ -139,17 +129,25 @@ function renderTags(tags) {
 
     // 여기에 클릭 이벤트 리스너 추가
     button.addEventListener('click', function () {
+      console.log("버튼 클릭됨")
       const tagContent = button.textContent.trim();
+      console.log("태그 내용:", tagContent); // 버튼에 표시된 태그 확인
       const tagWithHash = `#${tagContent}`;
+      console.log("해시태그:", tagWithHash); // 해시태그 형식 확인
       const labelInput = document.getElementById('input-label');
+      console.log("입력 필드:", labelInput); // 입력 필드가 올바르게 선택되었는지 확인
+      console.log("입력 필드 값:", labelInput.value); // 입력 필드의 값 확인
       let currentInputValue = labelInput.value.trim();
 
       if (button.classList.contains('active')) {
+        console.log("버튼 클라스 active 확인");
         // 태그 제거
         button.classList.remove('active');
         const newInputValue = currentInputValue.replace(new RegExp(`\\s*${tagWithHash}\\s*`, 'g'), ' ').trim();
         labelInput.value = newInputValue;
+         console.log("입력 필드 값 (태그 제거 후):", newInputValue); // 태그 제거 후 입력 필드 값 확인
       } else {
+        console.log("버튼 클라스 active 확인안됨");
         // 태그 추가
         button.classList.add('active');
         if (currentInputValue) {
@@ -157,6 +155,7 @@ function renderTags(tags) {
         } else {
           labelInput.value = tagWithHash;
         }
+        console.log("입력 필드 값 (태그 추가 후):", labelInput.value); // 태그 추가 후 입력 필드 값 확인
       }
     });
   });
@@ -175,34 +174,6 @@ document.addEventListener('DOMContentLoaded', function () {
       if (featureFlags.renderTags) {
         renderTags(tags); // 여기에서 renderTags 함수를 호출하여 태그 렌더링 처리
       }
-      // 각 버튼에 클릭 이벤트 리스너 추가
-      const tagButtons = document.querySelectorAll('.main.tag-selector');
-      tagButtons.forEach(button => {
-        button.addEventListener('click', function () {
-          const tagContent = button.textContent.trim();
-          const tagWithHash = `#${tagContent}`;
-          const labelInput = document.getElementById('input-label');
-          let currentInputValue = labelInput.value.trim();
-
-          // 태그가 이미 입력 필드에 있는지 확인
-          if (button.classList.contains('active')) {
-            // 태그 제거
-            button.classList.remove('active');
-            // 정규식을 사용하여 태그를 입력 필드에서 제거
-            const newInputValue = currentInputValue.replace(new RegExp(`\\s*${tagWithHash}\\s*`, 'g'), ' ').trim();
-            labelInput.value = newInputValue;
-          } else {
-            // 태그 추가
-            button.classList.add('active');
-            // 입력 필드가 비어있지 않으면 현재 값에 새 태그 추가
-            if (currentInputValue) {
-              labelInput.value = `${currentInputValue} ${tagWithHash}`;
-            } else {
-              labelInput.value = tagWithHash;
-            }
-          }
-        });
-      });
     })
     .catch(error => console.error('Error loading tags:', error));
 });
