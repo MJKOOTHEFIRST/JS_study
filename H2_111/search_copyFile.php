@@ -4,6 +4,8 @@
 header('Content-Type: application/json'); // JSON 형식으로 변경
 
 $no = $_GET['no'];
+$color = $_GET['color'] ?? '5BBCFF'; //색상 코드를 URL 파라미터에에서 읽어옴
+$color = str_replace("#", "", $color); // 색상 코드에서 '#'을 제거
 
 // 로그 설정
 ini_set('log_errors', 1);
@@ -23,9 +25,12 @@ if ($row) {
     $fileName = str_replace("\r", "", $fileName);
     $fileName = mb_convert_encoding($fileName, 'UTF-8', mb_detect_encoding($fileName));
 
+    // 석택된 색상 정보 파일명에 추가
+    $fileNameWithColor = $fileName . "{" . $color ."}";
+
     // 절대 경로 설정
     $sourcePath = '/home/nstek/h2_system/patch_active/ALL/data/impedance/imp_data/post_data/' . $fileName;
-    $destinationPath = '/home/nstek/h2_system/patch_active/FDC/work/bjy/impedance/selected/' . $fileName;
+    $destinationPath = '/home/nstek/h2_system/patch_active/FDC/work/bjy/impedance/selected/' . $fileNameWithColor;
 
     // 파일 존재 확인
     if (!file_exists($sourcePath)) {
@@ -35,7 +40,7 @@ if ($row) {
 
     // 대상 디렉토리에 이미 파일이 존재하는지 확인
     if (file_exists($destinationPath)) {
-        echo json_encode(['message' => '이미 해당 파일이 대상 디렉토리에 존재합니다.', 'fileName' => $fileName]);
+        echo json_encode(['message' => '이미 해당 파일이 대상 디렉토리에 존재합니다.', 'fileName' => $fileNameWithColor]);
         exit;
     }
 
@@ -43,7 +48,7 @@ if ($row) {
     if (!copy($sourcePath, $destinationPath)) {
         echo json_encode(['message' => '파일 복사 실패', 'error' => error_get_last()]);
     } else {
-        echo json_encode(['message' => '파일 복사 성공', 'fileName' => $fileName]);
+        echo json_encode(['message' => '파일 복사 성공', 'fileName' => $fileNameWithColor]);
     }
 } else {
     echo json_encode(['message' => '해당 번호의 파일을 찾을 수 없습니다.']);

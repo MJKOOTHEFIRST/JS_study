@@ -104,6 +104,12 @@ function renderTags(tags) {
     // 태그 이름 설정
     newSpan.textContent = tag.name;
 
+      // 배경색 설정
+    if (tag.color && tag.color !== 'undefined') {
+      newSpan.dataset.color = tag.color;
+      button.style.setProperty('--tag-color', tag.color); //CSS 변수 설정을 button에 적용
+    }
+
     // 버튼에 span 추가
     button.appendChild(newSpan);
 
@@ -129,25 +135,18 @@ function renderTags(tags) {
 
     // 여기에 클릭 이벤트 리스너 추가
     button.addEventListener('click', function () {
-      console.log("버튼 클릭됨")
       const tagContent = button.textContent.trim();
-      console.log("태그 내용:", tagContent); // 버튼에 표시된 태그 확인
       const tagWithHash = `#${tagContent}`;
-      console.log("해시태그:", tagWithHash); // 해시태그 형식 확인
       const labelInput = document.getElementById('input-label');
-      console.log("입력 필드:", labelInput); // 입력 필드가 올바르게 선택되었는지 확인
-      console.log("입력 필드 값:", labelInput.value); // 입력 필드의 값 확인
       let currentInputValue = labelInput.value.trim();
 
       if (button.classList.contains('active')) {
-        console.log("버튼 클라스 active 확인");
         // 태그 제거
         button.classList.remove('active');
         const newInputValue = currentInputValue.replace(new RegExp(`\\s*${tagWithHash}\\s*`, 'g'), ' ').trim();
         labelInput.value = newInputValue;
          console.log("입력 필드 값 (태그 제거 후):", newInputValue); // 태그 제거 후 입력 필드 값 확인
       } else {
-        console.log("버튼 클라스 active 확인안됨");
         // 태그 추가
         button.classList.add('active');
         if (currentInputValue) {

@@ -12,7 +12,6 @@
   <!-- <script src="js/include.js"></script> -->
   <script type="module" src="./js/main/search_copyFile.js"></script> <!--파일복사-->
   <script type="module" src="./js/main/stack_search.js"></script> <!--스택 검색 데이터 불러오고 디스플레이-->
-  <script type="module" src="./js/main/stack_search_fileSave.js"></script> <!--스택 검색에서 파일 저장-->
   <script type="module" src="./js/main/stack_tag_manager.js"></script> <!--태그 관리-->
   <script type="module" src="./js/main/stack_dataManager.js"></script><!--w진단로그관리, 스택진단데이터 데이터관리-->
   <script type="module" src="./js/main/stack_diagnosis_log.js"></script><!--진단 로그-->
@@ -759,7 +758,7 @@
                         <td><input type="number" name="sq" id="input-sq" class="search-condition"></td>
                         <td><input type="number" name="bq" id="input-bq" class="search-condition"></td>
                         <td><input type="text" name="label" id="input-label" class="search-condition"></td>
-                          <!-- 텍스트 입력 필드 유지 -->
+                        <!-- 텍스트 입력 필드 유지 -->
                       </tr>
                       <tr class="filter-label">
 
@@ -884,7 +883,7 @@
                 </script>
                 <!-- <input type="color" onchange="colorValue()"><input type="text" id="new-tag-text"><button class="btn-of w-24" id="new-tag">라벨 ᐧ 태그생성 / 수정</button> -->
                 <!-- 사용자가 클릭할 수 있는 색상 선택기 -->
-                <!-- <input type="color" id="tag-color" onchange="updateTagColor()"> -->
+                <!-- <input type="color" id="tag-color" onchange="updateGraphColor()"> -->
 
                 <select class="color-pick scrollmini">
                   <option disabled selected>⎕</option>
@@ -940,12 +939,6 @@
                     'color20': '#50607F',
                   };
 
-                  function updateTagColor() {
-                    const selectedOption = document.querySelector('select.color-pick option:checked');
-                    const selectedColorCode = pickColors[selectedOption.value];
-                    return selectedColorCode;
-                  }
-
                   document.addEventListener('DOMContentLoaded', function () {
                     const colorPicker = document.querySelector('select.color-pick');
                     const hiddenColorInput = document.querySelector('#hidden-color');
@@ -954,17 +947,19 @@
                       colorPicker.addEventListener('change', function () {
                         const selectedColorCode = pickColors[this.value];
                         hiddenColorInput.value = selectedColorCode;
-                        this.style.color = selectedColorCode;
+                        console.log('선택된 색상 코드:', selectedColorCode); // 디버깅을 위한 콘솔 로그
+                        
+                        // <select> 요소의 배경색 변경 코드
+                        this.style.color = selectedColorCode; // 선택한 색상으로 색상 변경
                       });
                     } else {
                       console.error('색상 선택기 또는 숨겨진 입력란 요소를 찾을 수 없습니다.');
                     }
 
-
-
                     // 색상 선택기의 초기 색상 설정
                     colorPicker.style.color = pickColors[colorPicker.value];
                   });
+
                 </script>
 
 

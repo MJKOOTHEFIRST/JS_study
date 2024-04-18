@@ -213,10 +213,10 @@ export function displayResults(results) {
 // 전체 선택 체크박스의 변경 이벤트 처리. 전체 선택/해제 로직만 수행
 function handleSelectAllChange() {
     const allCheckboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]');
-    console.log(`전체 선택 체크박스 상태: ${this.checked}`); // 전체 선택 체크박스 상태 로깅
+    // console.log(`전체 선택 체크박스 상태: ${this.checked}`); // 전체 선택 체크박스 상태 로깅
     allCheckboxes.forEach(checkbox => {
         checkbox.checked = this.checked; // 'this'는 selectAllCheckbox
-        console.log(`체크박스 ${checkbox.getAttribute('data-no')} 상태: ${checkbox.checked}`); // 각 체크박스 상태 로깅
+        // console.log(`체크박스 ${checkbox.getAttribute('data-no')} 상태: ${checkbox.checked}`); // 각 체크박스 상태 로깅
     });
 }
 
@@ -226,13 +226,14 @@ function handleGraphButtonClick() {
     fetch('/FDC/Proj/trunk/js/main/delete_files_in_selected.php')
     .then(response => response.json())
     .then(data => {
-        console.log(data.message); // 성공 메시지 로깅
+        // console.log(data.message); // 성공 메시지 로깅
         // 파일 삭제 성공 후, 기존 로직 수행
         const checkboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]:checked');
+        const hiddenColorInput = document.querySelector('#hidden-color').value; // 색상 코드 가져오기
         checkboxes.forEach(checkbox => {
             const no = checkbox.getAttribute('data-no');
             console.log(`선택된 체크박스로 이동할 파일 NO: ${no}`);
-            copyFile(no); // search_copyFile.js 에서 import한 함수
+            copyFile(no, hiddenColorInput); // search_copyFile.js 에서 import한 함수에 no랑 색상코드 인자로 전달
         });
     })
     .catch(error => {
