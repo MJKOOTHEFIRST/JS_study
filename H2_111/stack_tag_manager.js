@@ -108,6 +108,7 @@ function renderTags(tags) {
     if (tag.color && tag.color !== 'undefined') {
       newSpan.dataset.color = tag.color;
       button.style.setProperty('--tag-color', tag.color); //CSS 변수 설정을 button에 적용
+      button.style.setProperty('border-color', tag.color); //CSS 변수 설정을 button에 적용
     }
 
     // 버튼에 span 추가
