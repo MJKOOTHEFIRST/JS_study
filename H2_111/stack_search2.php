@@ -16,16 +16,30 @@ ini_set('log_errors', 1);
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
-$host = 'localhost';
-$dbname = 'FDC';
-$username = 'root';
-$password = 'coffee';
-$dsn = "mysql:host=$host;dbname=$dbname";
+require 'db_config.php';
 
 // 페이지네이션을 위한 변수
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $perPage = 100; // 한 페이지당 데이터 수
 $offset = ($page - 1) * $perPage; // 예)한 페이지에 10개의 항목을 보여줄 때, 첫 번째 페이지의 offset은 0, 두 번째 페이지의 offset은 10
+
+// GET 파라미터에서 startDate와 endDate 추출
+$startDate = isset($getParams['startDate']) ? $getParams['startDate'] : null;
+$endDate = isset($getParams['endDate']) ? $getParams['endDate'] : null;
+
+// 날짜 조건을 쿼리에 추가
+if ($startDate && $endDate) {
+    $startDate = str_replace("T", " ", substr($startDate, 0, 16)) . ":00";
+    $endDate = str_replace("T", " ", substr($endDate, 0, 16)) . ":00";
+
+    $conditions[] = "`DATE` BETWEEN :startDate AND :endDate";
+    $params['startDate'] = $startDate;
+    $params['endDate'] = $endDate;
+
+    // 에러 로깅 추가
+    error_log("처리된 startDate: " . $startDate);
+    error_log("처리된 endDate: " . $endDate);
+}
 
 // 정수로 캐스팅하여 SQL 인젝션 방지
 // $offset = (int)$offset;
@@ -50,35 +64,55 @@ try {
     $keywordIndex = 0; // 키워드에 대한 고유 인덱스
     
     foreach ($getParams as $key => $value) {
-        // LABEL 필드에서 입력받은 키워드의 수에 따라 동적으로 바인딩되는 파라미터의 수가 달라지기 때문에 발생. 이를 해결하기 위해서는 쿼리를 구성할 때 LABEL 필드에 대한 처리를 동적으로 조정해야함
         if ($key == 'LABEL' && !empty($value)) {
-            $keywords = explode('#', $value);  // '#'을 구분자로 사용하여 입력 키워드로 분리
-            $keywords = array_filter($keywords, function ($value) {    // 빈 문자열 제거
-            return !is_null($value) && $value !== '';
-        });
-
-        foreach ($keywords as $keyword) {
-            $paramName = "label" . $keywordIndex; // 각 키워드에 대해 고유한 파라미터 이름 생성
-            $conditions[] = "`LABEL` LIKE :$paramName";
-            $params[$paramName] = "%{$keyword}%"; // 키워드를 포함하는 데이터 검색
-            $keywordIndex++; // 다음 키워드에 대해 인덱스 증가
-        }
-    } elseif (strpos($key, 'Condition') !== false) {
-        $actualField = str_replace('Condition', '', $key);
-        $conditionType = $value;
-        $paramName = str_replace('-', '_', $actualField);
-        $fieldName = "`$actualField`"; // 실제 필드 이름
-        $actualValue = $getParams[$actualField]; // 실제 값
-
-        if ($conditionType == 'over') {
-            $conditions[] = "$fieldName > :condition_$paramName"; // 이름 기반 바인딩으로 수정
-            $params['condition_' . $paramName] = $actualValue; // 실제 값 바인딩
-        } elseif ($conditionType == 'under') {
-            $conditions[] = "$fieldName < :condition_$paramName"; // 이름 기반 바인딩으로 수정
-            $params['condition_' . $paramName] = $actualValue; 
+            // URL 디코딩을 추가하여 정확한 문자열을 얻습니다.
+            $value = urldecode($value);
+            $keywords = explode('#', $value);
+            $keywords = array_filter($keywords, function ($value) {
+                return !is_null($value) && $value !== '';
+            });
+    
+            foreach ($keywords as $index => $keyword) {
+                $keyword = trim($keyword); // 공백 제거
+                if (!empty($keyword)) {
+                    $paramName = ":label{$index}";
+                    $conditions[] = "`LABEL` LIKE $paramName";
+                    $params[$paramName] = "%" . $keyword . "%";
+                }
+            }
+        } elseif ($key == 'startDate' || $key == 'endDate') {
+            // 날짜 조건 처리
+            if ($key == 'startDate' && !empty($value)) {
+                $paramName = ":startDate";
+                $conditions[] = "`DATE` >= $paramName";
+                $params[$paramName] = $value;
+            } elseif ($key == 'endDate' && !empty($value)) {
+                $paramName = ":endDate";
+                $conditions[] = "`DATE` <= $paramName";
+                $params[$paramName] = $value;
+            }
+        } elseif (strpos($key, 'Condition') !== false) {
+            $actualField = str_replace('Condition', '', $key);
+            $conditionType = $value;
+            $paramName = ":condition_" . str_replace('-', '_', $actualField);
+            $fieldName = "`$actualField`";
+    
+            if ($conditionType == 'over') {
+                $conditions[] = "$fieldName > $paramName";
+            } elseif ($conditionType == 'under') {
+                $conditions[] = "$fieldName < $paramName";
+            }
+            $params[$paramName] = $getParams[$actualField];
         }
     }
-}
+    
+    // 모든 조건을 AND로 연결하여 WHERE 절을 생성합니다.
+    $whereClause = !empty($conditions) ? " WHERE " . implode(' AND ', $conditions) : '';
+    
+    // 쿼리를 준비하고 실행하는 부분은 이 WHERE 절을 사용하여 구성합니다.
+    // 예를 들어:
+    $query = "SELECT * FROM your_table_name" . $whereClause;
+    // 이후 쿼리 실행 및 결과 처리 로직을 추가합니다.
 
 // 바인딩할 파라미터 수
 $bindingCount = count($params);

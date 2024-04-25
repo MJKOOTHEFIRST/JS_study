@@ -13,7 +13,7 @@ const formattedDate = currentDate.toISOString().slice(0, 19).replace('T', ' ');
 // 페이지 로드 시 전체 데이터 불러오기
 document.addEventListener('DOMContentLoaded', function () {
     searchWithData({}); // 초기 검색 조건 없이 호출하여 전체 데이터를 호출
-    setupSelectAllCheckbox(); 
+    setupSelectAllCheckbox();
 
     //그래프 보기('graph-btn') 버튼 클릭 이벤트 리스너 
     document.getElementById('graph-btn').addEventListener('click', handleGraphButtonClick);
@@ -57,47 +57,77 @@ function resetSearchConditions() {
 }
 
 
-// 상세검색: 검색 버튼1 이벤트 리스너 추가
-document.querySelector('#stack_search_btn').addEventListener('click', function () {
-    console.log('검색 버튼 클릭 이벤트 발생');
+// 검색 버튼 이벤트 리스너 추가
+document.querySelectorAll('.stk-sch-btn').forEach(button => {
+    button.addEventListener('click', function () {
+        console.log('검색 버튼 클릭 이벤트 발생');
 
-    // 검색 조건 수집 함수
-    const getInputValue = (inputId) => {
-        console.log(`입력 값 가져오기: ${inputId}`); // ID 로깅
-        const inputElement = document.getElementById(inputId);
-        if (!inputElement) {
-            console.log(`Element not found for ID: ${inputId}`);
-            return ''; // 빈 문자열 반환하거나, 적절한 기본값 설정
+        // 검색 조건 수집 함수
+        const getInputValue = (inputId) => {
+            const inputElement = document.getElementById(inputId);
+            if (!inputElement) {
+                console.log(`Element not found for ID: ${inputId}`);
+                return ''; // 빈 문자열 반환하거나, 적절한 기본값 설정
+            }
+
+            const value = inputElement.value.trim(); // 입력값에서 앞뒤 공백 제거
+            if (value) { // 값이 있는 경우에만 로깅
+                console.log(`입력 값 가져오기: ${inputId}`);
+                console.log(`Value for ${inputId}: ${value}`);
+            }
+            return value;
+        };
+
+        // 시작 날짜와 종료 날짜 수집
+        const startDate = getInputValue('start-date');
+        const endDate = getInputValue('end-date');
+
+        console.log(`시작일: ${startDate}`);
+        console.log(`종료일: ${endDate}`);
+
+        // 날짜 유효성 검사
+        if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+            alert('시작 날짜가 종료 날짜보다 뒤에 있습니다.');
+            return;
         }
-        console.log(`Value for ${inputId}: ${inputElement.value}`); // 값 로깅
-        return inputElement.value;
-    };
 
-    // 검색 조건 수집
-    const searchConditions = {
-        'H-M': { value: getInputValue('input-h-m'), condition: getSelectedCondition('a01') },
-        'M-L': { value: getInputValue('input-m-l'), condition: getSelectedCondition('a02') },
-        'X1': { value: getInputValue('input-x1'), condition: getSelectedCondition('a03') },
-        'X2': { value: getInputValue('input-x2'), condition: getSelectedCondition('a04') },
-        'Y1': { value: getInputValue('input-y1'), condition: getSelectedCondition('a05') },
-        'Y2': { value: getInputValue('input-y2'), condition: getSelectedCondition('a06') },
-        'M': { value: getInputValue('input-m'), condition: getSelectedCondition('a07') },
-        'L': { value: getInputValue('input-l'), condition: getSelectedCondition('a08') },
-        'SQ': { value: getInputValue('input-sq'), condition: getSelectedCondition('a09') },
-        'BQ': { value: getInputValue('input-bq'), condition: getSelectedCondition('a10') },
-    };
+        // 검색 조건 수집
+        const searchConditions = {
+            'start-date': startDate, // 시작 날짜 수집
+            'end-date': endDate, // 종료 날짜 수집
+            'H-M': { value: getInputValue('input-h-m'), condition: getSelectedCondition('a01') },
+            'M-L': { value: getInputValue('input-m-l'), condition: getSelectedCondition('a02') },
+            'X1': { value: getInputValue('input-x1'), condition: getSelectedCondition('a03') },
+            'X2': { value: getInputValue('input-x2'), condition: getSelectedCondition('a04') },
+            'Y1': { value: getInputValue('input-y1'), condition: getSelectedCondition('a05') },
+            'Y2': { value: getInputValue('input-y2'), condition: getSelectedCondition('a06') },
+            'M': { value: getInputValue('input-m'), condition: getSelectedCondition('a07') },
+            'L': { value: getInputValue('input-l'), condition: getSelectedCondition('a08') },
+            'SQ': { value: getInputValue('input-sq'), condition: getSelectedCondition('a09') },
+            'BQ': { value: getInputValue('input-bq'), condition: getSelectedCondition('a10') },
+            'LABEL': { value: getInputValue('input-label') }
+        };
 
-    // 빈 값 필터링
-    Object.keys(searchConditions).forEach(key => {
-        if (!searchConditions[key].value) {
-            delete searchConditions[key];
-        }
+        // 빈 값 필터링
+        Object.keys(searchConditions).forEach(key => {
+            // 값이 객체인 경우 .value를 확인하고, 그렇지 않은 경우 값을 직접 확인
+            if (typeof searchConditions[key] === 'object' && searchConditions[key] !== null) {
+                if (!searchConditions[key].value) {
+                    delete searchConditions[key];
+                }
+            } else {
+                // 값이 단순 데이터 타입인 경우 (예: 문자열), 값 자체를 확인
+                if (!searchConditions[key]) {
+                    delete searchConditions[key];
+                }
+            }
+        });
+
+        console.log('검색 조건:', searchConditions);
+
+        // 서버에 검색 요청
+        searchWithData(searchConditions);
     });
-
-    console.log('검색 조건:', searchConditions);
-
-    // 서버에 검색 요청
-    searchWithData(searchConditions);
 });
 
 // 선택된 조건을 반환하는 함수
@@ -108,97 +138,44 @@ function getSelectedCondition(name) {
     return over ? 'over' : (under ? 'under' : '');
 }
 
-// stack_search_btn2 버튼 클릭 이벤트 리스너 추가
-document.getElementById('stack_search_btn2').addEventListener('click', function () {
-    console.log('날짜 및 라벨 검색 버튼 클릭 이벤트 발생');
-
-    // 날짜 입력 필드에서 값 가져오기
-    const dateInputs = document.querySelectorAll('.col-7 input[type="datetime-local"]');
-    const startDate = dateInputs[0].value;
-    const endDate = dateInputs[1].value;
-
-    // 라벨 입력 필드에서 값 가져오기
-    const labelInput = document.getElementById('input-label');
-    const label = labelInput.value;
-
-    // 검색 조건 객체 생성
-    const searchConditions = {
-        startDate: startDate,
-        endDate: endDate,
-        label: label
-    };
-
-    // 빈 값 필터링
-    Object.keys(searchConditions).forEach(key => {
-        if (!searchConditions[key]) {
-            delete searchConditions[key];
-        }
-    });
-
-    console.log('날짜 및 라벨 검색 조건:', searchConditions);
-
-    // 서버에 검색 요청
-    searchWithData(searchConditions);
-});
-
 // 서버에 검색 조건을 전송하고 결과를 받아 테이블에 표시하는 함수 (GET 요청 사용) / 퀴리 문자열 생성
 // encodeURIComponent 함수 : URL에서 사용할 수 있도록 문자열 인코딩
 function searchWithData(conditions, page = 1) {
-    // 이전 검색 조건과 페이지 정보 저장
     currentSearchConditions = conditions;
 
     let query = Object.keys(conditions).map(key => {
         if (key === 'LABEL') {
-            // LABEL 키에 대해 단순히 값을 인코딩하여 추가
+            return `${encodeURIComponent(key)}=${encodeURIComponent(conditions[key].value)}`;
+        } else if (key === 'startDate' || key === 'endDate') {
             return `${encodeURIComponent(key)}=${encodeURIComponent(conditions[key])}`;
         } else {
-            // 다른 키들에 대해서는 value와 condition을 모두 추가
             return `${encodeURIComponent(key)}=${encodeURIComponent(conditions[key].value)}&${encodeURIComponent(key + 'Condition')}=${encodeURIComponent(conditions[key].condition)}`;
         }
     }).join('&');
 
-    // '전체 선택' 체크박스 상태 초기화
-    const selectAllCheckbox = document.getElementById('search-all-checkbox');
-    if (selectAllCheckbox) {
-        selectAllCheckbox.checked = false;
-        console.log('전체 선택 체크박스 초기화됨');
-    }
-
-    // 페이지 정보 추가
     query += `&page=${page}`;
-
-    const url = `/FDC/Proj/trunk/js/main/stack_search2.php?${query}`;
-
+    const url = `/FDC/Proj/trunk/js/main/stack_search.php?${query}`;
     const xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
-
     xhr.onload = function () {
         if (this.status === 200) {
-            // console.log("서버로부터의 응답:", this.responseText);
             const response = JSON.parse(this.responseText);
             if (Array.isArray(response.data)) {
-                totalRowsFiltered = response.totalRows; // 필터링 된 데이터의 총 수 업데이트
-                console.log("전체 데이터 수 : ", response.totalRows); //데이터 수 로깅
+                totalRowsFiltered = response.totalRows;
                 displayResults(response.data);
                 displayPagination(totalRowsFiltered, page);
-                // displayPagination(response.totalRows, page);
-
             } else {
                 console.error('Results is not an array', response.data);
-                // 여기에 배열이 아닐 경우의 처리 로직 추가
             }
         } else {
             console.error('서버응답 실패:', this.status);
         }
     };
-
     xhr.onerror = function () {
-        // 네트워크 오류 등의 문제가 발생했을 때의 처리 로직
         console.error('Request failed');
     };
-
-    console.log('요청된 Query:', query); //Query: H-M=65&H-MCondition=over 문제 없음
-    xhr.send(); // 실제 요청을 서버로 보냄
+    console.log('요청된 Query:', query);
+    xhr.send();
 }
 
 // 결과를 표시하는 함수
@@ -240,11 +217,10 @@ export function displayResults(results) {
 
             tbody.appendChild(tr);
         });
-
         // 전체 데이터 수를 HTML에 업데이트 
         const countSelectedDiv = document.getElementById('count-selected');
-        if(countSelectedDiv){
-            countSelectedDiv.textContent= `${totalRowsFiltered} | 선택된 항목`;
+        if (countSelectedDiv) {
+            countSelectedDiv.textContent = `${totalRowsFiltered} | 선택된 항목`;
         }
     }
 }
@@ -263,21 +239,21 @@ function handleSelectAllChange() {
 function handleGraphButtonClick() {
     // `/selected` 디렉터리 내의 파일을 모두 삭제하는 서버 측 스크립트 호출
     fetch('/FDC/Proj/trunk/js/main/delete_files_in_selected.php')
-    .then(response => response.json())
-    .then(data => {
-        // console.log(data.message); // 성공 메시지 로깅
-        // 파일 삭제 성공 후, 기존 로직 수행
-        const checkboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]:checked');
-        const hiddenColorInput = document.querySelector('#hidden-color').value; // 색상 코드 가져오기
-        checkboxes.forEach(checkbox => {
-            const no = checkbox.getAttribute('data-no');
-            console.log(`선택된 체크박스로 이동할 파일 NO: ${no}`);
-            copyFile(no, hiddenColorInput); // search_copyFile.js 에서 import한 함수에 no랑 색상코드 인자로 전달
+        .then(response => response.json())
+        .then(data => {
+            // console.log(data.message); // 성공 메시지 로깅
+            // 파일 삭제 성공 후, 기존 로직 수행
+            const checkboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]:checked');
+            const hiddenColorInput = document.querySelector('#hidden-color').value; // 색상 코드 가져오기
+            checkboxes.forEach(checkbox => {
+                const no = checkbox.getAttribute('data-no');
+                console.log(`선택된 체크박스로 이동할 파일 NO: ${no}`);
+                copyFile(no, hiddenColorInput); // search_copyFile.js 에서 import한 함수에 no랑 색상코드 인자로 전달
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
         });
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
 }
 
 // 페이지 로드 또는 페이지 변경 시 호출될 함수

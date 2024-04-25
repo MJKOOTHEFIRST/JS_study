@@ -207,6 +207,11 @@ export function displayResults(results) {
 
             tbody.appendChild(tr);
         });
+         // 전체 데이터 수를 HTML에 업데이트 
+         const countSelectedDiv = document.getElementById('count-selected');
+         if (countSelectedDiv) {
+             countSelectedDiv.textContent = `${totalRowsFiltered} | 선택된 항목`;
+         }
     }
 }
 
