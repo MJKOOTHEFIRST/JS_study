@@ -1,0 +1,439 @@
+
+.diagram-main {
+  /* position: relative;
+  padding: 12px 23px; */
+}
+.diagram-detail, .tags, .diagram-tag-line, .warning-panel{
+  position: absolute;
+}
+
+.diagram #T_A_B_in {
+  top: 295px;
+  left: 66px;
+}
+.diagram #P_A_B_in {
+  top: 328px;
+  left: 66px;
+}
+.diagram #Pump-Air {
+  top: 495px;
+  left: 73px;
+}
+.diagram #P_A_m_out {
+  top: 422px;
+  left: 84px;
+}
+.diagram #MFM-Air {
+  top: 463px;
+  left: 91px;
+}
+.diagram #T_A_vent {
+  top: 469px;
+  left: 270px;
+}
+.diagram #P_A_S_in {
+  top: 403px;
+  left: 271px;
+}
+.diagram #T_A_S_in {
+  top: 370px;
+  left: 271px;
+}
+.diagram #T_A_S_out {
+  top: 241px;
+  left: 143px
+}
+.diagram #T_DI_S_out {
+  top: 290px;
+  left: 433px;
+}
+.diagram #T_w_h_out {
+  top: 432px;
+  left: 432px;
+}
+.diagram #MFM-Water {
+  top: 357px;
+  left: 596px;
+}
+.diagram #Pump-Water {
+  top: 390px;
+  left: 614px;
+}
+.diagram #T_DI_h_out {
+  top: 324px;
+  left: 596px;
+}
+.diagram #MFM-DI {
+  top: 204px;
+  left: 541px;
+}
+.diagram #Pump-DI {
+  top: 246px;
+  left: 540px;
+}
+.diagram #T_DI_S_in {
+  top: 204px;
+  left: 433px;
+}
+.diagram #A-current {
+  top: 48px;
+  left: 65px;
+}
+.diagram #V-volt {
+  top: 98px;
+  left: 65px;
+}
+
+.diagram .tag {
+  position: absolute;
+  min-width: 95px;
+  height: 28px;
+}
+.diagram .tag > .tag-header {
+  float: left;
+  position: relative;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(0,0,0,0.0);
+  border-radius: 50% 0 0 50%;
+  background-color: rgba(0,0,0,0.7);
+}
+
+.diagram .tag > .tag-title + .tag-header {
+  border-radius: 0 50% 50% 0;
+}
+
+.diagram .tag.left > .tag-header {
+  float: none;
+  border-radius: 0 50% 50% 0;
+}
+.diagram .tag > .tag-header > .circle {
+  border-radius: 100%;
+  width: 24px;
+  height: 24px;
+  padding: 2px;
+}
+
+.diagram .tag-header > .icon {
+  position: absolute;
+}
+/* color */
+.diagram .tag.air > .tag-header > .circle {
+  border: 2px solid #31B586;
+}
+.diagram .tag.air > .tag-header > .icon::before {
+  color: #31B586;
+}
+.diagram .tag.water > .tag-header > .circle {
+  border: 2px solid #339DFF;
+}
+.diagram .tag.water > .tag-header > .icon::before {
+  color: #339DFF;
+}
+.diagram .tag.heat > .tag-header > .circle {
+  border: 2px solid #E95858;
+}
+.diagram .tag.heat > .tag-header > .icon::before {
+  color: #E95858;
+}
+.diagram .tag.generator > .tag-header > .circle {
+  border: 2px solid #C0CF00;
+}
+.diagram .tag.generator > .tag-header > .icon::before {
+  color: #C0CF00;
+}
+
+.diagram .tag.warning > .tag-header > .icon::before {
+  animation-name: warningIconAnimation;
+  animation-duration: 0.5s;
+  animation-iteration-count: infinite;
+  will-change: opacity;
+}
+
+@keyframes warningIconAnimation {
+  0% {
+      opacity: 0;
+  }
+  100% {
+      opacity: 1;
+  }
+}
+
+/* items */
+.diagram .tag.flow > .tag-header > .icon {
+  bottom: 2px;
+  left: 7px;
+}
+.diagram .tag.flow > .tag-header > .icon::before {
+  content: '≈';
+  font-size: 15px;
+}
+.diagram .tag.temp > .tag-header > .icon {
+  bottom: 2px;
+  left: 9px;
+}
+.diagram .tag.temp > .tag-header > .icon::before {
+  content: '𝆺𝅥';
+  font-size: 15px;
+}
+.diagram .tag.pressure > .tag-header > .icon {
+  bottom: 2px;
+  left: 7px;
+  transform: rotate(315deg);
+}
+.diagram .tag.pressure > .tag-header > .icon::before {
+  content: '⬆';
+  font-size: 15px;
+}
+.diagram .tag.motor > .tag-header > .icon {
+  bottom: 4px;
+  left: 7px;
+}
+.diagram .tag.motor > .tag-header > .icon::before {
+  content: 'M';
+}
+.diagram .tag.current > .tag-header > .icon {
+  bottom: 4px;
+  left: 8px;
+}
+.diagram .tag.current > .tag-header > .icon::before {
+  content: 'A';
+}
+.diagram .tag.volt > .tag-header > .icon {
+  bottom: 4px;
+  left: 8px;
+}
+.diagram .tag.volt > .tag-header > .icon::before {
+  content: 'V';
+}
+
+/* tag-title */
+
+.diagram .tag > .tag-title {
+  float: left;
+  text-align: right;
+  min-width: 60px;
+  height: 26px;
+  padding: 0 3px 0 6px;
+  border: 1px solid rgba(0,0,0,0.0);
+  color: #fff;
+  background-color: rgba(0,0,0,0.7);
+  bottom: 6px;
+}
+.diagram .tag > .tag-header + .tag-title {
+  float: left;
+  text-align: left;
+  padding: 0 5px 0 3px;
+}
+.diagram .tag-title > .number {
+  font-weight: 100;
+  font-size: 14px;
+  line-height: 90%;
+}
+.diagram .tag-title.one-line > .number {
+  line-height: 150%;
+}
+.diagram .tag-title > .number > sup {
+  font-weight: 100;
+  font-size: 8px;
+  opacity: 0.7;
+}
+.diagram .tag-title > .name {
+  font-weight: 100;
+  font-size: 8px;
+  line-height: 140%;
+}
+.diagram .tag.warning > .tag-title {
+  color: #f00;
+  background-color: rgba(255,255,255,0.7);
+  border: 1px solid rgba(0,0,0,0.7);
+}
+.diagram .tag.warning > .tag-title > .number {
+  font-weight: 500;
+}
+/* .diagram .tag.warning > .tag-title > .number {
+  animation-name: warningAnimation; */
+  /*animation-duration: 1.5s;*/ /* mjkoo 시간조정*/
+  /* animation-iteration-count: infinite;
+  will-change: contents;
+} */
+
+/* @keyframes warningAnimation {
+  0% {
+      font-weight: 100;
+  }
+  100% {
+      font-weight: 1000;
+  }
+} */
+/* svg */
+
+
+.diagram #Diagram #blowerFlame rect,
+.diagram #Diagram #huminiferFlame rect,
+.diagram #Diagram #DIWaterTankFlame rect,
+.diagram #Diagram #HeatExchangerFlame rect,
+.diagram #Diagram #WaterTankFlame rect,
+.diagram #Diagram #inverterFrame rect,
+.diagram #Diagram #SteamReformaerFlame rect{
+  animation-name: normalFlameAnimation;
+  animation-duration: 1.3s; /* mjkoo 시간조정*/
+  animation-direction : alternate;
+  animation-iteration-count: infinite;
+  will-change: opacity;
+}
+.diagram #Diagram #STACK-MODULE-BOX #Anode g rect,
+.diagram #Diagram #STACK-MODULE-BOX #Cathode g rect,
+.diagram #Diagram #STACK-MODULE-BOX #Coolant g rect{
+  animation-duration: 1.3s; /* mjkoo 시간조정*/
+  /* animation-direction : alternate; */
+  animation-iteration-count: infinite;
+  will-change: opacity;
+}
+.diagram #Diagram #STACK-MODULE-BOX #Anode g rect{
+  animation-name: normalFlameStackAnimation01;
+}
+.diagram #Diagram #STACK-MODULE-BOX #Cathode g rect{
+  animation-name: normalFlameStackAnimation02;
+}
+.diagram #Diagram #STACK-MODULE-BOX #Coolant g rect{
+  animation-name: normalFlameStackAnimation03;
+}
+
+.diagram #Diagram #blowerFlame rect.warning-box,
+.diagram #Diagram #huminiferFlame rect.warning-box,
+.diagram #Diagram #DIWaterTankFlame rect.warning-box,
+.diagram #Diagram #HeatExchangerFlame rect.warning-box,
+.diagram #Diagram #WaterTankFlame rect.warning-box,
+.diagram #Diagram #inverterFrame rect.warning-box,
+.diagram #Diagram #SteamReformaerFlame rect.warning-box{
+  animation-name: warningFlameAnimation;
+  animation-duration: 0.3s; /* mjkoo 시간조정*/
+  /* animation-direction : alternate; */
+  animation-iteration-count: infinite;
+  /* will-change: opacity; */
+}
+@keyframes normalFlameAnimation {
+  0% {opacity: 0.2;}
+  100% {opacity: 1;}
+}
+@keyframes normalFlameStackAnimation01 {
+  0% {opacity: 1;}
+  33% {opacity: 0.7;}
+  66% {opacity: 0.5;}
+  100% {opacity: 0.7;}
+}
+@keyframes normalFlameStackAnimation02 {
+  0% {opacity: 0.7;}
+  33% {opacity: 0.5;}
+  66% {opacity: 0.7;}
+  100% {opacity: 1;}
+}
+@keyframes normalFlameStackAnimation03 {
+  0% {opacity: 0.5;}
+  33% {opacity: 0.7;}
+  66% {opacity: 1;}
+  100% {opacity: 0.7;}
+}
+@keyframes warningFlameAnimation {
+  0% {
+      opacity: 0.5;
+      fill: white;
+  }
+  100% {
+      opacity: 1;    
+      fill: crimson;
+  }
+}
+
+
+
+
+#AIR-SUPPORT-BOX.warning {
+  filter: url('#air-system-warning')
+}
+#WATER-MANAGE-BOX.warning {
+  filter: url('#water-system-warning')
+}
+#HEAT-MANAGE-BOX.warning {
+  filter: url('#heat-system-warning')
+}
+
+
+/* warning-panel */
+.warning-panel > div > button {
+  font-size: 13px;
+  font-weight: 400;
+  padding: 5px;
+  color: #fff;
+  background: crimson;
+  border-radius: 5px;
+  border: none;
+  white-space: nowrap;
+  line-height: 85%;
+  position: absolute;
+}
+
+/* .warning-panel .A-blow-s {top: 444px; left: 14px} */
+/* .warning-panel .A-blow-s .warning-circle {width: 46px; height: 46px;}  */
+/* .warning-panel .A-blow-s button {right: -2px;} */
+.warning-panel .A-before-MFM-s {top: 438px; left:77px}
+.warning-panel .A-before-MFM-s button {left: -70px; bottom: 17px;}
+.warning-panel .A-flow-sensor-s {top: 460px; left:94px}
+.warning-panel .A-flow-sensor-s button {top:23px; left:23px}
+.warning-panel .A-after-MFM-s {top: 389px; left:115px}
+.warning-panel .A-after-MFM-s button {top: -19px; right: -64px;}
+.warning-panel .A-presure-sensor-s {top: 419px; left:141px}
+.warning-panel .A-presure-sensor-s button {top: -17px; left: -13px}
+/* .warning-panel .W-humudifier-s {top: 444px; left:195px} */
+/* .warning-panel .W-humudifier-s button {right: -16px;} */
+.warning-panel .W-stack-in-temp-s {top: 367px; left:328px}
+.warning-panel .W-stack-in-temp-s button {top: -20px; right: -39px;}
+.warning-panel .W-stack-out-temp-s {top: 238px; left:200px}
+.warning-panel .W-stack-out-temp-s button {right: -38px;}
+.warning-panel .H-stack-in-temp-s {top: 287px; left:490px}
+.warning-panel .H-stack-in-temp-s button {right: 7px; bottom: -20px;}
+/* .warning-panel .H-exechanger-s {top: 330px; left:529px} */
+/* .warning-panel .H-exechanger-s .warning-rect {width: 51px; height: 51px;} */
+/* .warning-panel .H-exechanger-s button {right: -9px;} */
+.warning-panel .H-exechanger-in-temp-s {top: 429px; left:488px}
+.warning-panel .H-exechanger-in-temp-s button {right: -5px; bottom: -20px;}
+.warning-panel .H-exechanger-out-temp-s {top: 201px; left:490px}
+.warning-panel .H-exechanger-out-temp-s button {top: -20px; right: 9px;}
+
+.warning-panel > div {
+  position: absolute;
+  display: none;
+}
+.warning-panel > div.warning {
+  display: block;
+  animation-name: warningFlameAnimation-2;
+  animation-duration: 0.6s;
+  animation-iteration-count: infinite;
+}                        
+@keyframes warningFlameAnimation-2 {
+  0% {
+      opacity: 0.15;
+      color: crimson;
+      fill: transparent;
+      /* background: transparent; */
+    }
+    100% {
+      opacity: 1;    
+      color: white;
+      fill: crimson;
+      /* background: crimson; */
+  }
+}
+.warning-panel .warning-circle {
+  border-radius: 50%;
+  border: 6px solid #f00;
+  width: 32px;
+  height: 32px;
+}
+.warning-panel .warning-rect {
+  border-radius: 4px;
+  border: 6px solid #f00;
+  width: 47px;
+  height: 47px;
+}

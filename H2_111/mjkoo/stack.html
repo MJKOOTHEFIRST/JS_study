@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="ko">
+<!-- mjkoo -->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="css/common.css" rel="stylesheet">
+  <link href="css/main.css" rel="stylesheet">
+  <link href="./css/multi-select.css" rel="stylesheet" type="text/css"> <!--멀티 셀렉션-->
+  <!-- <link href="css/diagram.css" rel="stylesheet"> -->
+  <script src="js/bootstrap.js"></script>
+  <!-- <script src="js/include.js"></script> -->
+  <script type="module" src="./js/main/search_copyFile.js"></script> <!--파일복사-->
+  <script type="module" src="./js/main/stack_search2.js"></script> <!--스택 검색 데이터 불러오고 디스플레이-->
+  <!-- <script type="module" src="./js/main/stack_search.js"></script> 스택 검색 데이터 불러오고 디스플레이 -->
+  <script type="module" src="./js/main/stack_tag_manager.js"></script> <!--태그 관리-->
+  <script type="module" src="./js/main/stack_dataManager.js"></script><!--w진단로그관리, 스택진단데이터 데이터관리-->
+  <script type="module" src="./js/main/stack_diagnosis_log.js"></script><!--진단 로그-->
+  <script type="module" src="./js/main/stack_stack_diagnosis.js"></script> <!--스택진단-->
+  <!-- <script type="module" src="./js/main/bop_dataManager.js"></script> 한번에 csv 파일 뿌려주기 -->
+  <!-- <script type="module" src="./js/main/bop_learning_data.js"></script> BOP 정상 학습 데이터 -->
+  <!-- <script type="module" src="./js/main/bop_sensor_data.js"></script> BOP 센서 데이터 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="js/main/dataManager.js"></script> <!--한번에 total_data.conf 뿌려주는 파일 -->
+  <script type="module" src="js/main/system-info.js"></script> <!--우측 하단 시스템정보-->
+  <script type="module" src="js/main/dayMonthProductionBar.js"></script><!--금일/금월 전기/열생산량 바그래프-->
+  <title>FuelCellDR. : 스택진단</title>
+</head>
+
+<body>
+
+  <header>
+    <nav class="navbar navbar-expand-xxl bg-body-tertiary">
+      <div class="container-fluid">
+        <div class="logo-container">
+          <a href="./index.html">
+            <div class="logo"></div>
+          </a>
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarToggler"
+          aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarToggler">
+          <ul class="navbar-nav">
+            <li><a href="index.html"><span class="icon-quality-management"></span>대시보드</a></li>
+            <li><a href="bop.html"><span class="icon-BOP-diagnosis"></span>BOP진단</a></li>
+            <li><a href="stack.html" class="active-link"><span class="icon-stack-diagnosis"></span>스택진단</a></li>
+            <li><a href="analyze.html"><span class="icon-h2s-realtime-chart"></span>분석</a></li>
+            <!-- <li><a href="#"><span class="icon-device-manage"></span>장치관리</a></li> -->
+          </ul>
+          <div class="login">
+            <div class="site-select">
+              <select class="">
+                <option value="0">부안발전소</option>
+                <option value="1" selected>부안연료전지 #1호기</option>
+                <option value="2">부안연료전지 #2호기</option>
+                <select>
+            </div>
+            <button class="btn btn-primary float-end"><span class="icon-exit"></span><span
+                class="xxl-only">로그아웃</span></button>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+
+    <div class="row">
+
+      <div class="col-xxl-2 col-12 stack-column-right">
+        <div class="row">
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget qoe-stack">
+              <div class="widget-head">
+                품질 지수 (스택)
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body">
+                <div class="title">QOE(Stack)</div>
+                <div class="result" id="qoe-stack-Value">10</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget FCD-unit-ctrl">
+              <div class="widget-head">
+                FuelCellDr 유닛 콘트롤
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body scrollmini scrollmini-noborder on-off-contents">
+                <div class="inner-content">
+                  <h3 class="d-inline-block"><label for="clock">시간측정</label></h3>
+                  <select id="clock" name="people" multiple>
+                    <option value="">0시</option>
+                    <option value="">1시</option>
+                    <option value="">2시</option>
+                    <option value="">3시</option>
+                    <option value="">4시</option>
+                    <option value="">5시</option>
+                    <option value="">6시</option>
+                    <option value="">7시</option>
+                    <option value="">8시</option>
+                    <option value="">9시</option>
+                    <option value="">10시</option>
+                    <option value="">11시</option>
+                    <option value="">12시</option>
+                    <option value="">13시</option>
+                    <option value="">14시</option>
+                    <option value="">15시</option>
+                    <option value="">16시</option>
+                    <option value="">17시</option>
+                    <option value="">18시</option>
+                    <option value="">19시</option>
+                    <option value="">20시</option>
+                    <option value="">21시</option>
+                    <option value="">22시</option>
+                    <option value="">23시</option>
+                  </select>
+                  <!-- 시 -->
+                  <!-- 멀티 셀렉션 -->
+                  <script type="text/javascript"
+                    src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+                  <script type="text/javascript" src="./js/lib/jquery.multi-select.js"></script>
+                  <script type="text/javascript">
+                    $(function () {
+                      $('#clock').multiSelect();
+                    });
+                  </script>
+                  <!-- 멀티 셀렉션 끝-->
+
+                  <hr>
+                  <h3 class="d-inline-block">주파수 범위</h3>
+                  <input type="number" min="0" max="2000"> Hz ~ <input type="number" min="0" max="2000"> Hz
+                  <hr>
+                  <h3 class="d-inline-block">통신상태</h3>
+                  <span class="connect disconnect">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </span>
+                  <div class="row box-grey">
+                    <div class="col-6">
+                      <button class="box">
+                        <div class="icon-h2s-pause-2"></div>
+                        재시작
+                      </button>
+                      <button class="box">
+                        <div class="icon-h2s-stop-2"></div>
+                        중지
+                      </button>
+                    </div>
+                    <div class="col-6 progress-section">
+                      <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="80"
+                        aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar w-75"></div>
+                      </div>
+                      <div class="text-end">80%</div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget AVHA-state">
+              <div class="widget-head">
+                전류/전압/수소/공기 현황
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body scrollmini scrollmini-noborder on-off-contents">
+                <div class="inner-content">
+                  <div class="conetent-top">
+                    <div class="ampere">
+                      <div>전류</div>
+                      <div>39.97</div>
+                      <div>A</div>
+                    </div>
+                    <div class="volt">
+                      <div>전압</div>
+                      <div>25.254</div>
+                      <div>V</div>
+                    </div>
+                    <div class="hydro">
+                      <div>수소</div>
+                      <div>9.16</div>
+                      <div>lpm</div>
+                    </div>
+                    <div class="air">
+                      <div>공기</div>
+                      <div>28.85</div>
+                      <div>lpm</div>
+                    </div>
+                  </div>
+                  <div class="conetent-bottom">
+                    <object data="./img/AVHA-Graph-2.svg" type="image/svg+xml"
+                      style="width: 100%; height: max(130px, 100%) !important;"></object>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget volt-down-prediction">
+              <div class="widget-head">
+                전압 강하 예측
+                <!-- <div class="widget-head-gadget">
+                    <button class="mini">모든기간</button>
+                    <button class="mini">그리기</button>
+                    <button class="mini critical-C">삭제</button>
+                  <span class="icon-arrow-right2"></span>
+                </div> -->
+              </div>
+              <div class="widget-body">
+                <div class="h3-column">
+                  <h3>포인트 설정</h3>
+                  <div class="text-end">
+                    <input type="text" value="2023.07.11 11:20~2023.07.11 11:20">
+                    <button class="btn-of w50px">계산</button>
+                  </div>
+                </div>
+                <!-- <object data="./img/volt-down.svg" type="image/svg+xml"></object> -->
+                <div class="mt-3">
+                  <svg width="100%" height="105" viewBox="0 0 293 105" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g id="volt-down">
+                      <text id="start" fill="black" xml:space="preserve" style="white-space: pre"
+                        font-family="Noto Sans KR" font-size="8" letter-spacing="0em" class="06 10">
+                        <tspan x="9" y="17.488">2023.06.10</tspan>
+                      </text>
+                      <text id="end" fill="black" xml:space="preserve" style="white-space: pre"
+                        font-family="Noto Sans KR" font-size="8" letter-spacing="0em" class="07 11">
+                        <tspan x="80" y="17.488">2023.07.11</tspan>
+                      </text>
+                      <text id="predict" fill="#FF0000" xml:space="preserve" style="white-space: pre"
+                        font-family="Noto Sans KR" font-size="8" letter-spacing="0em" class="12 25">
+                        <tspan x="243.047" y="17.488">2026.12.25</tspan>
+                      </text>
+                      <text id="impedance-prediction" fill="#229A04" xml:space="preserve" style="white-space: pre"
+                        font-family="Noto Sans KR" font-size="12" letter-spacing="0em">
+                        <tspan x="11" y="98.232">임피던스 예측</tspan>
+                      </text>
+                      <text id="upper-limit-of-normal" fill="#FF0000" xml:space="preserve" style="white-space: pre"
+                        font-family="Noto Sans KR" font-size="12" letter-spacing="0em">
+                        <tspan x="156" y="17.232">정상 상한선</tspan>
+                      </text>
+                      <line id="Line 183" x1="10" y1="21.5" x2="282" y2="21.5" stroke="#FF0000"></line>
+                      <line id="Line 184" x1="10" y1="81.5" x2="282" y2="81.5" stroke="#E3E3E3"></line>
+                      <path id="Line 185" d="M79.2327 66.3856L281.932 22.9146" stroke="#4472C4" stroke-width="2.5"
+                        stroke-dasharray="5 5"></path>
+                      <path id="Line 187" d="M10.9999 81.0003L10.9999 22.0003" stroke="#229A04" stroke-dasharray="5 5">
+                      </path>
+                      <path id="Line 188" d="M80.9047 81.0003L80.9047 22.0003" stroke="#229A04" stroke-dasharray="5 5">
+                      </path>
+                      <path id="Line 189" d="M281.905 81.0003L281.905 22.0003" stroke="#E3E3E3" stroke-dasharray="5 5">
+                      </path>
+                      <path id="Line 186" d="M11 80.8105L79.7768 66.3843" stroke="#229A04" stroke-width="2.5"></path>
+                    </g>
+                  </svg>
+                </div>
+                <div class="text-center mt-4">
+                  <strong>2026년 12월(30개월) 전압 강하 예상</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget stack-data-learning">
+              <div class="widget-head">
+                스택 정상 학습 데이터
+                <div class="widget-head-gadget" id="">
+                  <!-- <div class="btn-wrapper"> -->
+                  <button class="mini">모든기간</button>
+                  <button class="mini">그리기</button>
+                  <button class="mini critical-C">삭제</button>
+                  <!-- </div> -->
+                  <span class="icon-arrow-right2"></span>
+                </div>
+              </div>
+              <div class="widget-body scrollmini scrollmini-noborder">
+
+                <div class="table-responsive">
+                  <table class="table table-fixed table-striped" id="">
+                    <thead>
+                      <tr>
+                        <th><input type="checkbox"></th>
+                        <th>기간</th>
+                      </tr>
+                    </thead>
+                    <tbody class="scrollmini overflow-auto">
+                      <!-- bop_learning_data.csv  -->
+
+                      <tr>
+                        <td><input type="checkbox"></td>
+                        <td>2023-07-31 15:17 ~ 2023-07-31 15:17</td>
+                      </tr>
+
+                    </tbody>
+                  </table>
+                </div>
+                <div class="d-grid">
+                  <nav class="pagination-wrap">
+                    <ul class="pagination" id="bop-learning-data-pagination">
+                      <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
+
+                      <li class="page-item"><a class="page-link active" href="#">1</a></li>
+                      <li class="page-item"><a class="page-link" href="#">2</a></li>
+
+                      <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+
+      <div class="col-xxl-6 col-12 stack-column-center">
+        <div class="row">
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget stack-state-graph">
+              <div class="widget-head ">
+                <select class="select-title" onchange="showHide(this)">
+                  <option value="1" selected="">스택상태</option>
+                  <option value="2">Bode Plot</option>
+                </select>
+                <!--  <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div> -->
+              </div>
+              <div class="widget-body d-grid"
+                style="position: relative;  justify-content: center; align-content: center;">
+                <div class="content-section" style="padding-right: 7.5%; top: 20px; position: relative;">
+                  <!-- <div  style="padding: 30px; height: 100%;"> -->
+                  <div>
+                    <!-- <img src="./img/stack-graph.jpg" style="height: 80%; width: auto;"> -->
+                  </div>
+                  <div class="float-end" style="position: absolute; top: 20px; right: 20px;">
+                    <button class="btn-of">샘플 그래프</button>
+                    <hr class="w70px mtb-5">
+                    <button ontouchstart="zoom_in()" onclick="zoom_in()" class="btn-of  w70px "><span
+                        class="icon-zoom-in"></span></button>
+                    <div class="mtb-5"></div>
+                    <button ontouchstart="zoom_out()" onclick="zoom_out()" class="btn-of  w70px"><span
+                        class="icon-zoom-out"></span></button>
+
+                    <div class="graph">
+
+                      <div class="graph-inner">
+                        <svg width="53" height="55" viewBox="0 0 53 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <g id="xySeting">
+                            <text id="y" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter"
+                              font-size="12" letter-spacing="0em">
+                              <tspan x="0" y="11.8636">y</tspan>
+                            </text>
+                            <text id="y_2" fill="black" xml:space="preserve" style="white-space: pre"
+                              font-family="Inter" font-size="12" letter-spacing="0em">
+                              <tspan x="0" y="39.8636">y</tspan>
+                            </text>
+                            <text id="e" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter"
+                              font-size="8" letter-spacing="0em">
+                              <tspan x="6" y="15.9091">e</tspan>
+                            </text>
+                            <text id="s" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter"
+                              font-size="8" letter-spacing="0em">
+                              <tspan x="6" y="43.9091">s</tspan>
+                            </text>
+                            <text id="s_2" fill="black" xml:space="preserve" style="white-space: pre"
+                              font-family="Inter" font-size="8" letter-spacing="0em">
+                              <tspan x="21" y="52.9091">s</tspan>
+                            </text>
+                            <text id="e_2" fill="black" xml:space="preserve" style="white-space: pre"
+                              font-family="Inter" font-size="8" letter-spacing="0em">
+                              <tspan x="47" y="52.9091">e</tspan>
+                            </text>
+                            <text id="x" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter"
+                              font-size="12" letter-spacing="0em">
+                              <tspan x="15" y="50.8636">x</tspan>
+                            </text>
+                            <text id="x_2" fill="black" xml:space="preserve" style="white-space: pre"
+                              font-family="Inter" font-size="12" letter-spacing="0em">
+                              <tspan x="41" y="51.8636">x</tspan>
+                            </text>
+                            <line id="Line 213" x1="13" y1="7.5" x2="18" y2="7.5" stroke="#B7B7B7"
+                              stroke-dasharray="1 1"></line>
+                            <line id="Line 214" x1="13" y1="36.5" x2="18" y2="36.5" stroke="#B7B7B7"
+                              stroke-dasharray="1 1"></line>
+                            <line id="Line 215" x1="18.5" y1="42" x2="18.5" y2="37" stroke="#B7B7B7"
+                              stroke-dasharray="1 1"></line>
+                            <line id="Line 216" x1="47.5" y1="42" x2="47.5" y2="37" stroke="#B7B7B7"
+                              stroke-dasharray="1 1"></line>
+                            <path id="Line 217"
+                              d="M18.3536 1.64645C18.1583 1.45118 17.8417 1.45118 17.6464 1.64645L14.4645 4.82843C14.2692 5.02369 14.2692 5.34027 14.4645 5.53553C14.6597 5.7308 14.9763 5.7308 15.1716 5.53553L18 2.70711L20.8284 5.53553C21.0237 5.7308 21.3403 5.7308 21.5355 5.53553C21.7308 5.34027 21.7308 5.02369 21.5355 4.82843L18.3536 1.64645ZM17.5 2L17.5 37L18.5 37L18.5 2L17.5 2Z"
+                              fill="black"></path>
+                            <path id="Line 218"
+                              d="M52.3536 37.3536C52.5488 37.1583 52.5488 36.8417 52.3536 36.6464L49.1716 33.4645C48.9763 33.2692 48.6597 33.2692 48.4645 33.4645C48.2692 33.6597 48.2692 33.9763 48.4645 34.1716L51.2929 37L48.4645 39.8284C48.2692 40.0237 48.2692 40.3403 48.4645 40.5355C48.6597 40.7308 48.9763 40.7308 49.1716 40.5355L52.3536 37.3536ZM52 36.5L18 36.5V37.5L52 37.5V36.5Z"
+                              fill="black"></path>
+                          </g>
+                        </svg>
+                      </div>
+                      <hr>
+                      <div class="input-setting-value">
+                        <span>x<sub>s</sub></span><input type="number" width="5">
+                      </div>
+                      <div class="input-setting-value">
+                        <span>x<sub>e</sub></span><input type="number" width="5">
+                      </div>
+                      <div class="input-setting-value">
+                        <span>y<sub>s</sub></span><input type="number" width="5">
+                      </div>
+                      <div class="input-setting-value">
+                        <span>y<sub>e</sub></span><input type="number" width="5">
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+                <div class="content-section">
+                  <div style="padding: 30px; height: 100%;">
+                    <img src="./img/BodePlot.png" style="height: 80%; width: auto;">
+                  </div>
+                  <!-- <div class="float-end" style="position: absolute; top: 20px; right: 20px;">
+                    <button class="btn-of">샘플 그래프</button>
+                    <hr class="w70px mtb-5">
+                    <button ontouchstart="zoom_in()" onclick="zoom_in()" class="btn-of  w70px "><span class="icon-zoom-in"></span></button>
+                    <div class="mtb-5"></div>
+                    <button ontouchstart="zoom_out()" onclick="zoom_out()" class="btn-of  w70px"><span class="icon-zoom-out"></span></button>
+
+                    <div class="graph">
+
+                      <div class="graph-inner">
+                        <svg width="53" height="55" viewBox="0 0 53 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <g id="xySeting">
+                          <text id="y" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter" font-size="12" letter-spacing="0em"><tspan x="0" y="11.8636">y</tspan></text>
+                          <text id="y_2" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter" font-size="12" letter-spacing="0em"><tspan x="0" y="39.8636">y</tspan></text>
+                          <text id="e" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter" font-size="8" letter-spacing="0em"><tspan x="6" y="15.9091">e</tspan></text>
+                          <text id="s" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter" font-size="8" letter-spacing="0em"><tspan x="6" y="43.9091">s</tspan></text>
+                          <text id="s_2" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter" font-size="8" letter-spacing="0em"><tspan x="21" y="52.9091">s</tspan></text>
+                          <text id="e_2" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter" font-size="8" letter-spacing="0em"><tspan x="47" y="52.9091">e</tspan></text>
+                          <text id="x" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter" font-size="12" letter-spacing="0em"><tspan x="15" y="50.8636">x</tspan></text>
+                          <text id="x_2" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter" font-size="12" letter-spacing="0em"><tspan x="41" y="51.8636">x</tspan></text>
+                          <line id="Line 213" x1="13" y1="7.5" x2="18" y2="7.5" stroke="#B7B7B7" stroke-dasharray="1 1"></line>
+                          <line id="Line 214" x1="13" y1="36.5" x2="18" y2="36.5" stroke="#B7B7B7" stroke-dasharray="1 1"></line>
+                          <line id="Line 215" x1="18.5" y1="42" x2="18.5" y2="37" stroke="#B7B7B7" stroke-dasharray="1 1"></line>
+                          <line id="Line 216" x1="47.5" y1="42" x2="47.5" y2="37" stroke="#B7B7B7" stroke-dasharray="1 1"></line>
+                          <path id="Line 217" d="M18.3536 1.64645C18.1583 1.45118 17.8417 1.45118 17.6464 1.64645L14.4645 4.82843C14.2692 5.02369 14.2692 5.34027 14.4645 5.53553C14.6597 5.7308 14.9763 5.7308 15.1716 5.53553L18 2.70711L20.8284 5.53553C21.0237 5.7308 21.3403 5.7308 21.5355 5.53553C21.7308 5.34027 21.7308 5.02369 21.5355 4.82843L18.3536 1.64645ZM17.5 2L17.5 37L18.5 37L18.5 2L17.5 2Z" fill="black"></path>
+                          <path id="Line 218" d="M52.3536 37.3536C52.5488 37.1583 52.5488 36.8417 52.3536 36.6464L49.1716 33.4645C48.9763 33.2692 48.6597 33.2692 48.4645 33.4645C48.2692 33.6597 48.2692 33.9763 48.4645 34.1716L51.2929 37L48.4645 39.8284C48.2692 40.0237 48.2692 40.3403 48.4645 40.5355C48.6597 40.7308 48.9763 40.7308 49.1716 40.5355L52.3536 37.3536ZM52 36.5L18 36.5V37.5L52 37.5V36.5Z" fill="black"></path>
+                          </g>
+                        </svg>                     
+                      </div>
+                      <hr>
+                      <div class="input-setting-value">
+                        <span>x<sub>s</sub></span><input type="number" width="5">
+                      </div>
+                      <div class="input-setting-value">
+                        <span>x<sub>e</sub></span><input type="number" width="5">
+                      </div>
+                      <div class="input-setting-value">
+                        <span>y<sub>s</sub></span><input type="number" width="5">
+                      </div>
+                      <div class="input-setting-value">
+                        <span>y<sub>e</sub></span><input type="number" width="5">
+                      </div>
+                      
+                    </div>
+                  </div> -->
+                </div>
+              </div>
+
+
+
+
+            </div>
+          </div>
+
+          <div class="col-xxl-6 col-12" style="display: none;">
+            <div class="widget bode-plot-graph">
+              <div class="widget-head ">
+                Bode Plot
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body">
+                <div class="row" style="margin-top: 10px;">
+                  <div class="col"></div>
+                  <div class="col">
+                    <object data="./img/bode-plot.svg" type="image/svg+xml"></object>
+                  </div>
+                  <div class="col">
+                    <div class="float-end">
+                      <button ontouchstart="zoom_in()" onclick="zoom_in()" class="btn-of  w70px "><span
+                          class="icon-zoom-in"></span></button>
+                      <div class="mtb-5"></div>
+                      <button ontouchstart="zoom_out()" onclick="zoom_out()" class="btn-of  w70px"><span
+                          class="icon-zoom-out"></span></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget fullcell-graph">
+              <div class="widget-head ">
+                연료 전지 진단
+                <div class="widget-head-gadget">
+                  <span class="icon-arrow-right2"></span>
+                </div>
+              </div>
+              <div class="widget-body">
+                <div class="inner-content">
+                  <div style="position: relative;">
+                    <div class="btn-wrapper" style="position: absolute; right:0; z-index: 1; padding: 4px">
+                      <button ontouchstart="zoom_in()" onclick="zoom_in()" class="btn-of  w50px "><span
+                          class="icon-zoom-in"></span></button>
+                      <button ontouchstart="zoom_out()" onclick="zoom_out()" class="btn-of  w50px"><span
+                          class="icon-zoom-out"></span></button>
+                      <select id="yearly">
+                        <option value="-1">-년 선택-</option>
+                        <option value="2022">2022</option>
+                        <option value="2023">2023</option>
+                      </select> <select id="monthly">
+                        <option value="-1">-월(11개)-</option>
+                        <option value="01/">01/</option>
+                        <option value="03/">03/</option>
+                        <option value="04/">04/</option>
+                        <option value="05">05</option>
+                        <option value="06">06</option>
+                        <option value="07">07</option>
+                        <option value="08">08</option>
+                        <option value="09">09</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                      </select> <select id="daily">
+                        <option value="-1">-일(10개)-</option>
+                        <option value="04/">04/</option>
+                        <option value="05/">05/</option>
+                        <option value="06/">06/</option>
+                        <option value="07/">07/</option>
+                        <option value="12/">12/</option>
+                        <option value="13/">13/</option>
+                        <option value="14/">14/</option>
+                        <option value="18/">18/</option>
+                        <option value="19/">19/</option>
+                        <option value="20/">20/</option>
+                      </select><select id="timely">
+                        <option value="-1">-시(4개)-</option>
+                        <option value="1_20231220.csv">1_20231220.csv</option>
+                        <option value="1_20231220_ma.csv">1_20231220_ma.csv</option>
+                        <option value="2_20231220.csv">2_20231220.csv</option>
+                        <option value="2_20231220_ma.csv" selected="">2_20231220_ma.csv</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col"></div>
+                    <div class="col" style="margin-top: 35px;">
+                      <img src="./img/stack-graph-2.png" alt="">
+                      <div class="result">
+
+                        <div class="bop">
+                          <div class="title">BOP</div>
+                          <div class="graph">
+                            <div class="outline">
+
+                              <div class="line" style="left: 8%">
+                                <span class="tooltip-box  air-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>
+                              </div>
+
+                              <div class="line" style="left: 16%">
+                                <span class="tooltip-box  heat-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>
+                              </div>
+
+
+
+                              <div class="line" style="left: 33%">
+                                <span class="tooltip-box  heat-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>
+                              </div>
+
+                              <div class="line" style="left: 44%">
+                                <span class="tooltip-box  air-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>
+                              </div>
+
+                              <div class="line" style="left: 45%">
+                                <span class="tooltip-box  air-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>
+                              </div>
+
+
+                              <div class="line" style="left: 55%">
+                                <span class="tooltip-box  heat-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>
+                              </div>
+
+                              <div class="line" style="left: 67%">
+                                <span class="tooltip-box  air-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>
+                              </div>
+
+                              <div class="line" style="left: 68%">
+                                <span class="tooltip-box  air-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                    <div class="col"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="col-xxl-4 col-12 stack-column-left">
+        <div class="row">
+
+          <div class="col-xxl-12">
+            <div class="widget search-result">
+
+              <!--  항목 관리 modal html 시작  -->
+              <dialog class="manage-tab" id="manage-tab-modal">
+                <div class="dialog-box">
+                  <div class="modal-content" style="background: #fff;" id="bookmark-list-modal">
+                    <div class="modal-header">
+                      <h5 class="modal-title">탭 관리</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                      onclick="toggleModal('manage-tab-modal')" title="닫기">
+                        <span aria-hidden="true">×</span>
+                      </button>
+                    </div>
+                    <div class="modal-body list bmk-list">
+                      <div class="add-tab-row">
+                        <dd>
+                          탭추가
+                        </dd>
+                        <dl>
+                          <div>
+                            <select class="color-pick scrollmini" style="margin-right: -1px;" id="color-pick-tab">
+                              <!-- <option disabled="" selected="">🖿</option> -->
+                              <option title="Normal" value="color00" selected>🖿 <!--Danube        --> </option>
+                              <option title="Supernova" value="color01">🖿 <!--Supernova     --> </option>
+                              <option title="Bittersweet" value="color02">🖿 <!--Bittersweet   --> </option>
+                              <option title="Danube" value="color03">🖿 <!--Danube        --> </option>
+                              <option title="Pigeon Post" value="color04">🖿 <!--Pigeon Post   --> </option>
+                              <option title="Viridian" value="color05">🖿 <!--Viridian      --> </option>
+                              <option title="Strikemaster" value="color06">🖿 <!--Strikemaster  --> </option>
+                              <option title="Harvest Gold" value="color07">🖿 <!--Harvest Gold  --> </option>
+                              <option title="Army Green" value="color08">🖿 <!--Army Green    --> </option>
+                              <option title="Pastel Purple" value="color09">🖿 <!--Pastel Purple --> </option>
+                              <option title="Otter Brown" value="color10">🖿 <!--Otter Brown   --> </option>
+                              <option title="Downy" value="color11">🖿 <!--Downy         --> </option>
+                              <option title="Summer Green" value="color12">🖿 <!--Summer Green  --> </option>
+                              <option title="Seagull" value="color13">🖿 <!--Seagull       --> </option>
+                              <option title="Deco" value="color14">🖿 <!--Deco          --> </option>
+                              <option title="Romantic" value="color15">🖿 <!--Romantic      --> </option>
+                              <option title="New York Pink" value="color16">🖿 <!--New York Pink --> </option>
+                              <option title="Link Water" value="color17">🖿 <!--Link Water    --> </option>
+                              <option title="Haiti" value="color18">🖿 <!--Haiti         --> </option>
+                              <option title="Dull Brown" value="color19">🖿 <!--Dull Brown    --> </option>
+                              <option title="Blue Bayoux" value="color20">🖿 <!--Blue Bayoux   --> </option>
+                            </select>
+                            <input type="text" id="new-tag-name" style="width: 80px;">
+                            <button class="btn-of w-24" id="add-bmk-btn">추가</button>
+                            <!-- <button class="btn-of w-24">수정</button> -->
+                          </div>
+                        </dl>
+                      </div>
+                      <!-- <hr> -->
+                      <div class="table tab-list scrollmini">
+                        <table class="table table-striped">
+                          <tr>
+                            <td><input type="checkbox" name="" id=""></td>
+                            <td>
+                              <a class="db-edit tab-color-01"><span>모든항목</span></a>
+                              <!-- <button class="btn-of w-24 float-end mx-1">수정</button> -->
+                            </td>
+                          </tr>
+                          <tr>
+                            <td><input type="checkbox" name="" id=""></td>
+                            <td>
+                              <a href="" class="tab-color-02"><span>정상항목</span></a>
+                              <button class="btn-of w-24 float-end mx-1">수정</button>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td><input type="checkbox" name="" id=""></td>
+                            <td>
+                              <a href="" class="tab-color-03"><span>임시항목</span></a>
+                              <!-- <button class="btn-of w-24 float-end mx-1">수정</button> -->
+                            </td>
+                          </tr>
+                        </table>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button class="btn-of w-24 mx-1 delete-bmk" id="delete-bmk">삭제</button>
+                      <button class="btn-of w-24" onclick="toggleModal('manage-tab-modal')">닫기</button>
+                    </div>
+                  </div>
+                </div>
+              </dialog>
+
+              <!-- 기본 modal html 시작 -->
+              <dialog class="default-modal">
+                <div class="dialog-box">
+                  <div class="modal-content" style="background: #fff;" id="bmk-list-modal">
+                    <div class="modal-header">
+                      <h5 class="modal-title"></h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        onclick="toggleModal()" title="닫기">
+                        <span aria-hidden="true">×</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="modal-text"></div>
+                    </div>
+                    <div class="modal-footer">
+                      <button class="btn-of w-24 mx-1">확인</button>
+                      <button class="btn-of w-24" onclick="toggleModal()">취소</button>
+                    </div>
+                  </div>
+                </div>
+              </dialog>
+              <!-- modal html 끝  -->
+
+              <script>
+                // 상단 탭 스크립트
+                // const mainTab = document.querySelectorAll('.sub-tab li')
+                const tabBtns = document.querySelectorAll('.sub-tab .tab-item a')
+                const btnTabDels = document.querySelectorAll('.sub-tab .tab-item .del')
+                tabBtns.forEach(e => e.addEventListener('click', function () {
+                  tabBtns.forEach((e, i) => tabBtns[i].classList.remove('active'))
+                  this.classList.toggle('active')
+                }))
+
+                //modal script 스크립트
+                const toggleModal = () => {
+                  const selectTab = document.getElementById('manage-tab-modal');
+                  if (selectTab) {
+                    selectTab.classList.toggle('toggle-dialog');
+                    // 포커스를 적절한 요소에 주도록 수정
+                    const firstInput = selectTab.querySelector('input, select');
+                    if (firstInput) {
+                      firstInput.focus();
+                    } else {
+                      console.error('적절한 입력 요소를 찾을 수 없습니다.');
+                    }
+                  } else {
+                    console.error('select-tab 요소를 찾을 수 없습니다.');
+                  }
+                }
+              </script>
+
+
+
+              <div class="widget-head" id="stack-data-mng-head">
+                스택 데이터 관리
+                <div class="widget-head-gadget">
+                  <div class="widget-head-gadget">
+                    <!-- <span class="icon-arrow-right2"></span> -->
+                  </div>
+                </div>
+              </div>
+
+
+              <!-- 상단 탭 시작 -->
+              <div class="sub-tab scrollmini" id="bookmark-tab">
+                <ul>
+                  <li>
+                    <a class="plus" onclick="toggleAddTabModal()">+</a>
+                  </li>
+                  <li class="tab-item"><a class="tab-color-01">모든항목</a>
+                    <!-- <button class="del" title="삭제"  onclick="alert('삭제')">×</button> -->
+                  </li>
+                </ul>
+              </div>
+              <!-- 상단 탭 끝 -->
+
+              <div class="widget-body scrollmini scrollmini-noborder on-off-contents" style="overflow-y: hidden;">
+                <div style="min-width: 495px;">
+                  <!-- <h3>검색조건</h3> -->
+                  <div class="table-responsive result-list">
+                    <table class="table table-fixed table-striped">
+                      <thead>
+                        <tr>
+                          <th><input type="checkbox" name="search-all-checkbox" id="search-all-checkbox"></th>
+                          <th>시간</th>
+                          <th>H-M</th>
+                          <th>H-L</th>
+                          <th>X1</th>
+                          <th>X2</th>
+                          <th>Y1</th>
+                          <th>Y2</th>
+                          <th>M</th>
+                          <th>L</th>
+                          <th>SQ</th>
+                          <th>BQ</th>
+                          <th>라벨</th>
+                        </tr>
+                      </thead>
+                      <tbody class="scrollmini-none filter-list">
+                        <tr class="filter-sw">
+                          <td onclick="swFilterPanel();">↕싱세검색</td>
+                        </tr>
+                        <tr class="filter-label">
+
+                          <td style="text-align: right !important;padding-right: 17px !important;">초과</td>
+                          <td>
+                            <input type="radio" name="a01" id="o01" class="search-condition"><label
+                              for="o01">&gt;</label>
+                          </td>
+                          <td><input type="radio" name="a02" id="o02" class="search-condition"><label
+                              for="o02">&gt;</label></td>
+                          <td><input type="radio" name="a03" id="o03" class="search-condition"><label
+                              for="o03">&gt;</label></td>
+                          <td><input type="radio" name="a04" id="o04" class="search-condition"><label
+                              for="o04">&gt;</label></td>
+                          <td><input type="radio" name="a05" id="o05" class="search-condition"><label
+                              for="o05">&gt;</label></td>
+                          <td><input type="radio" name="a06" id="o06" class="search-condition"><label
+                              for="o06">&gt;</label></td>
+                          <td><input type="radio" name="a07" id="o07" class="search-condition"><label
+                              for="o07">&gt;</label></td>
+                          <td><input type="radio" name="a08" id="o08" class="search-condition"><label
+                              for="o08">&gt;</label></td>
+                          <td><input type="radio" name="a09" id="o09" class="search-condition"><label
+                              for="o09">&gt;</label></td>
+                          <td><input type="radio" name="a10" id="o10" class="search-condition"><label
+                              for="o10">&gt;</label></td>
+                          <td></td>
+                        </tr>
+                        <tr class="filter-input">
+
+                          <td style="text-align: right !important;padding-right: 10px !important;">
+                            <button class="btn-of mx-1 search_reset" id="stack_reset_btn">초기화</button>
+                          </td>
+                          <td><input type="number" name="h-m" id="input-h-m" class="search-condition"></td>
+                          <td><input type="number" name="m-l" id="input-m-l" class="search-condition"></td>
+                          <td><input type="number" name="x1" id="input-x1" class="search-condition"></td>
+                          <td><input type="number" name="x2" id="input-x2" class="search-condition"></td>
+                          <td><input type="number" name="y1" id="input-y1" class="search-condition"></td>
+                          <td><input type="number" name="y2" id="input-y2" class="search-condition"></td>
+                          <td><input type="number" name="m" id="input-m" class="search-condition"></td>
+                          <td><input type="number" name="l" id="input-l" class="search-condition"></td>
+                          <td><input type="number" name="sq" id="input-sq" class="search-condition"></td>
+                          <td><input type="number" name="bq" id="input-bq" class="search-condition"></td>
+                          <td><button class="stk-sch-btn btn-of w-25 float-end"
+                              style="width: 100% !important;">검색</button></td>
+                          <!-- <td><input type="text" name="label" id="input-label" class="search-condition"></td> -->
+                          <!-- 텍스트 입력 필드 유지 -->
+                        </tr>
+                        <tr class="filter-label">
+
+                          <td style="text-align: right !important;padding-right: 17px !important;">미만</td>
+                          <td><input type="radio" name="a01" id="u01" class="search-condition"><label
+                              for="u01">&lt;</label></td>
+                          <td><input type="radio" name="a02" id="u02" class="search-condition"><label
+                              for="u02">&lt;</label></td>
+                          <td><input type="radio" name="a03" id="u03" class="search-condition"><label
+                              for="u03">&lt;</label></td>
+                          <td><input type="radio" name="a04" id="u04" class="search-condition"><label
+                              for="u04">&lt;</label></td>
+                          <td><input type="radio" name="a05" id="u05" class="search-condition"><label
+                              for="u05">&lt;</label></td>
+                          <td><input type="radio" name="a06" id="u06" class="search-condition"><label
+                              for="u06">&lt;</label></td>
+                          <td><input type="radio" name="a07" id="u07" class="search-condition"><label
+                              for="u07">&lt;</label></td>
+                          <td><input type="radio" name="a08" id="u08" class="search-condition"><label
+                              for="u08">&lt;</label></td>
+                          <td><input type="radio" name="a09" id="u09" class="search-condition"><label
+                              for="u09">&lt;</label></td>
+                          <td><input type="radio" name="a10" id="u10" class="search-condition"><label
+                              for="u10">&lt;</label></td>
+                          <td></td>
+                        </tr>
+                      </tbody>
+
+                      <tbody class="scrollmini result" id="stack_search_table">
+                        <!-- 데이터 결과 표 -->
+                        <!-- <tr>
+                          <td><input type="checkbox" name="search-checkbox" id="search-checkbox"></td>
+                          <td>2023-07-31 15:17</td>
+                          <td>999.99</td>
+                          <td>999.99</td>
+                          <td>999.99</td>
+                          <td>999.99</td>
+                          <td>999.99</td>
+                          <td>999.99</td>
+                          <td>999.99</td>
+                          <td>999.99</td>
+                          <td>10</td>
+                          <td>10</td>
+                          <td><input type="text" value="laBel-1"></td> 
+                        </tr>
+                        -->
+                      </tbody>
+
+                    </table>
+                  </div>
+                  <div class="search-bottom p-1" style="clear: both;">
+
+                    <div class="d-inline">
+                      <input type="datetime-local" id="start-date" class="datetime-input search-condition">
+                      ~
+                      <input type="datetime-local" id="end-date" class="datetime-input search-condition">
+                    </div>
+                    <div class="d-inline float-end">
+                      라벨 |
+                      <input type="text" id="input-label" class="label-input" style="width: 6rem;">
+                      <button class="stk-sch-btn btn-of w-24">검색</button>
+                      <button class="btn-of search_reset" id="stack_reset_btn">초기화</button>
+                    </div>
+
+                  </div>
+
+                  <div class="" style="height: 30px;">
+                    <div class="float-start px-5" id="count-selected">
+
+                    </div>
+                    <div class="">
+                      <nav class="pagination-wrap">
+                        <ul class="pagination" id="stack-search-pagination">
+                          <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
+
+                          <li class="page-item"><a class="page-link active" href="#">1</a></li>
+                          <li class="page-item"><a class="page-link" href="#">2</a></li>
+                          <li class="page-item"><a class="page-link" href="#">3</a></li>
+                          <li class="page-item"><a class="page-link" href="#">4</a></li>
+                          <li class="page-item"><a class="page-link" href="#">5</a></li>
+                          <li class="page-item"><a class="page-link" href="#">6</a></li>
+                          <li class="page-item"><a class="page-link" href="#">7</a></li>
+                          <li class="page-item"><a class="page-link" href="#">8</a></li>
+                          <li class="page-item"><a class="page-link" href="#">9</a></li>
+                          <li class="page-item"><a class="page-link" href="#">10</a></li>
+
+                          <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                        </ul>
+                        <!-- 콤보박스 선택 : 전체, 50개, 100개(default), 200개, 500개 -->
+                      </nav>
+                    </div>
+                  </div>
+                  <!-- 헤시테그 -->
+                  <div class="scrollmini hashtag-outer">
+                    <div class="add-tag d-inline">
+                      <input type="text" class="show-click-input d-none" id="new-tag-text" placeholder="라벨명 입력"
+                        onkeyup="if(window.event.keyCode==13){}">
+                      <button class="plus" title="라벨추가" onclick="plusTag()">+</button>
+                      <button class="confirm d-none" id="new-tag">라벨추가</button>
+                      <button class="cancel active d-none" title="취소" onclick="cancelTag()">×</button>
+                    </div>
+
+                    <script>
+                      const showClickInput = document.querySelector('.add-tag > input.show-click-input')
+                      const aPlus = document.querySelector('.add-tag > button.plus')
+                      const cancelX = document.querySelector('.add-tag > button.cancel')
+                      const doConfirm = document.querySelector('.add-tag > button.confirm')
+
+                      const plusTag = () => {
+                        aPlus.classList.add('d-none')
+                        doConfirm.classList.remove('d-none')
+                        showClickInput.classList.remove('d-none')
+                        cancelX.classList.remove('d-none')
+                        showClickInput.focus()
+
+                        // 여기에 이벤트 리스너 추가
+                        doConfirm.addEventListener('click', function () {
+                          const tagInput = document.getElementById('new-tag-text');
+                          const tagText = tagInput.value.trim();
+                          if (tagText) {
+                            if (isDuplicateTag(tagText)) {
+                              alert("중복된 태그입니다.");
+                              tagInput.value = ''; // 입력 필드를 빈칸으로 설정
+                            } else {
+                              if (featureFlags.saveTagWithGet) {
+                                saveTagWithGet(tagText); // 서버로 태그 저장
+                              }
+                            }
+                          } else {
+                            alert('태그명을 입력해주세요.');
+                          }
+                        });
+                      }
+
+                      const cancelTag = () => {
+                        aPlus.classList.remove('d-none')
+                        doConfirm.classList.add('d-none')
+                        showClickInput.classList.add('d-none')
+                        cancelX.classList.add('d-none')
+                      }
+                    </script>
+                    <!-- <div class="hashtag">
+                      <button class="main tag-selector" style="border-color: #f00;">Test1</button>
+                      <button class="del" title="삭제">×</button>
+                      <button class="finish" title="삭제" onclick="toggleModal('라벨을 삭제하시겠습니까?')">×</button>
+                    </div> -->
+                  </div>
+                </div>
+
+
+                <!-- <input type="color" onchange="colorValue()"><input type="text" id="new-tag-text"><button class="btn-of w-24" id="new-tag">라벨 ᐧ 태그생성 / 수정</button> -->
+                <!-- 사용자가 클릭할 수 있는 색상 선택기 -->
+                <!-- <input type="color" id="tag-color" onchange="updateGraphColor()"> -->
+
+
+
+
+
+
+                <!-- 숨겨진 입력란, 실제 색상 값 저장용 -->
+                <input type="hidden" id="hidden-color">
+                <!-- 사용자에게 보이는 입력란, 색상 코드 표시 안 함 -->
+                <div class="row py-2">
+                  <div class="col-5 px-3">
+                    <!-- <input type="text" id="new-tag-text" placeholder="태그명 입력"> -->
+                    <!-- <button class="btn-of w-24" id="new-tag">태그생성</button> -->
+
+
+                    <div class="graph-" style="display: inline-block; border: 1px solid #aaa; padding: 1px 1px;">
+                      <select class="color-pick scrollmini" style="margin-right: -2px; color: rgb(189, 158, 179);">
+                        <!-- <option disabled="" selected="">⎕</option> -->
+                        <option title="Normal" value="color00" selected>▉ <!--Danube        --> </option>
+                        <option title="Supernova" value="color01">▉ <!--Supernova     --> </option>
+                        <option title="Bittersweet" value="color02">▉ <!--Bittersweet   --> </option>
+                        <option title="Danube" value="color03">▉ <!--Danube        --> </option>
+                        <option title="Pigeon Post" value="color04">▉ <!--Pigeon Post   --> </option>
+                        <option title="Viridian" value="color05">▉ <!--Viridian      --> </option>
+                        <option title="Strikemaster" value="color06">▉ <!--Strikemaster  --> </option>
+                        <option title="Harvest Gold" value="color07">▉ <!--Harvest Gold  --> </option>
+                        <option title="Army Green" value="color08">▉ <!--Army Green    --> </option>
+                        <option title="Pastel Purple" value="color09">▉ <!--Pastel Purple --> </option>
+                        <option title="Otter Brown" value="color10">▉ <!--Otter Brown   --> </option>
+                        <option title="Downy" value="color11">▉ <!--Downy         --> </option>
+                        <option title="Summer Green" value="color12">▉ <!--Summer Green  --> </option>
+                        <option title="Seagull" value="color13">▉ <!--Seagull       --> </option>
+                        <option title="Deco" value="color14">▉ <!--Deco          --> </option>
+                        <option title="Romantic" value="color15">▉ <!--Romantic      --> </option>
+                        <option title="New York Pink" value="color16">▉ <!--New York Pink --> </option>
+                        <option title="Link Water" value="color17">▉ <!--Link Water    --> </option>
+                        <option title="Haiti" value="color18">▉ <!--Haiti         --> </option>
+                        <option title="Dull Brown" value="color19">▉ <!--Dull Brown    --> </option>
+                        <option title="Blue Bayoux" value="color20">▉ <!--Blue Bayoux   --> </option>
+                      </select>
+                      <button class="btn-of w-24" id="graph-btn">그래프 생성</button>
+                    </div>
+
+                    <script>
+                      const pickColors = {
+                        'color00': '#00FF00',
+                        'color01': '#FFCC00',
+                        'color02': '#FF6B6B',
+                        'color03': '#6699CC',
+                        'color04': '#B0C4DE',
+                        'color05': '#4B9579',
+                        'color06': '#996699',
+                        'color07': '#D9BC78',
+                        'color08': '#474E20',
+                        'color09': '#BD9EB3',
+                        'color10': '#5B471F',
+                        'color11': '#66CCCC',
+                        'color12': '#8AC1A3',
+                        'color13': '#89CFEB',
+                        'color14': '#C1D98C',
+                        'color15': '#FFD5C2',
+                        'color16': '#D98981',
+                        'color17': '#C6E9F1',
+                        'color18': '#4A509B',
+                        'color19': '#8C684C',
+                        'color20': '#50607F',
+                      };
+
+                      // mjkoo 0510 수정(color-picker 두개 다 적용될 수 있도록)
+                      document.addEventListener('DOMContentLoaded', function () {
+                        const colorPickers = document.querySelectorAll('.color-pick');
+                        const hiddenColorInput = document.querySelector('#hidden-color');
+                        colorPickers.forEach(picker => {
+                          picker.addEventListener('change', function () {
+                            const selectedColorCode = pickColors[this.value];
+                            this.style.color = selectedColorCode;
+                            hiddenColorInput.value = selectedColorCode; // 숨겨진 입력 필드의 값 업데이트
+                            console.log('선택된 색상 코드:', selectedColorCode);
+                          });
+
+                          // 색상 선택기의 초기 색상 설정
+                          picker.style.color = pickColors[picker.value];
+                        });
+                      });
+                    </script>
+
+
+                    <!-- <button class="btn-of w-24" onclick="clear_graph()">그래프 삭제</button> -->
+                  </div>
+
+                  <!-- 
+                      <div class="float-end">
+                        <button class="btn-of w-24" id="graph-btn">그래프 보기</button>
+                        <button class="btn-of w-24" id="normal-btn">정상 학습</button>
+                        <button class="btn-of w-24" id="label-btn">라벨 수정</button>
+                      </div>
+                    -->
+                  <div class="col-7 px-3 py-1 text-end">
+                    <!-- <div class="float-start"></div> -->
+                    <div class="float-end">
+                      <span class="px-3" id="count-checked">선택된 항목 n개</span>
+                      <button class="btn-of w-24" id="bookmark-btn">항목 등록</button>
+                      <button class="btn-of w-24" id="delete-db-in-bmk">항목 삭제</button>
+                      <!-- <button class="btn-of w-24" id="delete-db-in-bmk"onclick="toggleModal('항목을 삭제하겠습니까?')">항목 삭제</button> -->
+                    </div>
+                    <!-- <button class="btn-of w-24" onclick="toggleAddTabModal('select-tab')">탭 관리</button> -->
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xxl-6 col-12">
+          <div class="widget state-diagnosis">
+            <div class="widget-head">
+              스택 진단
+              <div class="widget-head-gadget">
+                <div class="widget-head-gadget">
+                  <div class="widget-head-gadget">
+                    <!-- <span class="icon-arrow-right2"></span> -->
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="widget-body scrollmini scrollmini-noborder">
+
+              <table class="table table-striped" id="stack-diagnosis-table">
+                <thead id="stack-diagnosis-thead">
+                  <tr>
+                    <th></th>
+                    <th>정상</th>
+                    <th>표준편차</th>
+                    <th>현재 측정값</th>
+                  </tr>
+                </thead>
+                <tbody id="stack-diagnosis-tbody">
+                  <tr>
+                    <td>H-M</td>
+                    <td>999.99</td>
+                    <td>3</td>
+                    <td>999.99</td>
+                  </tr>
+                  <tr>
+                    <td>H-L</td>
+                    <td>999.99</td>
+                    <td>3</td>
+                    <td>999.99</td>
+                  </tr>
+                  <tr>
+                    <td>X1</td>
+                    <td>999.99</td>
+                    <td>3</td>
+                    <td>999.99</td>
+                  </tr>
+                  <tr>
+                    <td>X2</td>
+                    <td>999.99</td>
+                    <td>3</td>
+                    <td>999.99</td>
+                  </tr>
+                  <tr>
+                    <td>Y1</td>
+                    <td>999.99</td>
+                    <td>3</td>
+                    <td>999.99</td>
+                  </tr>
+                  <tr>
+                    <td>Y2</td>
+                    <td>999.99</td>
+                    <td>3</td>
+                    <td>999.99</td>
+                  </tr>
+                  <tr>
+                    <td>M</td>
+                    <td>999.99</td>
+                    <td>3</td>
+                    <td>999.99</td>
+                  </tr>
+                  <tr>
+                    <td>L</td>
+                    <td>999.99</td>
+                    <td>3</td>
+                    <td>999.99</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">Stack QoE</td>
+                    <td colspan="2" class="primary-C">9</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">BOP QoE</td>
+                    <td colspan="2" class="primary-C">9</td>
+                  </tr>
+
+                </tbody>
+              </table>
+              <select name="" id="">
+                <option value="">당일</option>
+              </select>
+              <br>
+              <div class="d-flex justify-content-between">
+                <input type="text" value="2023-12-12 12:12"> ~ <input type="text" value="2023-12-12 12:12">
+                <button class="btn-of  w50px">재진단</button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+
+
+        <!-- <div class="col-xxl-12 col-12 order-xxl-first"> -->
+        <div class="col-xxl-6 col-12">
+          <div class="widget diagnosis-log">
+            <div class="widget-head">
+              진단 로그
+              <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+            </div>
+            <div class="widget-body">
+              <div class="table-responsive">
+                <table class="table table-fixed table-striped">
+                  <thead>
+                    <tr>
+                      <th><input type="checkbox" name="diagnosis-log-checkboxes" id="diagnosis-log-checkboxes"></th>
+                      <th>시간</th>
+                      <th>내용</th>
+                    </tr>
+                  </thead>
+                  <tbody class="scrollmini" id="diagnosis-log-table">
+                    <tr>
+                      <!--
+                        <td><input type="checkbox" name="" id="diagnosis-log-checkbox"></td>
+                        <td>2023-07-31 14:26</td>
+                        <td>공기 유량 선서 부안.stk</td>
+                      </tr>
+                        -->
+                  </tbody>
+                </table>
+              </div>
+              <div class="d-grid">
+                <nav class="pagination-wrap">
+                  <ul class="pagination" id="diagnosis-log-pagination">
+                    <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
+                    <!--
+                      <li class="page-item"><a class="page-link active" href="#">1</a></li>
+                      <li class="page-item"><a class="page-link" href="#">2</a></li>
+                      -->
+                    <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </main>
+
+  <script>
+    // 제목 드롭다운
+    const contentDivs = document.querySelectorAll('.stack-state-graph .content-section');
+    const showHide = (e) => contentDivs.forEach((contentDiv, index) => { (index === e.selectedIndex) ? contentDiv.style.display = 'block' : contentDiv.style.display = 'none' })
+  </script>
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const chkbox = document.querySelectorAll('.tab-list input[type=checkbox]');
+      const dbEdit = document.querySelectorAll('.tab-list a.db-edit');
+      const dbEditValue = document.querySelectorAll('.tab-list a.db-edit span');
+      const dbEditActive = document.querySelectorAll('.tab-list div.db-edit');
+      const dbEditInput = document.querySelectorAll('.tab-list div.db-edit input');
+
+      dbEdit.forEach((e, i) => e.addEventListener('dblclick', function () {
+        chkbox.forEach(e => { e.disabled = true; });
+        dbEdit[i].classList.toggle('d-none');
+        dbEditActive[i].classList.toggle('d-none');
+        dbEditInput[i].focus();
+        dbEditInput[i].value = dbEditValue[i].innerText;
+        dbEditInput[i].addEventListener('keypress', function (e) {
+          if (e.key === 'Enter') {
+            dbEditValue[i].innerText = dbEditInput[i].value;
+            dbEdit[i].classList.toggle('d-none');
+            dbEditActive[i].classList.toggle('d-none');
+            chkbox.forEach(e => { e.disabled = false; });
+          }
+        });
+      }));
+    });
+  </script>
+
+  <script>
+    // 체크박스 스타일 라디오 버튼 스크립트
+    document.querySelectorAll('.scrollmini-none input[type="radio"]').forEach(function (radio) {
+      radio.addEventListener('click', function () {
+        let inp = this
+        if (inp.classList.contains('checked')) {
+          inp.checked = false
+          inp.classList.remove('checked')
+        } else {
+          document.querySelectorAll(`.scrollmini-none input[type="radio"][name=${inp.name}].checked`).forEach((radioOther) => radioOther.classList.remove('checked'))
+          inp.classList.add('checked')
+        }
+      }
+      )
+    }
+    )
+    // 상세검색 업다운 스크립트
+    const scrollMiniNone = document.querySelector('.result-list .scrollmini-none')
+    const filterResult = document.querySelector('.result-list .scrollmini')
+    
+    const swFilterPanel = () => window.innerWidth < 3840 ? toggleClass('to210px') : toggleClass('to1200px')
+    window.addEventListener(resize, () => swFilterPanel())
+  </script>
+
+  <script>
+    // 라벨 스크립트
+    const mainDivs = document.querySelectorAll('.hashtag')
+    const mainBtns = document.querySelectorAll('.hashtag > button.main')
+    const btnDels = document.querySelectorAll('.hashtag > button.del')
+    const btnFinishs = document.querySelectorAll('.hashtag > button.finish')
+
+    mainBtns.forEach(e => e.addEventListener('click', function () { this.classList.toggle('active') }))
+    btnDels.forEach((e, i) => e.addEventListener('click', function () {
+      if (this.classList.contains('active')) {
+        this.classList.remove('active')
+        this.textContent = '×'
+        this.title = '삭제'
+      } else {
+        this.classList.add('active')
+        this.textContent = 'ഠ'
+        this.title = '삭제취소'
+      }
+    }))
+    btnFinishs.forEach((e, i) => e.addEventListener('click', function () { mainDivs[i].remove() }))
+  </script>
+  <script src="js/main.js"></script>
+  <script src="js/imp.js"></script>
+</body>
+
+</html>

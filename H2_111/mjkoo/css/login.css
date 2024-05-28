@@ -1,0 +1,88 @@
+      body {
+        /* height: 75vh; */
+        height: 70vh;
+        min-height: 400px;
+        display: flex;
+        margin-top: 50px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        main {
+          width: 420px;
+          .logo {
+            width: 155px;
+            height: 80px;
+            overflow: hidden;
+            margin: auto;
+            transform: translate(10px, 10px) scale(2);
+          }
+          .accordion-header {
+            button {
+              font-size: 1.25rem;
+              font-weight: 600;
+              outline: none;
+              &.accordion-button{
+                color: #000;
+                background: #DBDBDB;
+                background: #DBDBDB;
+                &.collapsed {
+                  background: #EEE;
+                  color: #111;
+                  background: linear-gradient(180deg, #FFF 0.2%, #EEE 5.85%, #EEE 100%);  
+                }
+              }
+              &.accordion-button:focus{
+                box-shadow: none;
+              }
+            }
+          }
+          .accordion-body {
+            background: rgba(217,217,217,0.25);
+            background: #fff;
+            padding-block: 20px;
+            h5 {
+              font-size: 1rem;
+              padding: 5px 5px 6px;
+              width: 50%;
+              margin-bottom: 0;
+              text-align: center;
+              background: #FFF;
+              position: relative;
+              top: 1px;
+              border: 1px solid #fff;
+              border-bottom: 1px solid #ccc;
+            }
+            span {
+              cursor: pointer;
+            
+              &.active > h5 {
+                border: 1px solid #ccc;
+                border-bottom: 1px solid #fff;
+                z-index: 1;
+              }
+            }
+            .tab {
+              /* background: #fff; */
+              border: 1px solid #ccc;
+              padding: 10px 5px;
+              clear: both;
+            }
+            .title {
+              text-align: right;
+              padding-right: 10px;
+              font-weight: 500;
+            }
+            .text-center {
+              color: #337AB7;
+            }
+            .three-section {
+              display: grid;
+              grid-template-columns: 1.25fr 2fr 1.25fr;
+            }
+            div {
+              padding: 4px;
+            }
+          }
+        }
+      }

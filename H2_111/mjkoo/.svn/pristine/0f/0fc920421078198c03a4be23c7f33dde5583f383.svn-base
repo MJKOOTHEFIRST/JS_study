@@ -1,0 +1,2535 @@
+var g_graph_data;
+var SW_SENSOR_RAW_REUSE = false;
+var g_page_state = 0;
+var g_ma_list;
+const DATA_LEGEND_HIGHLIGHTED = "data_legend_highlighted";
+const CALENDEX_COOKIE_EXPIRE = 30;
+// >>> 240105 hjkim - SW센서 / BOP 진단결과
+var g_is_sw_sensor_graph = false;
+var g_FlotOption = {};
+const g_sw_sensor_graph_h = 200;
+// >>> 240105 hjkim - SW센서 / BOP 진단결과
+
+var g_el = {
+    graph: document.querySelector("#graph"),
+    subgraph: document.querySelector("#subgraph"),
+    graph_main: document.querySelector(".graph_main"),
+    graph_controller: document.querySelector(".graph_controller"),
+    custom_legend: document.querySelector("#custom_legend"),
+    legend_btn: document.querySelector("#legend_btn"),
+    recovery_btn: document.querySelector("#recovery_btn"),
+    data_url: document.querySelector("#data_url"),
+    event_url: document.querySelector("#event_url"),
+    sel_data_url: document.querySelector("#sel_data_url"),
+    sel_label_group: document.querySelector("#sel_scoped_label"),
+    auto_reload: document.querySelector("#auto_reload"),
+    yearly: document.querySelector("#yearly"),
+    monthly: document.querySelector("#monthly"),
+    daily: document.querySelector("#daily"),
+    timely: document.querySelector("#timely"),
+	// >>> 240105 hjkim - SW센서 / BOP 진단결과
+	result_diagnosis: document.querySelector(".result .bop .graph .outline"),
+	stack_event: document.querySelector(".result .stack .graph .outline"),
+	barcode_graph: document.querySelectorAll(".result * .graph"),
+	// >>> 240105 hjkim - SW센서 / BOP 진단결과
+};
+var g_graph_inst, g_graph_soft;
+var DATA_LEGEND_CHECKED = "data_legend_checked";
+var DATA_LEGEND_LABEL = "data_legend_label";
+
+// >>> 240306 hjkim - calendex refactoring
+var g_yearly_list = [2022, 2023, 2024];
+var BASE_DATA_URI = "/ALL/data";
+//const BASE_DATA_URI = "../../../../var/H2/Daejeon/Raw";
+// <<< 240306 hjkim - calendex refactoring
+
+var TimeSeriesPlot = {};
+(function(Interface) { // Variable Scope Isolation
+// >>> 231128 hjkim - main.js argument 수용
+// <script src="js/main.js?type=1&graph=#graph&yearly=#yearly&monthly=#monthly&daily=#daily&legend=#custom_legend"></script>
+/* Argument 
+ * - type=1|2           : { HW 센서 | SW 센서 }
+ * - graph="#graph"     : 그래프 <div> id
+ * - yearly="#yearly"   : 년간 <select> id
+ * - monthly="#monthly" : 월간 <select> id
+ * - daily="#daily"     : 일간 <select> id
+ * - timely="#timely"   : 시간 <select> id
+ */
+
+// >>> 231215 hjkim - main.js bode플롯 수용
+// <script src="js/main.js?type=3&graph=.widget.stack-status>.widget-body>.row>.left-side>div"></script>
+// <script src="js/main.js?type=4&graph=.widget.stack-status>.widget-body>.row>.right-side>div"></script>
+/* Argument
+ * - type=3|4             : { Nyquist | Bode 플롯 }
+ * - graph="#graph"       : 그래프 <div> id
+ */
+
+function get_qs_from_src() {
+    var srcEl = document.currentScript;
+    return srcEl.src.split('?')[1]; 
+}
+function get_argv_from_qs(qs) {
+    var kv_arr = qs.split("&");
+    if (kv_arr.length == 0) {return { result: undefined }; }
+    var r = {};
+    for (var i = 0; i < kv_arr.length; ++i) {
+        var kv = kv_arr[i].split("=", 2);
+        if (kv.length == 1) r[kv[0]] = "";
+        else r[kv[0]] = decodeURIComponent(kv[1].replace(/\+/g, " "));
+    }
+    return r;
+}
+// <<< 231128 hjkim - main.js argument 수용
+
+function __escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+function _replaceAll(str, find, replace) {
+    return str.replace(new RegExp(__escapeRegExp(find), 'g'), replace);
+}
+
+// >>> 231128 hjkim - main.js argument 수용
+function init_accept_argument(_argv) {
+	for(var i = 0, key_arr = Object.keys(_argv); i < key_arr.length; i++) {
+		var k = key_arr[i], v = _argv[k];
+		switch(k) {
+			case "type":
+				// TODO: 1: HW 그래프
+				// TODO: 2: SW 그래프
+				break;
+			case "graph":
+				var _el = g_el.graph = document.querySelector(v);
+				// 파라미터 에러 체크
+				if(_el == null) { console.error(`${k} 파라미터 에러!`); }
+				if(_el.tagName != "DIV") { console.error(`${k}가 DIV 태그가 아님!`); }
+				break;
+			case "yearly":
+			case "monthly":
+			case "daily":
+				var _el;
+				if(false) null;
+				else if(k == "yearly")  _el = g_el.yearly = document.querySelector(v);
+				else if(k == "monthly") _el = g_el.monthly = document.querySelector(v);
+				else if(k == "daily")   _el = g_el.daily = document.querySelector(v);
+				else if(k == "timely")  _el = g_el.timely = document.querySelector(v);
+				// 파라미터 에러 체크
+				if(_el == null) { console.error(`${k} 파라미터 에러!`); }
+				if(_el.tagName != "SELECT") { console.error(`${k}가 SELECT 태그가 아님!`); }
+				break;
+			case "legend":
+				var _el = g_el.custom_legend = document.querySelector(v);
+				// 파라미터 에러 체크
+				if(_el == null) { console.error(`${k} 파라미터 에러!`); }
+				if(_el.tagName != "DIV") { console.error(`${k}가 DIV 태그가 아님!`); }
+				break;
+		}
+	}
+}
+// <<< 231128 hjkim - main.js argument 수용
+
+// >>> 231201 hjkim - default calendex
+function init_calendex_el(_el) {
+	console.log("init_calendex_el");
+	if(g_el.yearly === null) {
+		var xml_str = `
+            <div style="position: relative; margin-bottom: 20px">
+                <div class="btn-wrapper" style="position: absolute; right:0; z-index: 1; padding: 4px">
+                    <button ontouchstart="zoom_in()" onclick="zoom_in()" class="btn-of mid-size w50px "><span class="icon-zoom-in"></span></button>
+                    <button ontouchstart="zoom_out()" onclick="zoom_out()" class="btn-of mid-size w50px"><span class="icon-zoom-out"></span></button>
+                    <select id="yearly"></select> <select id="monthly"></select> <select id="daily"></select> <select id="timely"></select>
+                </div>
+            </div>
+        `;
+		var doc = new DOMParser().parseFromString(xml_str, "text/xml");
+		_el.parentElement.innerHTML = xml_str + _el.parentElement.innerHTML;
+		g_el.yearly  = document.querySelector("#yearly");
+		g_el.monthly = document.querySelector("#monthly");
+		g_el.daily   = document.querySelector("#daily");
+		g_el.timely  = document.querySelector("#timely");
+	}
+}
+// <<< 231201 hjkim - default calendex
+// >>> 231201 hjkim - 라이브러리 로딩
+var fn_load_js = function(src_url, cb_init) {	
+	var my_head = document.getElementsByTagName('head')[0];
+	var my_js = document.createElement('script');
+	my_js.type= 'text/javascript';
+	my_js.async = true;
+	my_js.src = src_url;
+	if(cb_init !== null) my_js.onload = function (){if(typeof cb_init == "function"){cb_init();} };
+	my_head.appendChild(my_js);
+}
+
+var _sync_flag = 0; _sync_done = 5;
+// >>> 240119 hjkim - 아파치 서버 포팅 작업
+function init_page(_num ) {
+    switch(_num) {
+        case 1:
+            var argv_qs = get_qs_from_src();
+            var argv = get_argv_from_qs(argv_qs);
+            // >>>>>> !!!순서가 중요
+            init_accept_argument(argv);
+            // STEP 1.
+            // >>> 240105 hjkim - 미디어 쿼리 대신 그래프 세로 길이 조정
+            var COMPONENT_SELECTOR = ".widget.BOP-graph";
+            var component_h = document.querySelector(COMPONENT_SELECTOR);
+            var _h = component_h.clientHeight - 55;
+            // <<< 240105 hjkim - 미디어 쿼리 대신 그래프 세로 길이 조정
+            // STEP 2.
+            // >>> 240105 hjkim - 그래프 Placeholder 생성
+            g_el.graph.parentElement.innerHTML = `<div id="graph" style="width:100%; height:${_h}px;">`;
+            // <<< 240105 hjkim - 그래프 Placeholder 생성
+            // STEP 3.
+            // <<<<<< !!!순서가 중요
+            fn_load_js(location.origin+"/NEW/flot/color_palette.js", () => {
+            fn_load_js(location.origin+"/NEW/flot/jquery-3.2.1.js", () => {
+                fn_load_js(location.origin+"/NEW/flot/jquery.flot.js", () => {
+                    fn_load_js(location.origin+"/NEW/flot/jquery.flot.time.js",             all_done );
+                    fn_load_js(location.origin+"/NEW/flot/jquery.flot.tooltip.js",          all_done );
+                    fn_load_js(location.origin+"/NEW/flot/jquery.flot.crosshair.js",        all_done );
+                    fn_load_js(location.origin+"/NEW/flot/jquery.flot.selection.drag.js",   all_done );
+                    fn_load_js(location.origin+"/NEW/flot/jquery.flot.resize.js",           all_done );
+                });
+            });
+            });
+        break;
+        case 2:
+            var CALENDEX_COOKIE_EXPIRE = 30;
+            g_el.yearly.addEventListener("change", function (e) { 
+                // >>> 240108 hjkim - 선택된 항목 쿠키에 저장
+                set_cookie("calendex_yearly",   e.target.value, CALENDEX_COOKIE_EXPIRE);
+                // <<< 240108 hjkim - 선택된 항목 쿠키에 저장
+                refresh_monthly(e, null, refresh_monthly); 
+            });
+            g_el.monthly.addEventListener("change", function (e) { 
+                // >>> 240108 hjkim - 선택된 항목 쿠키에 저장
+                set_cookie("calendex_monthly",  e.target.value, CALENDEX_COOKIE_EXPIRE);
+                // <<< 240108 hjkim - 선택된 항목 쿠키에 저장
+                Calendex.refresh_daily(e, null); 
+            });
+            g_el.daily.addEventListener("change", function (e) { 
+                // >>> 240108 hjkim - 선택된 항목 쿠키에 저장
+                set_cookie("calendex_daily",    e.target.value, CALENDEX_COOKIE_EXPIRE);
+                // <<< 240108 hjkim - 선택된 항목 쿠키에 저장
+                Calendex.refresh_timely(e, null, null, null); 
+            });
+            g_el.timely.addEventListener("change", function (e) { 
+                // >>> 240108 hjkim - 선택된 항목 쿠키에 저장
+                set_cookie("calendex_timely",   e.target.value, CALENDEX_COOKIE_EXPIRE);
+                // <<< 240108 hjkim - 선택된 항목 쿠키에 저장
+                TimeSeriesPlot.reload_graph(e); 
+            });
+            window.addEventListener("load", function() { 
+                fn_onload(); 
+            });
+        break;
+        case 3:
+            // >>> 231228 hjkim - BOP 진단에 그래프 추가
+            var argv_qs = get_qs_from_src();
+            var argv = get_argv_from_qs(argv_qs);
+            // >>>>>> !!!순서가 중요
+            // STEP 1.
+            // >>> 240105 hjkim - 미디어 쿼리 대신 그래프 세로 길이 조정
+            var COMPONENT_SELECTOR = ".widget.HW-bop-senser-monitoring";
+            var component_h = document.querySelector(COMPONENT_SELECTOR);
+            var _h = component_h.clientHeight - 55;
+            // <<< 240105 hjkim - 미디어 쿼리 대신 그래프 세로 길이 조정
+            // STEP 2.
+            // >>> 240105 hjkim - 그래프 Placeholder 생성
+            var _placeholder = document.querySelector(".widget.HW-bop-senser-monitoring .widget-body");
+            var _graph_el = document.createElement("div");
+            _graph_el.id = "graph";
+            _graph_el.style = `height: ${_h}px`;
+            _placeholder.appendChild(_graph_el);
+            // <<< 240105 hjkim - 그래프 Placeholder 생성
+            // STEP 3.
+            argv["graph"] = ".widget.HW-bop-senser-monitoring .widget-body #graph";
+            init_accept_argument(argv);
+            // <<<<<< !!!순서가 중요
+            
+            // >>> 240105 hjkim - SW센서 / BOP 진단결과
+            g_is_sw_sensor_graph = true;
+            // <<< 240105 hjkim - SW센서 / BOP 진단결과
+            
+            _sync_flag = 0; _sync_done = 5;
+            fn_load_js(location.origin+"/NEW/flot/color_palette.js");
+            fn_load_js(location.origin+"/NEW/flot/jquery-3.2.1.js", () => {
+                fn_load_js(location.origin+"/NEW/flot/jquery.flot.js", () => {
+                    fn_load_js(location.origin+"/NEW/flot/jquery.flot.time.js",             all_done );
+                    fn_load_js(location.origin+"/NEW/flot/jquery.flot.tooltip.js",          all_done );
+                    fn_load_js(location.origin+"/NEW/flot/jquery.flot.crosshair.js",        all_done );
+                    fn_load_js(location.origin+"/NEW/flot/jquery.flot.selection.drag.js",   all_done );
+                    fn_load_js(location.origin+"/NEW/flot/jquery.flot.resize.js",           all_done );
+                });
+            });
+            // <<< 231228 hjkim - BOP 진단에 그래프 추가
+        break;
+        default:
+        console.error("Fail to init_page().");
+    break;
+    }
+}
+// <<< 240119 hjkim - 아파치 서버 포팅 작업
+
+// >>> 240119 hjkim - 아파치 서버 포팅 작업
+switch(location.hostname){
+    case "192.168.100.112:9999":
+    case "fuelcelldr.iptime.org":
+        switch(location.pathname) {
+            case "/NEW":
+            case "/NEW/":
+            case "/NEW/index.html":
+                init_page(2);
+                g_page_state = 2;
+                break;
+        }
+        break;
+    default:
+		switch(location.pathname) {
+		  case "/FDC/work/dev/index.html":
+			init_page(1);
+			g_page_state = 1;
+		  break;
+		  case "/NEW/index.html":
+			init_page(2);
+			g_page_state = 2;
+		  break;
+		  // >>> 231228 hjkim - BOP 진단에 그래프 추가
+		  case "/FDC/work/dev/bop.html":
+			init_page(3);
+			g_page_state = 3;
+		  break;
+		  // <<< 231228 hjkim - BOP 진단에 그래프 추가
+		  default:
+		  break;
+		}
+	break;
+}
+  // >>> 240119 hjkim - 아파치 서버 포팅 작업
+function renew_element_after_innerHTML(_selector) { return document.querySelector(_selector); }
+function all_done() { 
+    var CALENDEX_COOKIE_EXPIRE = 30;
+	_sync_flag++;
+	if(_sync_flag === _sync_done) {
+        g_el.graph = renew_element_after_innerHTML("#graph");
+        init_calendex_el(g_el.graph);
+        g_el.graph = renew_element_after_innerHTML("#graph");
+        g_el.yearly.addEventListener("change", function (e) { 
+            // >>> 240108 hjkim - 선택된 항목 쿠키에 저장
+            set_cookie("calendex_yearly",   e.target.value, CALENDEX_COOKIE_EXPIRE);
+            // <<< 240108 hjkim - 선택된 항목 쿠키에 저장
+            Calendex.refresh_monthly(e, null, refresh_monthly); 
+        });
+        g_el.monthly.addEventListener("change", function (e) {
+            // >>> 240108 hjkim - 선택된 항목 쿠키에 저장
+            set_cookie("calendex_monthly",  e.target.value, CALENDEX_COOKIE_EXPIRE);
+            // <<< 240108 hjkim - 선택된 항목 쿠키에 저장
+            Calendex.refresh_daily(e, null); 
+        });
+        g_el.daily.addEventListener("change", function (e) {
+            // >>> 240108 hjkim - 선택된 항목 쿠키에 저장
+            set_cookie("calendex_daily",    e.target.value, CALENDEX_COOKIE_EXPIRE);
+            // <<< 240108 hjkim - 선택된 항목 쿠키에 저장
+            Calendex.refresh_timely(e, null, null, null); 
+        });
+        g_el.timely.addEventListener("change", function (e) { 
+            // >>> 240108 hjkim - 선택된 항목 쿠키에 저장
+            set_cookie("calendex_timely",   e.target.value, CALENDEX_COOKIE_EXPIRE);
+            // <<< 240108 hjkim - 선택된 항목 쿠키에 저장
+            TimeSeriesPlot.reload_graph(e); 
+        });
+		fn_onload();
+	}
+}
+// <<< 231201 hjkim - 라이브러리 로딩
+function legend_show(e) {
+    var _a, _b;
+    // console.log(g_el.legend_btn.innerText);
+    if (g_el.legend_btn.innerText == "범례숨김") {
+        g_el.legend_btn.innerText = "범례보임";
+    }
+    else {
+        g_el.legend_btn.innerText = "범례숨김";
+    }
+    if (g_el.custom_legend.style.visibility == "") {
+        // g_el.custom_legend.style = "visibility: hidden;";
+        (_a = g_el.custom_legend) === null || _a === void 0 ? void 0 : _a.setAttribute("style", "visibility: hidden;");
+        //
+        g_el.graph_main.className += " expand";
+        g_el.graph_controller.className += " shrink";
+    }
+    else {
+        // g_el.custom_legend.style = "";
+        (_b = g_el.custom_legend) === null || _b === void 0 ? void 0 : _b.setAttribute("style", "");
+        //
+        // g_el.graph_main.className       = g_el.graph_main.className.replaceAll(" expand", "");
+        // g_el.graph_controller.className = g_el.graph_controller.className.replaceAll(" shrink", "");
+        g_el.graph_main.className = _replaceAll(g_el.graph_main.className, " expand", "");
+        g_el.graph_controller.className = _replaceAll(g_el.graph_controller.className, " shrink", "");
+    }
+}
+
+function make_legend(col, label_data) {
+    var placeholder = g_el.custom_legend;
+    var k = 0;
+    // TABLE INIT
+    var table_el = document.createElement("table");
+    for (var k = 0; k < label_data.length;) {
+        var tr_el = document.createElement("tr");
+        for (var j = 0; j < col; j++) {
+            var td_el_color = document.createElement("td");
+            var td_el_text = document.createElement("td");
+            if (k == 0 && j == 0) {
+                // INIT SELECTED LEGEND
+                var color_box_el = document.createElement("div");
+                // color_box_el.style = "width:0px; height:0; border:10px solid white; overflow:hidden";
+                color_box_el.setAttribute("style", "width:0px; height:0; border:10px solid white; overflow:hidden");
+                td_el_color.id = "selected_legend";
+                td_el_color.append(color_box_el);
+                toggle_color_box(color_box_el);
+                toggle_color_box(color_box_el);
+                // INIT CLEAR LEGEND
+                td_el_text.id = "clear_legend";
+                td_el_text.innerText = "클리어";
+                // td_el_text.style = "text-decoration: underline; cursor:pointer";
+                td_el_text.setAttribute("style", "text-decoration: underline; cursor:pointer");
+                td_el_text.setAttribute("toggle", "on");
+                tr_el.append(td_el_color, td_el_text);
+                continue;
+            }
+            td_el_color.setAttribute("class", "legend_color");
+            td_el_text.setAttribute("class", "legend_text");
+            try {
+                if (label_data[k].label != undefined) {
+                    // COLOR
+                    if (label_data[k].color != undefined) {
+                        var color_box_el = document.createElement("div");
+                        // color_box_el.style = "width:0px;height:0;border:10px solid " + label_data[k].color + ";overflow:hidden";
+                        color_box_el.setAttribute("style", "width:0px;height:0;border:10px solid " + label_data[k].color + ";overflow:hidden");
+                        // HTML 속성에 상태 데이터를 저장
+                        color_box_el.setAttribute(DATA_LEGEND_LABEL, label_data[k].label);
+                        color_box_el.setAttribute(DATA_LEGEND_HIGHLIGHTED, "false");
+                        td_el_color.append(color_box_el);
+                    }
+                    // TEXT
+                    td_el_text.innerText = label_data[k].label;
+                    // HTML 속성에 상태 데이터를 저장
+                    td_el_text.setAttribute(DATA_LEGEND_LABEL, label_data[k].label);
+                    td_el_text.setAttribute(DATA_LEGEND_CHECKED, "true");
+                    k++;
+                }
+            }
+            catch (e) {
+                // console.error(label_data[k]);
+                // console.error(label_data[k-1]);
+            }
+            tr_el.append(td_el_color, td_el_text);
+        }
+        table_el.append(tr_el);
+    }
+    placeholder.append(table_el);
+    // LEGEND INIT  
+    toggle_all_on_legend();
+    // EVENT BINDING -- SELECTED LEAGEND
+    var selected_el = document.querySelector("#selected_legend");
+    if (selected_el)
+        selected_el.addEventListener("click", init_select_highlighted);
+    // EVENT BINDING -- CLEAR LEAGEND
+    var clear_legend = document.querySelector("#clear_legend");
+    if (clear_legend) {
+        clear_legend.addEventListener("click", function (e) {
+            if (clear_legend.getAttribute("toggle") == "on") {
+                line_all_off();
+                toggle_all_off_legend();
+                clear_legend.innerText = "전체";
+                clear_legend.setAttribute("toggle", "off");
+            }
+            else {
+                line_all_on();
+                toggle_all_on_legend();
+                clear_legend.innerText = "클리어";
+                clear_legend.setAttribute("toggle", "on");
+            }
+        });
+    }
+    // EVENT BINDING -- EACH LEGEND
+    var text_el = [].slice.call(document.querySelectorAll(".legend_text"));
+    var color_el = [].slice.call(document.querySelectorAll(".legend_color"));
+    for (var i = 0; i < text_el.length; i++) {
+        text_el[i].onclick = function (e) {
+            var el = e.target;
+            // 실선 토글
+            toggle_flot_by_label(el.getAttribute(DATA_LEGEND_LABEL));
+            // 범례 토글 
+            toggle_legend(e.target);
+        };
+        color_el[i].onclick = function (e) {
+            var el = e.target;
+            // 범례 하이라이트
+            toggle_highlight_line_by_label(el.getAttribute(DATA_LEGEND_LABEL));
+            // 범례 컬러박스 토글
+            toggle_color_box(e.target);
+        };
+    }
+}
+function init_select_highlighted(e) {
+    // 선택된 애들만 켜지도록 해야됨.
+    var selected_el = document.querySelectorAll(".legend_color [" + DATA_LEGEND_HIGHLIGHTED + "='true']");
+    // 그래프 선 부분
+    line_all_off();
+    selected_el.forEach(function (el) { return line_on_by_label(el.getAttribute(DATA_LEGEND_LABEL)); });
+    // 범례 부분
+    toggle_all_off_legend();
+    selected_el.forEach(function (el) {
+        // console.log('toggle_on:', el.parentElement.nextElementSibling);
+        toggle_on_legend(el.parentElement.nextElementSibling);
+    });
+}
+function toggle_color_box(target) {
+    // var style_target_el = e.target.parentElement.nextElementSibling;
+	if (target)
+    if (target.getAttribute(DATA_LEGEND_HIGHLIGHTED) == "false") {
+        // style_target_el.style = "background-color: yellow;";
+        target.parentElement.style = "border: 2px solid black;";
+        target.setAttribute(DATA_LEGEND_HIGHLIGHTED, "true");
+    }
+    else {
+        // style_target_el.style = "background-color: none;";
+        target.parentElement.style = "border: none;";
+        target.setAttribute(DATA_LEGEND_HIGHLIGHTED, "false");
+    }
+}
+function toggle_legend(target) {
+    if (target.getAttribute(DATA_LEGEND_CHECKED) == "true")
+        toggle_off_legend(target);
+    else
+        toggle_on_legend(target);
+}
+function line_on_by_label(label) {
+    var d = g_graph_inst.getData();
+    for (var idx = 0; idx < d.length; idx++) {
+        if (d[idx].label.includes(label)) {
+            d[idx].lines.show = true;
+        }
+    }
+    g_graph_inst.draw();
+}
+function toggle_highlight_line_by_label(label) {
+    var d = g_graph_inst.getData();
+    for (var idx = 0; idx < d.length; idx++) {
+        if (d[idx].label.includes(label)) {
+            toggle_highlight_line(d[idx]);
+        }
+    }
+}
+function toggle_highlight_line(series) {
+    if (series.lines.lineWidth < 2) {
+        series.lines.lineWidth *= 3;
+    }
+    else {
+        series.lines.lineWidth = 1.5;
+    }
+    g_graph_inst.draw();
+}
+
+function toggle_flot(idx) {
+    var d = g_graph_inst.getData();
+    d[idx].lines.show = !d[idx].lines.show;
+    g_graph_inst.draw();
+}
+
+var recovery_btn_state = {
+    toggle_on: false,
+    url: '/ALL/data/data_1424__1524.tsv'
+};
+// EVENT HANDLER
+// g_el.recovery_btn.onclick = function (e) {
+//     if(recovery_btn_state.toggle_on) recovery_btn_state.toggle_on = false;
+//     else recovery_btn_state.toggle_on = true;
+//     recovery_btn_render();
+//     get_data(recovery_btn_state.url, g_event_url);
+// }
+// FUNCTION
+var recovery_btn_render = function () {
+    if (recovery_btn_state.toggle_on)
+        g_el.recovery_btn.disabled = false;
+    else
+        g_el.recovery_btn.setAttribute("disabled", "true");
+};
+
+var g_subgraph_inst;
+var g_event_data;
+var _CSV_TYPE_ = "RAW_DATA";
+// var g_data_url        = "/ALL/data/data_1424__1524.tsv";
+var g_data_url = "/ALL/data/data_22A_1207_ALL_2.csv";
+var g_event_url = "/ALL/data/raw/event.csv";
+var fn_onload = function() {
+console.log("fn_onload");
+    // 카랜덱스 초기화 후, 그래프 초기화
+    Calendex.init(function () {
+        get_data(g_data_url, g_event_url);
+        setInterval(refresh_graph, 60000);
+    });
+    // EVENT HANDLER
+    // 데이터 선택 시에 실행
+    if(g_el.sel_data_url !== null) g_el.sel_data_url.addEventListener("change", function (e) {
+        // CLEAR
+        Calendex.init();
+        g_graph_inst.destroy();
+        $(g_el.graph).off("plotclick").off("plotselected").off("plothover");
+        // INIT
+        g_data_url = e.target.value;
+        get_data(g_data_url, g_event_url);
+    });
+    // 라벨 그룹 선택 시에 실행
+    if(g_el.sel_label_group !== null) g_el.sel_label_group.addEventListener("change", refresh_legend);
+};
+/* -------------------------------------------------------------------------- */
+/*                                  EVENT HANDLER                             */
+/* -------------------------------------------------------------------------- */
+function run_diagnostic(url, p_url) {
+    g_data_url = url;
+    recovery_btn_state.toggle_on = true;
+    recovery_btn_state.url = p_url;
+    recovery_btn_render();
+    get_data(g_data_url, g_event_url);
+}
+function zoom_in() {
+    var sel = g_graph_inst.getSelection();
+    // $.each(plot.getXAxes(), function(_, axis) {
+    //     var opts = axis.options;
+    //     opts.min = ranges.xaxis.from;
+    //     opts.max = ranges.xaxis.to;
+    // });
+    g_graph_inst.getXAxes().map(function (axis, idx) {
+        var opts = axis.options;
+        opts.min = sel.xaxis.from;
+        opts.max = sel.xaxis.to;
+    });
+    g_graph_inst.setupGrid();
+    g_graph_inst.draw();
+    g_graph_inst.clearSelection();
+}
+function zoom_out() {
+    g_graph_inst.getXAxes().map(function (axis, idx) {
+        var opts = axis.options;
+        delete opts.min;
+        delete opts.max;
+    });
+    g_graph_inst.setupGrid();
+    g_graph_inst.draw();
+    g_graph_inst.clearSelection();
+}
+/* -------------------------------------------------------------------------- */
+/*                                  FUNCTION SET                              */
+/* -------------------------------------------------------------------------- */
+//(A)BM, (A)AM, (A)Bl, (A)FL, (A)Pr, (W)Hu, (W)SI, (W)SO, (H)EX, (H)DI, (H)Wa, (H)SI, (H)SO, (H)EO
+function subgraph_init(json) {
+    var line_opt = init_line_opt(json);
+    delete line_opt.tooltip;
+    line_opt.xaxis.show = false;
+    var _ticks = [
+        [0, "NOR"], [1, '<span style="color: green">(A)MB</span>'], [2, '<span style="color: green">(A)MA</span>'], [3, '<span style="color: green">(A)BL</span>'],
+        [4, '<span style="color: green">(A)FL</span>'], [5, '<span style="color: green">(A)PR</span>'], [6, '<span style="color: blue">(W)HU</span>'],
+        [7, '<span style="color: blue">(W)SI</span>'], [8, '<span style="color: blue">(W)SO</span>'],
+        [9, '<span style="color: red">(T)EX</span>'], [10, '<span style="color: red">(T)DI</span>'], [11, '<span style="color: red">(T)WT</span>'],
+        [12, '<span style="color: red">(T)SI</span>'], [13, '<span style="color: red">(T)SO</span>'], [14, '<span style="color: red">(T)EO</span>'],
+        [15, "Unknown"]
+    ];
+    //[-1, "AIR"],[-2, "WATE"],[-3, "THER"],[-4, "OTHE"],[-5,""]];
+    line_opt.crosshair.color = "rgba(0, 200, 0, 0.7)";
+    line_opt.yaxis = { labelWidth: 30, autoscalMargin: 0.02, ticks: _ticks, showTicks: true };
+    line_opt.yaxes = [{ position: "left", axisLabel: "Place", show: true, min: 0, max: 15 }];
+    g_subgraph_inst = $.plot(g_el.subgraph, json, line_opt);
+}
+function subgraph_refresh(json) {
+    var line_opt = init_line_opt(json);
+    g_subgraph_inst.setData(json);
+    g_subgraph_inst.setupGrid();
+    g_subgraph_inst.draw();
+}
+// var graph_el = document.querySelector("#graph");
+function mark_flot(json) {
+
+    var line_opt = init_line_opt(g_graph_data);
+    // >>>>>>> 그래프에 마킹
+    line_opt = init_mark_opt(line_opt, g_graph_data, json);
+    // <<<<<<< 그래프에 마킹
+    g_graph_inst = $.plot(g_el.graph, g_graph_data, line_opt);
+    //
+    var CLICK_CNT = 0;
+    var TIME_QUEUE = [];
+    var FIRST_CLICK = 0;
+    var DELAY = { SINGLE: 250, DOUBLE: 500, TIMEOUT: 750, DROP: 1000 };
+    // 
+    function clear_time_queue() {
+        for (var i = 0; i < TIME_QUEUE.length; i++) {
+            clearTimeout(TIME_QUEUE[i]);
+        }
+        CLICK_CNT = 0;
+        TIME_QUEUE = [];
+    }
+
+    $(g_el.graph)
+        .on("plotclick", function (event, pos, item) {
+        if (item == undefined)
+            return;
+        CLICK_CNT++;
+        if (CLICK_CNT == 1) {
+            FIRST_CLICK = new Date().getTime();
+            function packet1() {
+                console.log("[plotclick]", item.series);
+                // 범례 하이라이트
+                toggle_highlight_line(item.series);
+                var label = item.series.label;
+                var elm = document.querySelector("[" + DATA_LEGEND_LABEL + "=\"" + label + "\"]");
+                // 범례 컬러박스 토글
+                toggle_color_box(elm);
+                // CLEAR
+                clearTimeout(TIME_QUEUE[0]);
+                clearTimeout(TIME_QUEUE[2]);
+                CLICK_CNT = 0;
+                TIME_QUEUE = [];
+            }
+            function packet2() {
+                console.log("[plotdblclick]", item.series);
+                // TODO: 그래프 확대
+                clear_time_queue();
+            }
+            function packet3() {
+                console.log("[plottripleclick]", event, pos, item);
+                // TODO: 선 하나만 표시
+                // CLEAR
+                clearTimeout(TIME_QUEUE[0]);
+                clearTimeout(TIME_QUEUE[1]);
+            }
+            function drop_packet() {
+                console.log("[drop]", event, pos, item);
+                clear_time_queue();
+            }
+            TIME_QUEUE.push(setTimeout(packet1, DELAY.SINGLE));
+            TIME_QUEUE.push(setTimeout(packet2, DELAY.DOUBLE));
+            TIME_QUEUE.push(setTimeout(packet3, DELAY.TIMEOUT));
+            TIME_QUEUE.push(setTimeout(drop_packet, DELAY.DROP));
+        }
+        else if (CLICK_CNT == 2) {
+            if ((new Date().getTime() - FIRST_CLICK) <= DELAY.DOUBLE) {
+                // console.log("double click", TIME_QUEUE);
+                clearTimeout(TIME_QUEUE[0]); // SINGLE CLICK 취소
+            }
+            else {
+                // console.log("loose double click", TIME_QUEUE);
+                clear_time_queue();
+            }
+        }
+        else {
+            // console.log("triple click", CLICK_CNT, TIME_QUEUE);
+            clearTimeout(TIME_QUEUE[0]); // SINGLE CLICK 취소
+            clearTimeout(TIME_QUEUE[1]); // DOUBLE CLICK 취소
+            CLICK_CNT = 0;
+        }
+    })
+        .on("plotselected", function (e, ranges) { });
+    // INIT FLOT DEFAULT SELECTION
+    g_graph_inst.setSelection({ yaxis: { from: 0, to: 100 } });
+}
+
+function ParseCSVToKeyValueJSON(txt) {
+    var header = [];
+    var json = txt.split("\n")
+    .map((r, i) => {
+        var map = {};
+        if(i == 0) header = r.split(",");
+        else { r.split(",").map((c, j) => map[header[j]] = c); }
+        return map;
+    })
+    .reduce((acc, d, i) => {
+        if(i == 0) return acc;
+        else { acc.push(d); return acc; }
+    }, []);
+    return json;
+}
+function xhr1_resolve(response) {
+    // euc-kr decode
+    var euckr_data = new Uint8Array(response);
+    var decoder = new TextDecoder('euc-kr');
+    var data = decoder.decode(euckr_data);
+    _CSV_TYPE_ = "RAW_DATA";
+    //
+    var json = _csv = DataPreprocessing.parse_csv(data);
+    // console.log("flot json:", json);
+    if (json.length == 0)
+        return;
+    var currentVal;
+    if (json.length <= 100) {
+        currentVal = json[json.length - 1].Current;
+    }
+    else {
+        currentVal = json[99].Current;
+    }
+    currentVal = Math.round(currentVal * 10) / 10;
+    var currentValDiv = document.getElementById("current_val");
+    if(currentValDiv !== null) currentValDiv.innerHTML = "Current : " + currentVal + "A";
+    // >>> CHECK TIME ORDERING
+    var time_order_idx = [], time_order_cnt = 0;
+    for (var i = 0; i < json.length - 1; i++) {
+        if (json[i].Time > json[i + 1].Time) {
+            time_order_idx.push(i);
+            time_order_cnt++;
+        }
+    }
+    if (time_order_cnt > 0) {
+        var msg = time_order_cnt + "개의 시간이 정렬 되어있지 않습니다.";
+        // alert(msg);
+        console.error(msg, time_order_idx.join(","));
+    }
+    // <<< CHECK TIME ORDERING
+    // var exam_data = init_data(exam_data);
+    // var flotdata = json_to_flotdata(json);
+    var header_list = Object.keys(json[0]);
+    
+    // >>> 240112 hjkim - SW센서 / BOP 진단결과
+    if(g_is_sw_sensor_graph) {
+        json = DataPreprocessing.json_to_flotdata(json);
+        // >>> 240122 hjkim - SW센서 / 소프트 그래프
+        
+        if(!SW_SENSOR_RAW_REUSE && g_ma_list.length) { 
+            var _ma_url = `${BASE_DATA_URI}/${g_el.yearly.value}/${g_el.monthly.value}/${g_el.daily.value}/${g_ma_list[0]}`;
+            var _once = true;
+            fetch(_ma_url).then(d => d.text())
+            .then(txt => ParseCSVToKeyValueJSON(txt))
+            .then(json => DataPreprocessing.json_to_flotdata(json))
+            // .then(debug => {console.log("debug:", debug); return debug;})
+            // .then(flot_data => flot_data.filter(d => ((d.label.indexOf("R_") > -1) || (d.label.indexOf("Result") > -1))) )
+            .then(flot_data => flot_data.filter(d => ((d.label.indexOf("R_") > -1))) )
+            .then(soft_sensor => {
+                console.log(soft_sensor);
+                if(soft_sensor.length) SoftSensor.Init_sw_sensor_graph(soft_sensor);
+                else { console.error("MA를 fetch 했지만, Soft 센서가 데이터가 없음!");
+                    SoftSensor.Init_sw_sensor_graph({});
+                }
+            });
+        
+        } else { 
+            // var sw_sensor = json.filter(d => ((d.label.indexOf("R_") > -1) || (d.label.indexOf("Result") > -1)) );
+            var soft_sensor = json.filter(d => ((d.label.indexOf("R_") > -1) ) );
+            if(soft_sensor.length) SoftSensor.Init_sw_sensor_graph(soft_sensor);
+            else { console.error("raw데이터를 REUSE 했지만, Soft 센서 데이터가 없음!");
+                SoftSensor.Init_sw_sensor_graph({});
+            };
+        }
+        // <<< 240122 hjkim - SW센서 / 소프트 그래프
+        SoftSensor.Init_bop_barchart(json);
+        // g_graph_data = json.filter(d => ((d.label.indexOf("R_") < 0) && (d.label.indexOf("Result") < 0)) ); // SW센서 제외
+        g_graph_data = json.filter(d => (
+            (d.label.indexOf("P_A_m_out") == 0) ||
+            (d.label.indexOf("P_A_B_in") == 0)  ||
+            (d.label.indexOf("Air") == 0) 	||
+            (d.label.indexOf("MFM3") == 0) 	||
+            (d.label.indexOf("T_A_S_in") == 0)  ||
+            (d.label.indexOf("T_A_S_out") == 0) ||
+            (d.label.indexOf("T_A_vent") == 0)  ||
+            (d.label.indexOf("DI(") == 0) 	||
+            (d.label.indexOf("Water") == 0) 	||
+            (d.label.indexOf("T_w_h_in") == 0) 	||
+	    // >>> 240306 hjkim - 주요 변수 추가
+	    (d.label.indexOf("T_w_h_out") == 0)
+	    // >>> 240306 hjkim - 주요 변수 추가
+		// >>> 240307 hjkim - 주요 변수 추가
+		|| (d.label.indexOf("T_A_B_in") == 0)
+		|| (d.label.indexOf("T_A_m_out") == 0)
+		|| (d.label.indexOf("P_A_S_in") == 0)
+		|| (d.label.indexOf("P_A_S_out") == 0)
+		|| (d.label.indexOf("T_w_t_in") == 0)
+		|| (d.label.indexOf("T_w_t_out") == 0)
+		|| (d.label.indexOf("P_w_p_in") == 0)
+		|| (d.label.indexOf("P_w_p_out") == 0)
+		|| (d.label.indexOf("MFM1") == 0)
+		|| (d.label.indexOf("P_w_h_out") == 0)
+		|| (d.label.indexOf("T_DI_h_out") == 0)
+		|| (d.label.indexOf("T_DI_s_out") == 0)
+		|| (d.label.indexOf("DI_Conductivity") == 0)
+		|| (d.label.indexOf("P_DI_p_in") == 0)
+		|| (d.label.indexOf("P_DI_p_out") == 0)
+		|| (d.label.indexOf("MFM2") == 0)
+		|| (d.label.indexOf("T_DI_S_in") == 0)
+		|| (d.label.indexOf("T_F_S_in") == 0)
+		|| (d.label.indexOf("T_F_S_out") == 0)
+		|| (d.label.indexOf("P_F_S_in") == 0)
+		|| (d.label.indexOf("MFC1") == 0)
+		|| (d.label.indexOf("MFC2") == 0)
+		|| (d.label.indexOf("Voltage") == 0)
+		|| (d.label.indexOf("Current") == 0)
+		// <<< 240307 hjkim - 주요 변수 추가
+        )); // 범례 센서 리스트
+    }
+    // >>> 240112 hjkim - SW센서 / BOP 진단결과
+    else g_graph_data = DataPreprocessing.json_to_flotdata(json);
+	return g_graph_data;
+}
+function _get_location(href) {
+    var l = document.createElement("a");
+    l.href = href;
+    return l;
+}
+function get_data(data_url, event_url, cb_done) {
+    // var url = "/HJ_FOLDER/230106__guided_chart/sample_data.csv";
+    // 2개의 XHR을 동기화 하는 플래그
+    var xhr1_complete = false;
+    var xhr2_complete = false;
+    // var xhr3_complete = false;
+    // function is_complete_all() { return xhr1_complete && xhr2_complete && xhr3_complete; }
+    function is_complete_all() { return xhr1_complete && xhr2_complete; }
+    var xhr1 = new XMLHttpRequest();
+    var xhr2 = new XMLHttpRequest();
+    // var xhr3 = new XMLHttpRequest();
+    xhr1.open("GET", data_url, true); // 상단 그래프 데이터 & 하단 그래프 데이터
+    // >>>>>>> 230531 hjkim - 파일 캐시 요청
+    _cache_work(xhr1, data_url);
+    // <<<<<<< 230531 hjkim - 파일 캐시 요청
+    xhr1.responseType = 'arraybuffer';
+    xhr2.open("GET", event_url, true); // 상단 그래프 이벤트 데이터
+    // xhr3.open("GET", 'min_max.csv'+"?cache_disabled="+new Date().getTime(), true);  // 상단 그래프 min/max 데이터
+    xhr1.addEventListener("load", function (res) {
+        if (res.target == null)
+            throw "target is null";
+        xhr1_complete = true;
+        resolve_all();
+    });
+    xhr2.addEventListener("load", function (res) {
+        // 가이드선 그리기
+        if (res.target == null)
+            throw "target is null";
+        xhr2_complete = true;
+        resolve_all();
+    });
+    // xhr3.addEventListener("load", function(res) {
+    //     // 가이드선 그리기
+    //     if(res.target == null) throw "target is null";
+    //     xhr3_complete = true;
+    //     resolve_all();
+    // });
+    xhr1.send(); // 그래프 
+    xhr2.send();
+    // xhr3.send();
+    // -------------------------------------
+    function resolve_all() {
+        if (is_complete_all()) {
+            // >>>>>>> 230531 hjkim - 파일 캐시 작업
+            if (xhr1.getResponseHeader("Last-Modified") != null) {
+                // console.log("#cache", xhr1.responseURL, xhr1.getResponseHeader("Last-Modified"));
+                localStorage.setItem(_get_location(xhr1.responseURL).pathname, xhr1.getResponseHeader("Last-Modified"));
+            }
+            // <<<<<<< 230531 hjkim - 파일 캐시 작업
+            g_graph_data = xhr1_resolve(xhr1.response);
+            xhr2_resolve();
+            crosshair_resolve();
+            // 230324 hjkim - HIDE Series
+            try {
+                document.querySelectorAll(".legend_text")[35].click();
+                document.querySelectorAll(".legend_text")[36].click();    
+            } catch (error) {
+                //console.error("범례 div가 마련되지 않았습니다.");
+            }
+
+            // >>> 240112 hjkim - SW센서 / BOP 진단결과
+            if(g_graph_data.length) {
+		    let stimestamp = g_graph_data[0].data[0][0];
+		    let etimestamp = g_graph_data[0].data[g_graph_data[0].data.length-1][0];
+		    // >>> 240222 hjkim - stack bar 드로잉
+		    let _filtered_data = g_impedentce_uri_list
+			    .filter(d => (stimestamp <= d.timestamp && d.timestamp <= etimestamp));
+		    let unique_ts_arr = [... new Set(_filtered_data)];
+		    SoftSensor.Init_stack_barchart(_filtered_data, stimestamp, etimestamp);
+		    // <<< 240222 hjkim - stack bar 드로잉
+            }
+            document.body.dispatchEvent(new CustomEvent("data_refreshed"));
+            // <<< 240112 hjkim - SW센서 / BOP 진단결과
+	    // >>> 240307 hjkim - 	
+	    if(cb_done) cb_done();
+	    // <<< 240307 hjkim - 
+        }
+    }
+    function xhr2_resolve() {
+        // 이벤트 데이터 파싱 후 전역변수(g_event_data)에 저장
+        _CSV_TYPE_ = "EVENT_DATA";
+        var data = xhr2.responseText;
+        var event_json = DataPreprocessing.parse_csv(data);
+        g_event_data = event_json;
+
+        // 그래프에 마킹
+        mark_flot(event_json);
+        if(g_el.custom_legend == null) return;
+        g_el.custom_legend.innerHTML = "";
+        make_legend(4, g_graph_data);
+        // var subgraph_json = g_graph_data.filter(function (n, i, arr) { return (n.label.includes("Result")); });
+        
+        // SUBGRAPH PART
+        try {
+            BarcodeChart.IBarcode_chart_done();
+            BarcodeChart.IBarcode_chart_init(g_impedentce_uri_list);    
+        } catch (error) {
+            //console.error("BarcodeChart js가 로딩되지 않았습니다.");
+        }
+        
+    }
+
+    function crosshair_resolve() {
+        // 230324 hjkim - Plot Crosshair Sync
+        $(g_el.graph).bind("plothover", function (e, pos) {
+            // g_subgraph_inst.setCrosshair(pos); 
+            try {
+                if (BarcodeChart.IBarcode_vertical_crosshair != undefined) {
+                    // console.log("#pos", pos);
+                    BarcodeChart.IBarcode_vertical_crosshair(pos.pageX);
+                }
+            } catch (error) {
+                //console.error("BarcodeChart가 로딩되지 않았습니다.");
+            }
+        });
+        $(g_el.subgraph).bind("plothover", function (e, pos) { g_graph_inst.setCrosshair(pos); });
+    }
+}
+var COLOR_RED_OPACITY = "rgba(255, 0, 0, 1)";
+var COLOR_GREY = "rgba(128, 128, 128, 1)";
+var COLOR_GREY_OPACITY = "rgba(128, 128, 128, .5)";
+var COLOR_GREEN_OPACITY = "rgba(0, 255, 0, .5)";
+var COLOR_GREEN = "rgba(0, 255, 0, 1)";
+var COLOR_CYAN_OPACITY = "rgba(0, 255, 255, .5)";
+var COLOR_CYAN = "rgba(0, 255, 255, 1)";
+var COLOR_YELLOW_OPACITY = "rgba(255, 255, 0, .5)";
+var COLOR_YELLOW = "rgba(255, 255, 0, 1)";
+var COLOR_BLACK = "rgba(0, 0, 0, 1)";
+var g_toggle_marking = true;
+function toggle_marking() {
+    if (g_toggle_marking) {
+        g_toggle_marking = false;
+        clear_mark_opt();
+    }
+    else {
+        g_toggle_marking = true;
+        init_mark_opt(g_graph_inst.getOptions(), g_graph_data, g_event_data);
+    }
+}
+function clear_mark_opt() {
+    g_graph_inst.getOptions().grid.markings = function () { return false; };
+    g_graph_inst.draw();
+}
+function init_mark_opt(option, data, event) {
+    // 
+    if (event == undefined || event == null)
+        throw "init_mark_opt() arg2 error.";
+    // 
+    function get_marking() {
+        // [ {sTime: unixtime, eTime: unixtime, Memo: string}, ...]
+        var r = [];
+        for (var i = 0; i < event.length; i += 1) {
+            // if(event[i].Memo.includes("정상")) {
+            // >>>>>>> 이벤트 유형 분류
+            if (event[i].Type.includes('N')) { // N_ : 정상
+                r.push({ color: COLOR_GREEN_OPACITY, xaxis: { from: event[i].sTime, to: event[i].eTime } }); // 레이블 마커 색칠
+                var tag_pos = (event[i].eTime - event[i].sTime) / 2 + event[i].sTime;
+                r.push({ color: COLOR_GREEN, xaxis: { from: tag_pos, to: tag_pos - 1, tag: event[i].Memo } }); // 레이블 태그명
+            }
+            else if (event[i].Type.includes('C')) { // C_ : 온도
+                    var tag_pos = (event[i].eTime - event[i].sTime) / 2 + event[i].sTime;
+                    r.push({ color: COLOR_GREY, xaxis: { from: tag_pos, to: tag_pos, tag: event[i].Memo } }); // 레이블 태그명
+            }
+            else if (event[i].Type.includes('IM')) { // IM : 임피던스 측정
+                r.push({ color: COLOR_YELLOW_OPACITY, xaxis: { from: event[i].sTime, to: event[i].eTime } }); // 레이블 마커 색칠
+                var tag_pos = (event[i].eTime - event[i].sTime) / 2 + event[i].sTime;
+                r.push({ color: COLOR_BLACK, xaxis: { from: tag_pos, to: tag_pos - 1, tag: event[i].Memo } }); // 레이블 태그명
+            }
+            else { // FT : 실패 등등..
+                r.push({ color: COLOR_GREY_OPACITY, xaxis: { from: event[i].sTime, to: event[i].eTime } }); // 레이블 마커 색칠
+                var tag_pos = (event[i].eTime - event[i].sTime) / 2 + event[i].sTime;
+                r.push({ color: COLOR_RED_OPACITY, xaxis: { from: tag_pos, to: tag_pos - 1, tag: event[i].Memo } }); // 레이블 태그명
+            }
+        }
+        return r;
+    }
+    //
+    option.grid.markings = function () { return get_marking(); };
+    return option;
+}
+function init_line_opt(data) {
+    function toolTipFuncForTraffic(label, xval, yval, flotItem) {
+        // console.log("tooltip/data", data);
+        // var data = g_graph_data; // 230316 hjkim - 그래프 갱신 후, 툴팁 오류 수정
+        // 범례명 : label
+        // x축 값 : xval
+        // y축 값 : yval
+        // 그래프 옵션 : flotItem
+        var html = "<b>▶%x</b><br>";
+        var xpos = flotItem.datapoint[0];
+        var ypos = flotItem.datapoint[1];
+        var timestamp = Math.floor(xpos / 1000) * 1000;
+        var adjXpos;
+        var i;
+        var max;
+        // 스플라인을 위한 x축 인덱스 조정.
+        for (i = 0, max = data[0].data.length; i < max; i += 1) {
+            if (timestamp == data[0].data[i][0]) {
+                adjXpos = i;
+                break;
+            }
+        }
+        // bps 차트 툴팁
+        for (i = 0, max = data.length; i < max; i += 1) {
+            // if (i === max / 2) {
+            //     html += "<hr style='border-top: 1px solid #333; margin: 3px 0px;'></hr>";
+            // }
+            if (flotItem.seriesIndex === i) {
+                // 선택한 시계열 하이라이트 처리
+                html += "<div style='width:4px;height:0;border:5px solid ";
+                html += data[i].color + ";overflow:hidden;display:inline-block;'></div> ";
+                // 레이블 명
+                html += "<b><u>" + data[i].label + ":" + (ypos);
+                // 데이터 값
+                html += "</u></b>" + "<br>";
+            }
+            else {
+                html += "<div style='width:4px;height:0;border:5px solid ";
+                html += data[i].color + ";overflow:hidden;display:inline-block;'></div> ";
+                // 레이블 명 : 데이터 값
+                html += data[i].label + ":" + (data[i].data[flotItem.dataIndex][1]);
+                html += "<br>";
+            }
+        }
+        return html;
+    }
+    var line_opt = {
+        series: {
+            stack: false,
+            lines: { show: true, lineWidth: 1.5 },
+            // curvedLines: {
+            //     apply: true, active: true, monotonicFit: true
+            // },
+            shadowSize: 0
+        },
+        legend: {
+            show: false,
+            container: document.querySelector("#legend_container"),
+            noColumns: 4
+        },
+        axisLabels: { show: true },
+        xaxis: {
+            position: "bottom",
+            axisLabel: "Time",
+            show: true,
+            mode: "time",
+            timezone: "browser",
+            tickLength: 0
+        },
+        yaxis: {
+            axisLabel: "℃", labelWidth: 30, autoscalMargin: 0.02
+        },
+        yaxes: [{
+                position: "left", axisLabel: "℃", show: true, min: -5, max: 100,
+                tickFormatter: function (v, axis) { return (v * 1).toFixed(axis.tickDecimals) + "℃"; }
+            }, {
+                position: "right", axisLabel: "kPa", min: -10, max: 120,
+                tickFormatter: function (v, axis) { return (v * 1).toFixed(axis.tickDecimals) + "kPa"; }
+            }],
+        crosshair: {
+            mode: "x",
+            color: "rgba(200, 0, 0, 0.7)",
+            lineWidth: 1
+        },
+        selection: {
+            mode: "x",
+            color: "#00BFFF",
+            minSize: 10 //number of pixels
+        },
+        grid: {
+            backgroundColor: "white",
+            clickable: true,
+            hoverable: true,
+            autoHighlight: true,
+            borderColor: {
+                top: "#e8e8e8",
+                right: "#e8e8e8",
+                bottom: "#e8e8e8",
+                left: "#e8e8e8"
+            },
+            margin: {
+                top: 30,
+                right: 10,
+                bottom: 20
+            },
+            borderWidth: {
+                top: 2,
+                right: 2,
+                bottom: 2,
+                left: 2
+            }
+        },
+        tooltip: {
+            show: true,
+            cssClass: "flotTip",
+            content: toolTipFuncForTraffic
+            // xDateFormat: "%y-%m-%d %h:%M:%S"
+        }
+    };
+    /*
+    switch(location.pathname) {
+      case "/FDC/work/dev/index.html":
+        line_opt.legend.show = false;
+      break;
+    }
+    */
+    return line_opt;
+}
+g_FlotOption.init_line_opt = init_line_opt;
+
+function init_data(data) {
+    var r = [];
+    for (var key in data) {
+        if (Object.hasOwnProperty.call(data, key)) {
+            var element = data[key];
+            element.map(function (el) {
+                el[0] = (new Date(el[0])).getTime();
+                console.log(el[0]);
+            });
+            r.push({ label: key, data: element });
+        }
+    }
+    return r;
+}
+
+
+
+function parse_query_string(qs) {
+    var kv_arr = location.search.substr(1).split("&");
+    if (kv_arr.length == 0)
+        return { result: undefined };
+    var result = { result: undefined };
+    for (var i = 0; i < kv_arr.length; ++i) {
+        var kv = kv_arr[i].split("=", 2);
+        if (kv.length == 1)
+            result[kv[0]] = "";
+        else
+            result[kv[0]] = decodeURIComponent(kv[1].replace(/\+/g, " "));
+    }
+    return result;
+}
+
+var qs = parse_query_string(location.search);
+var arr = [];
+if (qs.result != undefined) {
+    arr = qs.result.trim().split(",");
+}
+
+// 230116 hjkim - DataPreprocessing : Pure function -> Object
+var DataPreprocessing = {
+    is_in_filter: null,
+    json_to_flotdata: null,
+    prev_t: null,
+    datestr_to_unixtime: null,
+    is_it_disallow: null,
+    trim_all: null,
+    parse_csv: null,
+    parse_tsv: null,
+    parse_xsv: null,
+    g_filter_arr: null
+};
+
+DataPreprocessing.g_filter_arr = get_sensor(arr[0], arr[1]);
+DataPreprocessing.parse_xsv = function (text, DELIM) {
+    if (text == undefined) {
+        throw "parse_tsv() arg1 is null";
+    }
+    if (DELIM != "\t" && DELIM != ",")
+        throw "parse_xsv() arg2 is error.";
+    var json = [];
+    var header = [];
+    text = text.trim();
+    var rows = text.split("\n");
+    header = rows[0].split(DELIM);
+    this.trim_all(header);
+    // >>> Find Time Column
+    var TIME_COLUMN = 1;
+    for (var i = 0; i < header.length; i += 1) {
+        if (header[i].includes("Time")) TIME_COLUMN = i;
+    }
+    // console.log("TIME_COLUMN: ", TIME_COLUMN);
+    if (i == header.length) i = -1;
+    // <<< Find Time Column
+    for (var i = 1; i < rows.length; i += 1) {
+        if(rows[i][0] == "#" && rows[i][1] == "#") continue; // 230630 hjkim - 주석처리 패싱
+        var rows_row = rows[i].split(DELIM);
+        this.trim_all(rows_row);
+        var json_row = {};
+        for (var j = 0; j < header.length; j += 1) {
+            if (rows_row[j] == "")
+                continue;
+            // console.log("TIME_COLUMN:", TIME_COLUMN);
+            switch (_CSV_TYPE_) {
+                case "RAW_DATA":
+                    if (j == TIME_COLUMN && TIME_COLUMN > -1) {
+                        // console.log("rows_row[Date, Time] : ", rows_row[j-1], ", ", rows_row[j]);
+                        rows_row[j] = this.datestr_to_unixtime(rows_row[j - 1], rows_row[j]);
+                    }
+                    break;
+                case "EVENT_DATA":
+                    if (0 <= j && j < 2) {
+                        // console.log("EVENT_DATA/ rows_row[j] :", rows_row[j]);
+                        rows_row[j] = new Date(rows_row[j]).getTime();
+                    }
+                    break;
+                default:
+                    if (j == TIME_COLUMN && TIME_COLUMN > -1) {
+                        rows_row[j] = this.datestr_to_unixtime(rows_row[j - 1], rows_row[j]);
+                    }
+                    break;
+            }
+            json_row[header[j]] = rows_row[j];
+        }
+        json.push(json_row);
+    }
+    return json;
+};
+
+DataPreprocessing.parse_tsv = function (text) {
+    return this.parse_xsv(text, "\t");
+};
+DataPreprocessing.parse_csv = function (text) {
+    return this.parse_xsv(text, ",");
+};
+DataPreprocessing.trim_all = function (obj) {
+    for (var i = 0; i < obj.length; i += 1) {
+        obj[i] = obj[i].trim();
+    }
+};
+DataPreprocessing.is_it_disallow = function (key) {
+    // console.log("is it disallow : ", key);
+    if (key.includes("blank"))
+        return true;
+    // if(key.includes("P_A_B_in")) return true;
+    if (key.includes("Power"))
+        return true;
+    return false;
+};
+DataPreprocessing.datestr_to_unixtime = function (date, time) {
+    if (date == null || date == undefined)
+        throw "datestr_to_unixtime() arg1 is null.";
+    if (time == null || time == undefined)
+        throw "datestr_to_unixtime() arg2 is null.";
+    var unixtime = 0;
+    var datestr = date.replaceAll("-", "/");
+    datestr += " ";
+    datestr += time.replaceAll("-", ":");
+    // console.log("datestr : ", datestr);
+    unixtime = new Date(datestr).getTime();
+    return unixtime;
+};
+DataPreprocessing.prev_t;
+DataPreprocessing.json_to_flotdata = function (arr) {
+    var flotdata = [];
+    var header = Object.keys(arr[0]);
+    for (var i = 2; i < header.length; i += 1) {
+        var k = header[i];
+        // console.log(k, this.is_in_filter(k));
+        if (!this.is_in_filter(k)) continue;
+        if (this.is_it_disallow(k)) continue;
+        // series : { label : "sth", data : [ [x,y], ...]}
+        // series : { label : "sth", data : [ [x,y], ...], yaxis: 2}
+        // series : { label : "sth", data : [ [x,y], ...], yaxis: 2, color: "#EFEFEF" }
+        var series;
+        if (_includes(k, "kPa")) {
+            series = { label: k, data: [], color: color_palette[i], yaxis: 2 };
+        }
+        else {
+            series = { label: k, data: [], color: color_palette[i] };
+        }
+        for (var j = 0; j < arr.length; j += 1) {
+            var t;
+            if (isNaN(arr[j]["Time"])) {
+                if (j == 0) { t = new Date().getTime(); }
+                else { t = (this.prev_t + 1); }
+                series.data.push([t, arr[j][k]]);
+                this.prev_t = t;
+            }
+            else series.data.push([arr[j]["Time"], arr[j][k]]);
+        }
+        flotdata.push(series);
+    }
+    return flotdata;
+};
+DataPreprocessing.is_in_filter = function (key) {
+    if (this.g_filter_arr == null)
+        return true;
+    if (this.g_filter_arr.length == 0)
+        return true;
+    var is_true = false;
+    for (var i = 0; i < this.g_filter_arr.length; i++) {
+        // if(g_filter_arr[i].includes(key)) return true;
+        if (key.includes(this.g_filter_arr[i]))
+            return true;
+    }
+    return is_true;
+};
+/* -------------------------------------------------------------------------- */
+/*                                  FUNCTION SET                              */
+/* -------------------------------------------------------------------------- */
+// >>>>>>> 230531 hjkim - 파일 캐시 요청
+function _cache_work(xhr, data_url) {
+    // >>> 240119 hjkim - 아차피 포팅 작업
+    if(location.host == "fuelcelldr.iptime.org") return;
+    // <<< 240119 hjkim - 아차피 포팅 작업
+    xhr.setRequestHeader("Cache-Control", "public, max-age=86400");
+    var agent = window.navigator.userAgent.toLowerCase();
+    // @ts-ignore
+    if (agent.indexOf("chrome") > -1 && !!window.chrome) { // 크롬일 경우에만 파일 캐시 요청
+        if (localStorage.getItem(data_url)) {
+            var cached_date = localStorage.getItem(data_url);
+            xhr.setRequestHeader("If-Modified-Since", cached_date);
+        }
+        else { }
+    }
+}
+// <<<<<<< 230531 hjkim - 파일 캐시 요청
+function refresh_graph() {
+    if (g_el.auto_reload != null && !g_el.auto_reload.checked) return; // 자동갱신 ON/OFF
+    var xhr = new XMLHttpRequest();
+    
+    xhr.open("GET", g_data_url, true);
+    // >>>>>>> 230531 hjkim - 파일 캐시 요청
+    _cache_work(xhr, g_data_url);
+    // <<<<<<< 230531 hjkim - 파일 캐시 요청
+    
+    xhr.responseType = 'arraybuffer';
+    
+    xhr.addEventListener("load", function (res) {
+        
+        console.log("#XHR.response");
+        g_graph_data = xhr1_resolve(xhr.response);
+        console.log("refresh_graph() / g_graph_data = ", g_graph_data);
+		
+        // REFRESH GRAPH
+        setTimeout(() => {
+		var line_opt = init_line_opt(g_graph_data);
+		init_mark_opt(line_opt, g_graph_data, g_event_data);
+		g_graph_inst.setData(g_graph_data);
+		g_graph_inst.setupGrid();
+		console.log("g_graph_inst.draw()");
+		g_graph_inst.draw(); 
+
+		// >>> 240306 hjkim - 데이터 갱신 후, 범례 토글
+		document.body.dispatchEvent(new CustomEvent("data_refreshed"));	
+		// <<< 240306 hjkim - 데이터 갱신 후, 범례 토글
+		}, 100);
+        refresh_legend(null);
+        
+        // REFRESH SUBGRAPH
+        // let subgraph_json = g_graph_data.filter((n, i, arr) => (n.label.includes("Result"))  );
+        // subgraph_refresh(subgraph_json);
+        
+        // REFRESH BARCORD CHART
+        if(typeof BarcodeChart != 'undefined') {
+            BarcodeChart.IBarcode_chart_done();
+            BarcodeChart.IBarcode_chart_init(g_impedentce_uri_list);
+        }
+
+    });
+    xhr.send(null);
+}
+
+function reload_graph(e, cb_done) {
+    // CLEAR
+    if(g_graph_inst != null) g_graph_inst.destroy();
+    // g_subgraph_inst.destroy();
+    $(g_el.graph).off("plotclick").off("plotselected").off("plothover");
+    $(g_el.subgraph).off("plotclick").off("plotselected").off("plothover");
+    // INIT
+    var daily = g_el.timely.value;
+    // g_data_url = `${BASE_DATA_URI}/${g_el.yearly.value}/${g_el.monthly.value}/${g_el.daily.value}/${daily};reqtime=${new Date().getTime()}`;
+    g_data_url = `${BASE_DATA_URI}/${g_el.yearly.value}/${g_el.monthly.value}/${g_el.daily.value}/${daily}`;
+    get_data(g_data_url, g_event_url, cb_done);
+    // SUBGRAPH PART
+    try {
+        BarcodeChart.IBarcode_chart_done();
+        BarcodeChart.IBarcode_chart_init(g_impedentce_uri_list);    
+    } catch (error) {
+        console.error("BarcordChart js가 로딩되지 않았습니다.");
+    }
+}
+Interface.reload_graph = reload_graph;
+})(TimeSeriesPlot);
+
+function zero_pad(n) { return (n < 10) ? "0" + n : n; }
+const IMPEDANCE_LIST = "/ALL/data/impedance/imp_data/";
+var g_impedentce_uri_list = []; // 임피던스 이미지 데이터로 서브 그래프 툴팁에서 사용
+var Calendex = {
+	backtracking_cnt: 0, // 퇴각 검색 카운터로 콜백함수의 동작의 분기 제어
+	_fn_init_graph: null,
+
+	init: (fn_init_graph) => {
+		console.log("init");
+		if (fn_init_graph === void 0) { fn_init_graph = null; }
+		Calendex._fn_init_graph = fn_init_graph;
+		g_el.yearly.innerHTML = "<option value=-1 disabled>-년 선택-</option>";
+
+		// >>> 240108 hjkim - 선택된 항목 쿠키에서 읽기
+		var d = new Date();
+		var yyyy = (get_cookie("calendex_yearly") != null) ? get_cookie("calendex_yearly") : d.getFullYear();
+		var mm      = zero_pad((d.getMonth() * 1 + 1));
+		var dd      = zero_pad(d.getDate());
+		// <<< 240108 hjkim - 선택된 항목 쿠키에서 읽기
+
+		// >>> init yearly
+		for (var i = 0; i < g_yearly_list.length; i++) {
+			// >>> 240108 hjkim - 선택된 항목 쿠키에서 읽기
+			var _is_selected = (get_cookie("calendex_yearly") == g_yearly_list[i]) ? "selected" : "";
+			g_el.yearly.innerHTML += `<option value="${g_yearly_list[i]}" ${_is_selected}>${g_yearly_list[i]}</option>`;
+			// <<< 240108 hjkim - 선택된 항목 쿠키에서 읽기
+		}
+		// <<< init yearly
+
+		g_el.monthly.innerHTML  = "<option value=-1 disabled>-월 선택-</option>";
+		g_el.daily.innerHTML    = "<option value=-1 disabled>-일 선택-</option>";
+		g_el.timely.innerHTML   = "<option value=-1 disabled>-시 선택-</option>";
+
+		// 파일목록 추출
+		g_el.yearly.value = "" + yyyy;
+		Calendex.refresh_monthly({}, function (last_item) {
+
+			// >>> 240108 hjkim - 선택된 항목 쿠키에서 읽기
+			last_item = (get_cookie("calendex_monthly") != null) ? get_cookie("calendex_monthly") : last_item;
+			// <<< 240108 hjkim - 선택된 항목 쿠키에서 읽기
+
+			if (fn_init_graph) { 
+				g_el.monthly.value = last_item; 
+				Calendex.refresh_daily({}, fn_refresh_timely_cb); 
+			}
+		}, Calendex.refresh_monthly, Calendex._fn_init_graph);
+
+		// 일간 선택의 콜백함수로 arguments.callee를 쓰려면 익명함수를 쓸 수 없다.
+		function fn_refresh_timely_cb(last_item) {
+
+			// >>> 240108 hjkim - 선택된 항목 쿠키에서 읽기
+			last_item = (get_cookie("calendex_daily") != null) ? get_cookie("calendex_daily") : last_item;
+			// <<< 240108 hjkim - 선택된 항목 쿠키에서 읽기
+
+			g_el.daily.value = last_item;
+			// console.log("#QUNIT", last_item);
+			// 시 선택 갱신
+			Calendex.refresh_timely({}, function (last_item) {
+				// CSV / JPG 분류
+				g_el.timely.value = last_item;
+				if (g_graph_inst) { TimeSeriesPlot.reload_graph({ target: g_el.timely }); } /* 그래프가 있으면 그래프 갱신 */
+				else {
+					g_data_url = `${BASE_DATA_URI}/${g_el.yearly.value}/${g_el.monthly.value}/${g_el.daily.value}/${g_el.timely.value}`;
+					fn_init_graph(); /* 그래프가 없으면 그래프 초기화 함수 콜백 */
+				}
+			}, 
+				Calendex.refresh_daily, /* 퇴각검색을 위한 콜백함수 */
+				arguments.callee /* 퇴각검색을 위한 콜백파라미터 */);
+		}
+
+	},
+	refresh_monthly: (e, fn_done, fn_self, fn_backtracking_args) => {
+		// console.log("#QUNIT", g_el.yearly.value);
+		if (g_el.yearly.value == "-1") { return init_calendex(); }
+
+		access(`${BASE_DATA_URI}/${g_el.yearly.value}`, function (is_access, uri, contents) {
+			var uri_list = extract_uri_list(contents);
+			// >>> 240108  hjkim - 월간 데이터가 없음
+			var is_goal_reached = uri_list.length > 1;
+			// <<< 240108  hjkim - 월간 데이터가 없음
+			//
+			if(is_goal_reached) {
+				// init monthly
+				g_el.monthly.innerHTML = `<option value=-1 disabled>-월(${(uri_list.length - 1)}개)-</option>`;
+				for (var i = 1; i < uri_list.length; i++) { 
+					// >>> 240108 hjkim - 선택된 항목 쿠키에서 읽기
+					var _is_selected = (get_cookie("calendex_monthly") == uri_list[i]) ? "selected" : "";
+					g_el.monthly.innerHTML += `<option value="${uri_list[i]}">${uri_list[i]}</option>`; 
+					// <<< 240108 hjkim - 선택된 항목 쿠키에서 읽기
+				}
+				// init montyly
+				// INIT DAILY, INIT TIMELY
+				g_el.daily.innerHTML = "<option value=-1 disabled>-일 선택-</option>";
+				g_el.timely.innerHTML = "<option value=-1 disabled>-시 선택-</option>";
+				if (fn_done) fn_done(uri_list[uri_list.length - 1]);
+			} else {
+				// >>> 240108 hjkim - 다이얼로그 창
+				// var dialog_el = document.createElement("dialog");
+				// dialog_el.innerHTML = `<p>${g_el.yearly.value}년의 월간 데이터가 없습니다.</p>`;
+				// g_el.graph.parentElement.appendChild(dialog_el);
+				// dialog_el.showModal(); setTimeout(function() { dialog_el.close(); dialog_el.remove(); }, 3000);
+				// <<< 240108 hjkim - 다이얼로그 창
+
+				// >>> 240108  hjkim - 월간 데이터가 없음
+				g_el.yearly.value--;
+				fn_self({}, fn_done, fn_self, fn_backtracking_args);
+				// <<< 240108  hjkim - 월간 데이터가 없음
+			}
+		});
+	},
+	refresh_daily: (e, fn_refresh_timely_cb) => {
+
+		// if(e.is_backtracking) console.log("#BACKTRACK/e", e);
+		// console.log("#QUNIT", g_el.monthly.value);
+		if (g_el.monthly.value == "-1") { return init_calendex(); }
+		access(`${BASE_DATA_URI}/${g_el.yearly.value}/${g_el.monthly.value}`, function (is_access, uri, contents) {
+			var uri_list = extract_uri_list(contents);
+			var LAST_ITEM = uri_list.length - 1;
+			// >>> 240306 hjkim - 날짜 선택 버그 수정
+			// <<< 240306 hjkim - 날짜 선택 버그 수정
+			// >>> init daily
+			g_el.daily.innerHTML = `<option value=-1 disabled>-일(${(uri_list.length - 1)}개)-</option>`;
+			for (var i = 1; i < uri_list.length; i++) {
+				g_el.daily.innerHTML += `<option value="${uri_list[i]}">${uri_list[i]}</option>`;
+			}
+			// <<< init daily
+			// INIT TIMELY
+			g_el.timely.innerHTML = "<option value=-1 disabled>-시 선택-</option>";
+			// >>> 백트래킹
+			if (e.is_backtracking && fn_refresh_timely_cb) { fn_refresh_timely_cb(uri_list[LAST_ITEM - e.is_backtracking]); }
+			// <<< 백트래킹
+			else if (fn_refresh_timely_cb) fn_refresh_timely_cb(uri_list[LAST_ITEM]);
+		});
+	},
+	refresh_timely: (e, fn_init_or_reload_graph, fn_refresh_timely_cb, fn_backtracking_args) => {
+		// console.log("#QUNIT - refresh_timely : ", g_el.daily.value);
+		if (g_el.daily.value == "-1") { return init_calendex(); }
+
+
+		// 메인 그래프 데이터 목록 접근
+		access(`${BASE_DATA_URI}/${g_el.yearly.value}/${g_el.monthly.value}/${g_el.daily.value}`, function (is_access, uri, contents) {
+			var uri_list = extract_uri_list(contents);
+			// >>>>>>> url_list를 CSV와 JPG로 분류
+			var csv_list = [];
+			g_impedentce_uri_list = []; // 임피던스 이미지는 CSV 선택마다 초기화 되므로
+			// 추출된 uri 목록 파싱
+			for (var i = 1; i < uri_list.length; i++) {
+				// >>>>>>> CSV 메인 그래프 데이터 URI
+				if (_includes(uri_list[i], "csv")) { csv_list.push(uri_list[i]); }
+				// <<<<<<< 230526 hjkim - 임피던스 데이터
+			}
+			access(IMPEDANCE_LIST, function (is_access, uri, contents) {
+				var uri_list = extract_uri_list(contents);
+				//console.log("uri_list:", uri_list);
+				for (var i_1 = 0; i_1 < uri_list.length; i_1++) {
+					let url = uri_list[i_1];
+					if(_includes(url, ".txt") == false) continue;
+					// ex) "d2023-05-22-15-36_imp_Data_열_열교환기출구_부안.txt"
+					let _sp = url.split("_imp_Data_");
+					let _prefix = _sp[0].slice(1);
+					if(_sp[1] == undefined) continue;
+					let _postfix = _sp[1].slice(0, -4);
+					if(_prefix.length != 16) continue;
+					//console.log(_prefix, _postfix);
+					let _t = _prefix.split("-");
+					_ymd_hms = [_t[0],_t[1],_t[2]].join("-")+" "+[_t[3],_t[4]].join(":");
+					let _ts = new Date(_ymd_hms).getTime();
+					if(isNaN(_ts)) continue;
+					// >>> 240226 hjkim - Draw Nyquist Plot
+					// /ALL/data/impedance/imp_data/d2024-02-20-12-46_imp_Data_정상_부안_stk2_40A.txt
+					let _url = `${IMPEDANCE_LIST}/${uri_list[i_1]}`; 
+					// <<< 240226 hjkim - Draw Nyquist Plot
+
+					// >>> 240223 hjkim - meta-data for stack bar 드로잉
+					let obj = { timestamp: _ts, time: _ymd_hms, label: _postfix, url: _url };
+					g_impedentce_uri_list.push(obj);
+					// <<< 240223 hjkim - meta-data for stack bar 드로잉
+				}
+				g_impedentce_uri_list.sort((a, b) => a.timestamp - b.timestamp);
+				//console.log("g_impedentce_uri_list: ", g_impedentce_uri_list);
+			});
+			// <<<<<<< url_list를 CSV와 JPG로 분류
+
+			// >>>>>>> 시간선택 <select> 초기화
+			g_el.timely.innerHTML = `<option value=-1 disabled>-시(${csv_list.length}개)-</option>`;
+			switch(g_page_state) {
+				case 3:
+					_ma_file();
+					break;
+				default:
+					_single_file();
+					break;
+			}
+			
+			function _loading() {
+				var loading_el = document.createElement("div");
+				loading_el.style.position = "absolute";
+				loading_el.style.width = "100%";
+				loading_el.style.height = "100vh";
+				loading_el.style.top = 0;
+				loading_el.style.left = 0;
+				loading_el.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
+				loading_el.style.textAlign = "center";
+				loading_el.style.verticalAlign = "middle";
+				loading_el.style.zIndex = 100;
+				loading_el.innerHTML = "<br><br><br><h1>로딩중... <br>잠시만 기다려 주세요.</h1>";
+				document.body.appendChild(loading_el);
+				return loading_el;
+			}
+
+			// >>> 240122 hjkim - MA 데이터 필터링
+			function _ma_file() {
+				g_ma_list = csv_list.filter(d => d.indexOf("_ma") > -1);
+				g_el.timely.innerHTML += csv_list.filter(d => d.indexOf("_ma") < 0)
+					.map((d, i) => {
+						if(i == 0) return  `<option value="${d}" selected>${d}</option>`;
+						else return `<option value="${d}">${d}</option>`;
+					})
+					.reduce((acc_html, _html) => acc_html + _html);
+				document.querySelector("select#timely").selectedIndex = 1; // 초기 선택자 설정
+
+				var _loading_el = _loading();
+				// >>> 240307 hjkim - NOTE: 성능상 문제가 있으므로 향후 수정될 필요가 있음.
+				var _retry = setInterval( () => { 
+					if (g_graph_inst) {
+						var e = { target: g_el.timely };
+						TimeSeriesPlot.reload_graph( e, () => _loading_el.remove() ); 
+						clearInterval(_retry);
+					}
+				}, 100);
+				// <<< 240307 hjkim - NOTE: 성능상 문제가 있으므로 향후 수정될 필요가 있음.
+			}
+			// <<< 240122 hjkim - MA 데이터 필터링
+			function _single_file() {
+				for (var i = 0; i < csv_list.length; i++) {
+					if (i == csv_list.length - 1) { // 230411 hjkim - 첫번째 행 선택되도록 설정
+						g_el.timely.innerHTML += `<option value="${csv_list[i]}" selected>${csv_list[i]}</option>`;
+
+						var _loading_el = _loading();
+						// >>> 240307 hjkim - NOTE: 성능상 문제가 있으므로 향후 수정될 필요가 있음.
+						var _retry = setInterval( ()=> {
+							if (g_graph_inst) {
+								var e = { target: g_el.timely };
+								TimeSeriesPlot.reload_graph(e, () => _loading_el.remove() ); // 그래프 갱신
+								clearInterval(_retry);
+							}
+						}, 100);
+						// <<< 240307 hjkim - NOTE: 성능상 문제가 있으므로 향후 수정될 필요가 있음.
+
+					}
+					else g_el.timely.innerHTML += `<option value="${csv_list[i]}">${csv_list[i]}</option>`;
+				}
+			}
+			// <<<<<<< 시간선택 <select> 초기화
+
+			// >>>>>>> 230412 hjkim - 임피던스 이미지 추가로 인한 버그 수정 (csv 목록을 선택)
+			if (fn_refresh_timely_cb && csv_list.length == 1) {
+				Calendex.backtracking_cnt++;
+				fn_refresh_timely_cb({ is_backtracking: Calendex.backtracking_cnt }, fn_backtracking_args);
+			}
+			else if (fn_init_or_reload_graph) {
+				fn_init_or_reload_graph(csv_list[csv_list.length - 1]);
+			}
+			// <<<<<<< 230412 hjkim - 임피던스 이미지 추가로 인한 버그 수정
+		});
+	}
+
+};
+
+
+/* =======================================================
+			FUNCTION SET
+======================================================*/
+// >>> 240108 hjkim - 선택된 항목 쿠키에 저장
+function set_cookie(name, value, days_to_expire) {
+	var expiration_date = new Date();
+	expiration_date.setDate(expiration_date.getDate() + days_to_expire);
+	var cookie_str = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; expires=${expiration_date.toUTCString()}; path=/`;
+	document.cookie = cookie_str;
+}
+function get_cookie(name) {
+    name += "=";
+    var decoded_cookie = decodeURIComponent(document.cookie);
+    var cookie_arr = decoded_cookie.split(";");
+    for(var i = 0; i < cookie_arr.length; i++) {
+        var cookie = cookie_arr[i].trim();
+        if(cookie.indexOf(name) == 0) {
+            return cookie.substring(name.length, cookie.length);
+        }
+    }
+    return null;
+}
+// <<< 240108 hjkim - 선택된 항목 쿠키에 저장
+
+function access(uri, cb) {
+	try {
+		var xhr = new XMLHttpRequest();
+		xhr.onreadystatechange = function () {
+			if (xhr.readyState === 4) {
+				if (xhr.status === 200) {
+					return cb(true, uri, xhr.responseText);
+				}
+				else {
+					return cb(false, uri);
+				}
+			}
+			else {
+				// console.log("#QUNIT - uri, readyState : ", uri, xhr.readyState);
+			}
+		};
+		xhr.onerror = function () {
+			return cb(false, uri);
+		};
+		xhr.open("GET", uri, true);
+		xhr.send();
+	}
+	catch (e) {
+		return cb(false, uri);
+	}
+}
+
+function extract_uri_list(html) {
+    if(location.hostname == "fuelcelldr.iptime.org")
+    return extract_uri_list_apache(html);
+    else
+    return extract_uri_list_org(html);
+}
+function extract_uri_list_apache(html) {
+    var uri_list = [];
+    var dom = new DOMParser().parseFromString(html, "text/html");
+    var a_el = dom.querySelectorAll("td a");
+    for (var i = 0; i < a_el.length; i++) {
+        // console.log(a_el[i]);
+        // console.log(a_el[i].getAttribute("href"));
+        // console.log(li_el[i].innerHTML);
+        var _uri = a_el[i].getAttribute("href");
+        if(_uri.indexOf("%") > 0) _uri = decodeURIComponent(_uri);
+        uri_list.push(_uri);
+    }
+    return uri_list;
+}
+function extract_uri_list_org(html) {
+    var uri_list = [];
+    // 
+    var lines = html.split('\n');
+    lines.splice(0, 1);
+    html = lines.join('\n');
+    //
+    var dom = new DOMParser().parseFromString(html, "text/xml");
+    var a_el = dom.querySelectorAll("li a");
+    for (var i = 0; i < a_el.length; i++) {
+        // console.log(a_el[i]);
+        // console.log(a_el[i].getAttribute("href"));
+        // console.log(li_el[i].innerHTML);
+        uri_list.push(a_el[i].getAttribute("href"));
+    }
+    return uri_list;
+}
+
+function refresh_legend(e) {
+    if (e != null) { // 메뉴 상단에서 범례 그룹으로 갱신할 경우,
+        var v = e.target.value.split(",");
+        // 그래프 라벨 토글
+        // - 모두 끔
+        line_all_off();
+        toggle_all_off_legend();
+        // - 원하는 것만 켬
+        var arr = get_sensor(v[0], v[1]);
+        if (v[0] == 0) {
+            // 전체 범례 ON
+            line_all_on();
+            toggle_all_on_legend();
+        }
+        else {
+            // 부분 범례 ON
+            var text_el = document.querySelectorAll(".legend_text");
+            for (var j = 0; j < text_el.length; j += 1) { // 범례 루프
+                for (var i = 0; i < arr.length; i += 1) { // 범례 그룹 필터
+                    if (text_el[j].getAttribute(DATA_LEGEND_LABEL) != null
+                        // && text_el[j].getAttribute(DATA_LEGEND_LABEL).includes(arr[i])) { // 범례 매칭
+                        && _includes(text_el[j].getAttribute(DATA_LEGEND_LABEL), arr[i])) { // 범례 매칭
+                        toggle_flot_by_label(text_el[j].getAttribute(DATA_LEGEND_LABEL)); // 범례 토글
+                        
+                        var target = text_el[j];
+                        // 범례 체크
+                        if (target.getAttribute(DATA_LEGEND_CHECKED) == "true") {
+                            target.style = "text-decoration:line-through; color: grey;";
+                            target.setAttribute(DATA_LEGEND_CHECKED, "false");
+                        }
+                        else {
+                            target.style = "text-decoration:none;";
+                            target.setAttribute(DATA_LEGEND_CHECKED, "true");
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    else { // 그래프 갱신 후 범례를 갱신할 경우,
+        
+        // 선택된 범례만 갱신
+        line_all_off();
+        
+        // 부분 범례 ON
+        var text_el = document.querySelectorAll(".legend_text[" + DATA_LEGEND_CHECKED + "='true']");
+        // console.log("#QUNIT", `.legend_text[${DATA_LEGEND_CHECKED}='true']`, text_el, text_el.length);
+        for (var i = 0; i < text_el.length; i += 1) { // 범례 루프
+            // console.log("#QUNIT / text_el[i]", text_el[i]);
+            if (text_el[i].getAttribute(DATA_LEGEND_LABEL) != null) { // 범례 매칭
+                toggle_flot_by_label(text_el[i].getAttribute(DATA_LEGEND_LABEL)); // 범례 토글
+            }
+        }
+        
+        // 하이라이트된 범례만 갱신
+		if (!DATA_LEGEND_HIGHLIGHTED) return;
+        var elms = document.querySelectorAll("td [" + DATA_LEGEND_HIGHLIGHTED + "='true']");
+        console.log("# 하이라이트된 범례만 갱신 / elms", elms);
+        
+        for (var i = 0; i < elms.length; i++) {
+            // 범례 하이라이트
+            toggle_highlight_line_by_label(elms[i].getAttribute(DATA_LEGEND_LABEL));
+        }
+    }
+}
+
+function IRefresh_Legend(value) {
+    var e = { target: { value: "" } };
+    switch (value) {
+        case "STK":
+            e.target.value = "1,0";
+            break;
+        case "FUE":
+        case "UNK":
+            e.target.value = "6,0";
+            break;
+        case "THM":
+            e.target.value = "5,0";
+            break;
+        case "WTR":
+            e.target.value = "4,0";
+            break;
+        case "AIR":
+            e.target.value = "3,0";
+            break;
+        default:
+        case "NOR":
+            e.target.value = "0,0";
+            break;
+    }
+    g_el.sel_label_group.value = e.target.value;
+    refresh_legend(e);
+}
+function line_all_off() {
+    var d = g_graph_inst.getData();
+    for (var idx = 0; idx < d.length; idx++) {
+        d[idx].lines.show = false;
+    }
+    g_graph_inst.draw();
+}
+function toggle_all_off_legend() {
+    var text_el = document.querySelectorAll(".legend_text");
+    for (var i = 0; i < text_el.length; i += 1) {
+        toggle_off_legend(text_el[i]);
+    }
+}
+function toggle_off_legend(element) {
+    element.style = "text-decoration:line-through; color: grey;";
+    element.setAttribute(DATA_LEGEND_CHECKED, "false");
+}
+function get_sensor(s, c) {
+    var map_to_sensor = [
+        [],
+        ["Current", "Voltage", "T_DI_h_out", "T_DI_S_out"],
+        [],
+        // 3,0~5: 공기공급계
+        //["Voltage", "Current", //에기연 공기 변수
+        //"T_A_B_in", "P_A_B_in", "P_A_m_out", "T_A_m_out", "MFM1","Air"], //에기연 공기 변수
+        ["P_A_S_in", "P_A_m_out", "Air"],
+        // 4,0~2: 물관리계
+        //["T_A_S_out", "T_A_m_out", "T_A_S_in", "T_A_vent"], //에기연 물 변수
+        ["T_A_S_out", "T_A_S_in", "T_A_vent"],
+        // 5,0~12: 열관리계
+        //["Voltage", "Current", "T_w_h_out", "T_w_h_in", "T_DI_h_out", "T_DI_S_out", "T_DI_S_in", "T_w_t_out", //에기연 열 변수
+        //"MFM3", "MFM2", "DI_Pump(%)", "Water_Pump(%)" , "DI" , "Water"], //에기연 열 변수
+        ["T_w_h_out", "T_DI_S_in", "T_A_S_out", "DI_Pump(%)", "MFM2(DI", "DI(%)", "Water"],
+        // 6,0
+        //["Voltage", "Currnt"],
+        ["Voltage", "Current", "P_A_S_in", "P_A_m_out", "Air", "T_A_S_out", "T_A_S_in", "T_A_vent", "T_w_h_out", "T_DI_S_in", "DI_Pump(%)", "MFM2(DI", "DI(%)", "Water", "P_A_S_in"],
+    ];
+    if (0 < s && c == 0)
+        return map_to_sensor[s];
+    if (0 < s && 0 < c)
+        return [map_to_sensor[s][c]];
+}
+function _includes(str, niddle) {
+    return str.indexOf(niddle) !== -1;
+}
+function toggle_flot_by_label(label) {
+    var d = g_graph_inst.getData();
+    for (var idx = 0; idx < d.length; idx++) {
+        if (d[idx].label.includes(label)) {
+            d[idx].lines.show = !d[idx].lines.show;
+        }
+    }
+    g_graph_inst.draw();
+}
+function line_all_on() {
+    var d = g_graph_inst.getData();
+    for (var idx = 0; idx < d.length; idx++) {
+        d[idx].lines.show = true;
+    }
+    g_graph_inst.draw();
+}
+function toggle_all_on_legend() {
+    var text_el = document.querySelectorAll(".legend_text");
+    for (var i = 0; i < text_el.length; i += 1) {
+        toggle_on_legend(text_el[i]);
+    }
+}
+function toggle_on_legend(element) {
+    element.style = "text-decoration:none; background-color: yellow;";
+    element.setAttribute(DATA_LEGEND_CHECKED, "true");
+}
+
+/* 
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ 소프트센서 / BOP 진단결과                                                                                         │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+ */
+
+/* 
+* .소프트센서
+*   .소프트센서 그래프
+*       @requirement {XHR1} /ALL/data/yyyy/mm/dd/*_ma_softsensor.csv 질의결과
+*       @param  json
+*       @description    소프트센서 그래프는 SoftSensor.Init_sw_sensor_graph()로 트리거 되며 파라미터를 1개 넘겨 받는다.
+*       json은 /ALL/data/yyyy/mm/dd/*.csv 중 MA가 처리된 MA데이터이다.
+*
+*   .스택 바차트
+*       @requirement /ALL/data/impedance/imp_data/ 질의결과
+*       @requirement {XHR1} /ALL/data/yyyy/mm/dd/*.csv 질의결과 
+*       @param  g_impedentce_uri_list
+*       @param  stimestamp
+*       @parma  etimestamp
+*       @description   스택 바차트는 SoftSensor.Init_stack_barchart()로 트리거 되며 파라미터를 3개 넘겨 받는다. 
+*       g_impedentce_uri_list는 /ALL/data/impedance/imp_data/의 파일목록으로부터 필요한 정보를 얻어오므로
+*       임피던스 측정 기록에 대한 파일명이 필수이다. stimestamp와 etimestamp는 g_graph_data로부터 얻어 오는데
+*       /ALL/data/yyyy/mm/dd/*.csv의 첫번째 시각과 마지막 시각이 그 출처이다.
+*
+*   .BOP 바차트
+*       @requirement {XHR1} /ALL/data/yyyy/mm/dd/*.csv 질의결과
+*       @param  json
+*       @description   BOP 바차트는 SoftSensor.Init_bop_barchart()로 트리거 되며 파라미터를 1개 넘겨 받는다.
+*       json은 /ALL/data/yyyy/mm/dd/*.csv의 csv로부터 JSON을 도출하고 해당 JSON을 변환하여 Flot입력을 위한
+*       JSON으로 변환한 것이다.
+*   .
+*/
+
+
+// >>> 240105 hjkim =======================소프트 센서 / BOP 진단결과 ==========================
+var SoftSensor = {
+    // >>> 240226 hjkim - Redirect to stack.html
+    impedance_url: "",
+    // <<< 240226 hjkim - Redirect to stack.html
+    // >>> 240117 hjkim - SW센서 그래프
+    Init_sw_sensor_graph: (_data) => {
+        // 이미지 태그 삭제
+        var _img_el = document.querySelector(".widget.soft-senser-monitoring .widget-body img");
+        var _sw_el = document.querySelector(".widget.soft-senser-monitoring .widget-body .sw_sensor_graph");
+        if(_sw_el) { _sw_el.remove(); }
+        if(_img_el) { _img_el.remove(); }
+        // 그래프 그리k
+        var _placeholder_el = document.querySelector(".widget.soft-senser-monitoring .widget-body");
+	
+	// >>> 240223 hjkim - 툴팁 오버플로우 문제
+	var _overflow_el = document.querySelector(".widget.soft-senser-monitoring");
+	_overflow_el.style.overflow = "visible";
+	// <<< 240223 hjkim - 툴팁 오버플로우 문제
+	    
+        var _div_el = document.createElement("div");
+	    _div_el.className = "sw_sensor_graph";
+
+	// >>> 240227 hjkim - 날짜 컨트롤러 이동
+	_div_el.style = `height: ${_overflow_el.clientHeight-100}px;`;
+	let _before_el = document.querySelector(".widget.soft-senser-monitoring .widget-body .result"); 
+        _placeholder_el.insertBefore(_div_el, _before_el);
+	// <<< 240227 hjkim - 날짜 컨트롤러 이동
+	    
+        var _opt = g_FlotOption.init_line_opt(_data);
+        _opt.yaxes[0].max = 20;
+        _opt.yaxes[0].min = -10;
+	// >>> 240305 hjkim - Change y-axis label on softsensor.
+	_opt.yaxes[0].tickFormatter = (v, axis) => (v*1).toFixed(axis.tickDecimals);
+	// <<< 240305 hjkim - Change y-axis label on softsensor.
+        g_graph_soft = $.plot(_div_el, _data, _opt);
+    },
+    // <<< 240117 hjkim - SW센서 그래프
+
+    // >>> 240115 hjkim - 스택 측정 상태 바차트
+    Init_stack_barchart: (_data, timestamp_s, timestamp_e) => {
+        // 스택 그래프 그리기
+        SoftSensor.init_sth_for_stack();
+	// >>> 240222 hjkim - stack bar 드로잉
+	let _range = timestamp_e - timestamp_s;
+
+	let _group_by_data = {};
+	_data.map(d => {
+		if(!_group_by_data[d.label]) _group_by_data[d.label] = [];
+		_group_by_data[d.label].push(d);
+	});
+	//const html = _group_by_data[Object.keys(_group_by_data)[0]]
+	const html = _data
+	    .reduce((acc_html, d, idx) => {
+		    acc_html += SoftSensor.run_sth_for_stack(d, _range, timestamp_s)
+		    return acc_html;
+	    }, "");
+	SoftSensor.done_sth_for_stack(html);
+	// <<< 240222 hjkim - stack bar 드로잉
+    },
+    // <<< 240115 hjkim - 스택 측정 상태 바차트
+    // >>> 240115 hjkim - BOP 진단 상태 바차트
+    Init_bop_barchart: (_data) => {
+        // 진단 그래프 그리기
+        SoftSensor.init_sth_for_bop_result();
+        const html = _data.filter(d => d.label.indexOf("Result") == 0)
+        .map(d => {
+
+            var len = d.data.length;
+            var stime = d.data[0][0], etime = d.data[len-1][0];
+
+	    // >>> 240228 hjkim - RUN LENGTH 알고리즘
+	    var time_flag = {};
+	    const WINDOW_SIZE = 30*60*1000;
+		for(var i = 0; i < d.data.length; i++) {
+			for(var j = 0; j < WINDOW_SIZE; j++) {
+				if(i+j >= d.data.length) break;
+				if( _get_group(d.data[i][1]) != _get_group(d.data[i+j][1]) ) {
+					time_flag[ d.data[i+j][0] ] = d.data[i+j][1];
+					i += j;
+					break;
+				}
+			}
+		}
+	    // <<< 240228 hjkim - RUN LENGTH 알고리즘 
+
+	    // HTML 생성
+            return d.data.map(d => {
+                return [d[0]/*timestamp*/, d[1]/*result*/, stime, etime];
+            })
+            .reduce((acc_html, d, idx) => {
+                acc_html += SoftSensor.run_sth_for_bop_result( (d[0]-stime), d[1], (etime-stime), len, d, time_flag );
+                return acc_html;
+            }, "");
+        });
+        SoftSensor.done_sth_for_bop_result(html);
+
+	    function _get_group(n) {
+		    if(n == 0) return 1;
+		    else if(1 <= n && n < 6) return 2;
+		    else if(6 <= n && n < 9) return 3;
+		    else if(9 <= n && n < 15) return 4;
+		    else return 5;
+	    }
+    },
+    // <<< 240115 hjkim - BOP 진단 상태 바차트
+    
+    /* 
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │     FUNCTION SET for stack                                                  │
+    └─────────────────────────────────────────────────────────────────────────────┘
+     */
+    init_sth_for_stack: () => {
+        if(g_el.stack_event == null) return;
+        g_el.stack_event.innerHTML = "";
+	// >>> 240223 hjkim - stack chart 드로잉
+	if(g_el.barcode_graph == null) return;
+	for(var i = 0; i < g_el.barcode_graph.length; i++) {
+	    g_el.barcode_graph[i].style.float = "left";
+	}
+	// <<< 240223 hjkim - stack chart 드로잉 
+    },
+    run_sth_for_stack: (_data, _total_range, _timestamp_s) => {
+        if(g_el.stack_event == null) return;
+        
+        const STACK_CLASSNAME = "stack-bg-color";
+	// >>> 240222 hjkim - stack bar 드로잉
+        const TIME_PADDING = 1000*60*15; // +-15min = 1h
+        const s_ts = _data.timestamp - TIME_PADDING;
+        const e_ts = _data.timestamp + TIME_PADDING;
+	const _left_pos = (_data.timestamp - _timestamp_s) - TIME_PADDING;
+	// <<< 240222 hjkim - stack bar 드로잉
+        
+        let s_date = new Date(s_ts);
+        let e_date = new Date(e_ts);
+	let s_hh = s_date.getHours();
+	let e_hh = e_date.getHours();
+	let s_mm = s_date.getMinutes();
+	let e_mm = e_date.getMinutes();
+	function zero_pad(n) { return (n < 10) ? "0" + n : n; }
+        const s_time = `${zero_pad(s_hh)}:${zero_pad(s_mm)}`;
+        const e_time = `${zero_pad(e_hh)}:${zero_pad(e_mm)}`;
+	let msg = _data.label.split('_').join("<br>") + "<br>측정중...";
+	// >>> 240223 hjkim - stack 클릭 이벤트
+        var res = render_html(STACK_CLASSNAME, _left_pos/_total_range*100, (TIME_PADDING*2)/_total_range*100, `${s_time}~${e_time}`, msg, _data.url);
+	// <<< 240223 hjkim - stack 클릭 이벤트
+	// >>> 240227 hjkim - 스택바의 최근 값 출력
+	SoftSensor.impedance_url = _data.url; // last one
+	// >>> 240227 hjkim - 스택바의 최근 값 출력
+        return res;
+
+        function render_html(_sth_class, _left_pos, _time_padding, _date_text, _msg, _url) {
+		/*
+		<div class="line stack-bg-color" style="width: 3%;left: 12%">
+			<span class="tooltip-box">
+				<div class="tooltip-box-inner">
+					<div class="date">10:45~10:50</div>
+					<div class="text">Stack 측정</div>
+				</div>
+			 </span>
+		</div>
+		*/
+		// >>> 240223 hjkim - stack 클릭 이벤트
+        	return `
+		<div class="line ${_sth_class}" style="position:absolute; width:${_time_padding}%; left:${_left_pos}%;" onclick="SoftSensor.stack_click_handler('${_url}', event)">
+			<span class="tooltip-box">
+			    <div class="tooltip-box-inner">
+				<div class="date">${_date_text}</div>
+				<div class="text">${_msg}</div>
+			    </div>
+			</span>    
+		</div>`;
+		// <<< 240223 hjkim - stack 클릭 이벤트 
+        }
+
+    },
+    // >>> 240226 hjkim - Draw Nyquist Plot
+    stack_click_handler: (_url, e) => {
+	    // >>> 240228 hjkim - Stack bar에 데이터가 없을 경우,
+	    if(g_el.stack_event.lastElementChild == null) return;
+	    // <<< 240228 hjkim - Stack bar에 데이터가 없을 경우,
+	    // >>> 240227 hjkim - 선택시 클래스 표시
+	    if(e == null) g_el.stack_event.lastElementChild.classList.add("active");
+	    else {
+		    let _active_el = g_el.stack_event.querySelectorAll(".active");
+		    _active_el.forEach(el => el.classList.remove("active")); 
+		    e.target.classList.add("active");
+	    }
+	    // <<< 240227 hjkim - 선택시 클래스 표시
+	    
+	    // >>> 240227 hjkim - 스택바의 최근 값 출력
+	    SoftSensor.impedance_url = _url;
+	    // <<< 240227 hjkim - 스택바의 최근 값 출력 
+	    const _placeholder_el = document.querySelector(".widget.bop-senser-data .widget-body");
+	    _placeholder_el.innerHTML = "";
+
+	    // Nyquist Plot - Init
+	    var NyquistPlot = {};
+	    ImpedanceChart.Interface( NyquistPlot );
+	    NyquistPlot.IImpedanceChart_init( _placeholder_el, _placeholder_el.clientWidth, _placeholder_el.clientHeight );
+
+	    // Fetch impedance data from server.
+	    const M_OHM = 1000;
+	    const COLOR = "#00FF00";
+	    fetch(_url).then(d => d.text())
+		    .then( txt => txt.split("\n") )
+		    .then( row => row.map(d => d.split(" ") ) ) // to Arr
+	     	    .then( arr => arr.map(d => d.map( _d => _d*1) ) ) // to Number
+		    .then( arr => arr.map(d => { d[1]*= M_OHM; d[2]*= M_OHM*-1; return d; }))
+		    .then( d => {
+			    // Nyquist Plot - Run(Add Point)
+			    NyquistPlot._draw_imp_data( d, COLOR, _placeholder_el );
+		    });
+
+	    // Update Gadget Link
+	    const _gadget_el = document.querySelector(".widget.bop-senser-data .widget-head .widget-head-gadget");
+	    // >>> 240227 hjkim - gadget 링크에 이벤트 핸들러 추가
+	    _gadget_el.removeEventListener("click", SoftSensor.head_gadget_click_handler);
+	    _gadget_el.addEventListener("click", SoftSensor.head_gadget_click_handler);
+	    // >>> 240227 hjkim - gadget 링크에 이벤트 핸들러 추가
+    },
+    // >>> 240227 hjkim - gadget 링크에 이벤트 핸들러 추가
+    head_gadget_click_handler: () => {
+	    location.href = "stack.html?url=" + SoftSensor.impedance_url;
+    },
+    // >>> 240227 hjkim - gadget 링크에 이벤트 핸들러 추가
+    // <<< 240226 hjkim - Draw Nyquist Plot
+    done_sth_for_stack: (_html) => {
+        if(g_el.stack_event == null) return;
+	g_el.stack_event.style.position = "relative";
+        g_el.stack_event.innerHTML = _html;
+	// >>> 240227 hjkim - 스택바의 최근 값 출력 
+	SoftSensor.stack_click_handler(SoftSensor.impedance_url);
+	// >>> 240227 hjkim - 스택바의 최근 값 출력
+    },
+    /* 
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │     FUNCTION SET for BOP                                                    │
+    └─────────────────────────────────────────────────────────────────────────────┘
+    */
+    init_sth_for_bop_result : () => {
+        if(g_el.result_diagnosis == null) return;
+        g_el.result_diagnosis.innerHTML = "";
+    },
+    run_sth_for_bop_result : (relative_time, value, range, total_unit, d, time_flag) => {
+        if(g_el.result_diagnosis == null) return;
+        /*
+        Result
+        0  : 정상
+        1  : (공기)MFM 전 누설
+        2  : (공기)MFM 후 누설
+        3  : (공기)블로워
+        4  : (공기)유량센서
+        5  : (공기)압력센서
+        6  : (물)가습기
+        7  : (물)스택 입구 온도센서
+        8  : (물)스택 출구 온도센서
+        9  : (열)열교환기
+        10 : (열)1차 냉각수 펌프
+        11 : (열)2차 냉각수 펌프
+        12 : (열)스택 입구 온도센서
+        13 : (열)스택 출구 온도센서
+        14 : (열)열교환기 출구 온도센서
+        15 : 진단불가
+        */
+        var bg_color = "";
+        var normal_color = "";
+	// >>> 240228 hjkim - tooltip contents
+	var tooltip_contents = "";
+	// <<< 240228 hjkim - tooltip contents
+        switch(value) {
+            case "0": // green
+                bg_color = "";
+		// >>> 240228 hjkim - tooltip contents
+		tooltip_contents = "";
+		// <<< 240228 hjkim - tooltip contents
+                break;
+            case "1": // skyblue
+            case "2": // skyblue
+            case "3": // skyblue
+            case "4": // skyblue
+            case "5": // skyblue
+                bg_color = "air-bg-color";
+		// >>> 240228 hjkim - tooltip contents
+		tooltip_contents = "공기공급계";
+		// <<< 240228 hjkim - tooltip contents
+                break;
+            case "6": // blue
+            case "7": // blue
+            case "8": // blue
+                bg_color = "water-bg-color";
+		// >>> 240228 hjkim - tooltip contents
+		tooltip_contents = "물관리계";
+		// <<< 240228 hjkim - tooltip contents
+                break;
+            case "9": // pink
+            case "10": // pink
+            case "11": // pink
+            case "12": // pink
+            case "13": // pink
+            case "14": // pink
+                bg_color = "heat-bg-color";
+		// >>> 240228 hjkim - tooltip contents
+		tooltip_contents = "열관리계";
+		// <<< 240228 hjkim - tooltip contents
+                break;
+            default:
+                bg_color = "";
+		// >>> 240228 hjkim - tooltip contents
+		tooltip_contents = "";
+		// <<< 240228 hjkim - tooltip contents
+                break;
+        }
+	// >>> 240228 hjkim - tooltip contents
+	function zero_pad(n) { return (n < 10) ? "0" + n : n; }
+	var tooltip = "";
+	if( time_flag[d[0]] && tooltip_contents != "") {
+		var date = new Date( d[0] );
+		tooltip = `<span class="tooltip-box">
+			<div class="tooltip-box-inner">
+				<div class="date">${zero_pad( date.getHours() )}:${zero_pad( date.getMinutes() )}</div>
+				<div class="text">${tooltip_contents}(${value})</div>
+			</div>
+		</span>`;
+	}
+	// <<< 240228 hjkim - tooltip contents
+        return `
+	<div class="line ${bg_color}" debug="${value}" style="width:calc(${1/total_unit*100}%); ${normal_color}">
+	${tooltip}
+	</div>`;
+    },
+    done_sth_for_bop_result : (_html) => {
+        if(g_el.result_diagnosis == null) return;
+        g_el.result_diagnosis.innerHTML = _html;
+    }
+};
+
+
+// >>> 240122 hjkim - 범례 초기화 작업
+const hard_system = [
+    // >>> 240307 hjkim - 주요 변수 추가
+    //["P_A_m_out", "P_A_B_in", "Air", "MFM3"],
+    ["T_A_B_in", "P_A_B_in", "MFM3", "Air", "P_A_m_out", "T_A_m_out"],
+    //["T_A_S_in", "T_A_S_out", "T_A_vent"],
+    ["T_A_S_in", "T_A_S_out", "T_A_vent", "P_A_S_in", "P_A_S_out"],
+    // <<< 240307 hjkim - 주요 변수 추가
+    // >>> 240306 hjkim - 주요 변수 추가
+    //["DI", "Water", "T_w_h_in"],
+    //["DI", "Water", "T_w_h_in", "T_w_h_out"],
+    ["T_w_t_in", "T_w_t_out", "P_w_p_in", "P_w_p_out", "MFM1", "Water", "T_w_h_out", "T_w_h_in", "P_w_h_out", "T_DI_h_out",
+     "T_DI_S_out", "DI_Conductivity", "P_DI_p_out", "DI", "P_DI_p_out", "MFM2", "T_DI_S_in"],
+    ["T_F_S_in", "T_F_S_out", "P_F_S_in", "MFC1", "MFC2", "Current", "Voltage"],
+	// <<< 240306 hjkim - 주요 변수 추가
+];
+const soft_system = [
+    ["R_Air_deltaP", "R_Air_U", "R_Air_P1", "R_Air_V"],
+    ["R_Water_R1", "R_Water_R2", "R_Water_R3"],
+    ["R_heat", "R_Ms", "R_Mr"],
+];
+const hard_label = hard_system.join(",").split(",");
+const soft_label = soft_system.join(",").split(",");
+// const hard_graph = g_graph_inst;
+// const soft_graph = g_graph_soft;
+function adaptor_make_legend() {
+    const chk_els = document.querySelectorAll(".widget.HW-bop-senser-list input[type='checkbox']");
+    const chk_els2 = document.querySelectorAll(".widget.soft-senser-list input[type='checkbox']");
+    const group_els = document.querySelectorAll(".widget.HW-bop-senser-list span.group-title"); 
+    const deco_els = document.querySelectorAll(".widget.HW-bop-senser-list span.deco");
+    const group_els2 = document.querySelectorAll(".widget.soft-senser-list span.group-title"); 
+    const deco_els2 = document.querySelectorAll(".widget.soft-senser-list span.deco");
+	const check_all = document.querySelector(".widget.HW-bop-senser-list .widget-head-gadget .mini:nth-child(1)");
+	const except_all = document.querySelector(".widget.HW-bop-senser-list .widget-head-gadget .mini:nth-child(2)");
+    const check_all2 = document.querySelector(".widget.soft-senser-list .widget-head-gadget .mini:nth-child(1)");
+	const except_all2 = document.querySelector(".widget.soft-senser-list .widget-head-gadget .mini:nth-child(2)");
+// >>> 240123 hjkim - Hard 범례 바인딩
+	// 전체 선택/해제
+	check_all.addEventListener("click",  () => all_graph("on") );
+	except_all.addEventListener("click", () => all_graph("off") );
+	check_all2.addEventListener("click",  () => all_graph("on", g_graph_soft) );
+	except_all2.addEventListener("click", () => all_graph("off", g_graph_soft) );
+    // 그룹 범례 바인딩
+    Array.from(chk_els).filter(el => (el.nextSibling == null))
+    .map((el, idx)  => { el.click(); 
+		return el.addEventListener('change', () => { var _status = el.checked;
+			set_x_system_graph(idx, hard_system, g_graph_inst, _status);
+		});
+    });
+    // 개별 범례 바인딩
+    Array.from(chk_els).filter(el => (el.nextSibling != null))
+    .map((el, idx)  => {
+		el.addEventListener('change', () => { __group_chk_valid(el);
+			toggle_nth_graph(idx);
+		});
+	});
+    // 그룹 범례 볼드 바인딩
+    Array.from(group_els)
+    .map((el, idx)  => { el.style.fontWeight = "normal"; el.style.cursor = "pointer";
+        return el.addEventListener('click', () => { var _status = __style_bold(el);
+            Array.from(el.parentElement.querySelectorAll("span.deco:not(.square) span"))
+			.map(el => { el.style.fontWeight = _status; });
+			set_x_system_bold(idx, hard_system, g_graph_inst, _status);
+		});
+    });
+    // 개별 범례 볼드 바인딩
+    Array.from(deco_els).filter(el => (el.className.indexOf("square") == -1))
+	.map((el, idx) => { var new_span = document.createElement('span'); new_span.textContent = el.textContent;
+		el.lastChild.nodeValue = ""; el.appendChild(new_span); return new_span; })
+    .map((el, idx) => { el.style.fontWeight = "normal"; el.style.cursor = "pointer";
+        return el.addEventListener('click', () => { __style_bold(el); toggle_nth_bold(idx)} );
+    });
+    // <<< 240123 hjkim - Hard 범례 바인딩
+
+    // >>> 240123 hjkim - Soft 범례 바인딩
+    // 그룹 범례 바인딩
+    Array.from(chk_els2).filter(el => (el.nextSibling == null))
+    .map((el, idx)  => { el.click(); 
+        return el.addEventListener('change', () => { var _status = el.checked;
+			set_x_system_graph(idx, soft_system, g_graph_soft, _status);
+		});
+    });
+    // 개별 범례 바인딩
+    Array.from(chk_els2).filter(el => (el.nextSibling != null))
+    .map((el, idx)  => {
+		el.addEventListener('change', () => { __group_chk_valid(el);
+			toggle_nth_graph(idx, soft_label, g_graph_soft);
+		});
+	});
+    // 그룹 범례 볼드 바인딩
+    Array.from(group_els2)
+    .map((el, idx)  => { el.style.fontWeight = "normal"; el.style.cursor = "pointer";
+        return el.addEventListener('click', () => { var _status = __style_bold(el);
+            Array.from(el.parentElement.querySelectorAll("span.deco:not(.square) span"))
+			.map(el => { el.style.fontWeight = _status; });
+			set_x_system_bold(idx, soft_system, g_graph_soft, _status);
+		});
+    });
+    // 개별 범례 볼드 바인딩
+    Array.from(deco_els2).filter(el => el.className.indexOf("square") == -1)
+	.map((el, idx) => { var new_span = document.createElement('span'); new_span.textContent = el.textContent;
+		el.lastChild.nodeValue = ""; el.appendChild(new_span); return new_span; })
+    .map((el, idx) => { el.style.fontWeight = "normal"; el.style.cursor = "pointer";
+        return el.addEventListener('click', () => { __style_bold(el);
+            toggle_nth_bold(idx, soft_label, g_graph_soft)} );
+    });
+    // <<< 240123 hjkim - Soft 범례 바인딩
+    
+    // >>> 240123 hjkim - 데이터 변경 바인딩
+    document.body.addEventListener("data_refreshed", () => {
+        // Hard 범례 갱신
+        Array.from(chk_els).filter(el => (el.nextSibling != null))
+        .map((el, idx) => {if(!el.checked) toggle_nth_graph(idx); } );
+
+        // Soft 범례 갱신
+        setTimeout(() => {
+            Array.from(chk_els2).filter(el => (el.nextSibling != null))
+            .map((el, idx) => {if(!el.checked) toggle_nth_graph(idx, soft_label, g_graph_soft); } );
+        }, 50);
+    });
+    // <<< 240123 hjkim - 데이터 변경 바인딩
+}
+
+function __style_bold(el) { return el.style.fontWeight = (el.style.fontWeight == "bold") ? "normal" : "bold"; }
+function __line_show(d, l) { if(d.label.indexOf(l) == 0) { d.lines.show = !d.lines.show; } }
+function __set_line_show(d, l, t) { if(d.label.indexOf(l) == 0) { d.lines.show = t; } }
+function __line_bold(d, l) { 
+    if(d.label.indexOf(l) != 0) return;
+    if (d.lines.lineWidth < 2) { d.lines.lineWidth *= 3; } else { d.lines.lineWidth = 1.5; }
+}
+function __set_line_bold(d, l, t) {
+	if(d.label.indexOf(l) != 0) return;
+	d.lines.lineWidth = 1.5; t == "bold" ? d.lines.lineWidth *= 3 : d.lines.lineWidth = 1.5;
+}
+function __group_chk_valid(el) {
+	var _group_el = el.parentElement.parentElement.parentElement.parentElement;
+	var _group_chk = _group_el.querySelector("summary input[type='checkbox']");
+	var _detail_chk = _group_el.querySelectorAll("ul>li>span>input[type='checkbox']");
+	var _detail_chked = _group_el.querySelectorAll("ul>li>span>input[type='checkbox']:checked");
+	if(_detail_chk.length == _detail_chked.length) { _group_chk.checked = true; }
+}
+function all_graph(onoff = "on", _graph_type = g_graph_inst) {
+	const d = _graph_type.getData();
+	if(onoff == "on") d.map(d => {d.lines.show = true;} );
+	else d.map(d => {d.lines.show = false;} );
+	_graph_type.draw();
+}
+function toggle_x_system_graph(num = 0, _label_system = hard_system, _graph_type = g_graph_inst) {
+    const d = _graph_type.getData(), l = _label_system[num];
+    d.map(d => { l.map(l => __line_show(d, l)); });
+    _graph_type.draw();
+}
+function set_x_system_graph(num = 0, _label_system = hard_system, _graph_type = g_graph_inst, _type = true) {
+    const d = _graph_type.getData(), l = _label_system[num];
+    d.map(d => { l.map(l => __set_line_show(d, l, _type)); });
+    _graph_type.draw();
+}
+function toggle_nth_graph(num = 0, _label = hard_label, _graph_type = g_graph_inst) {
+    const d = _graph_type.getData(), l = _label[num];
+    d.map(d => __line_show(d, l));
+    _graph_type.draw();
+}
+function toggle_x_system_bold(num  = 0, _label_system = hard_system, _graph_type = g_graph_inst) {
+    const d = _graph_type.getData(), l = _label_system[num];
+    d.map(d => { l.map(l =>  __line_bold(d, l)); });
+    _graph_type.draw();
+}
+function set_x_system_bold(num  = 0, _label_system = hard_system, _graph_type = g_graph_inst, _type = "bold") {
+    const d = _graph_type.getData(), l = _label_system[num];
+    d.map(d => { l.map(l => __set_line_bold(d, l, _type)); });
+    _graph_type.draw();
+}
+function toggle_nth_bold(num = 0, _label = hard_label, _graph_type = g_graph_inst) {
+    const d = _graph_type.getData(), l = _label[num];
+    d.map(d => __line_bold(d, l));
+    _graph_type.draw();
+}
+// <<< 240122 hjkim - 범례 초기화 작업

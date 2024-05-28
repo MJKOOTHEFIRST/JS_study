@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="css/common.css" rel="stylesheet">
+  <link href="css/main.css" rel="stylesheet">
+  <link href="./css/multi-select.css" rel="stylesheet" type="text/css"> <!--멀티 셀렉션-->
+  <!-- <link href="css/diagram.css" rel="stylesheet"> -->
+  <script src="js/bootstrap.js"></script>
+  <!-- <script src="js/include.js"></script> -->
+  <script type="module" src="./js/main/stack_search.js"></script>
+  <script type="module" src="./js/main/stack_tag_manager.js"></script>
+  <script type="module" src="./js/main/stack_dataManager.js"></script>
+  <script type="module" src="./js/main/stack_diagnosis_log.js"></script>
+  <script type="module" src="./js/main/stack_stack_diagnosis.js"></script>
+  <script type="module" src="./js/main/bop_dataManager.js"></script> <!--한번에 csv 파일 뿌려주기-->
+  <script type="module" src="./js/main/bop_learning_data.js"></script> <!-- BOP 정상 학습 데이터-->
+  <script type="module" src="./js/main/bop_sensor_data.js"></script> <!--BOP 센서 데이터-->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="js/main/dataManager.js"></script> <!--한번에 total_data.conf 뿌려주는 파일 -->
+  <script type="module" src="js/main/system-info.js"></script> <!--우측 하단 시스템정보-->
+  <script type="module" src="js/main/dayMonthProductionBar.js"></script><!--금일/금월 전기/열생산량 바그래프-->
+  <title>FuelCellDR. : 스택진단</title>
+</head>
+
+<body>
+
+  <header>
+    <nav class="navbar navbar-expand-xxl bg-body-tertiary">
+      <div class="container-fluid">
+        <div class="logo-container">
+          <a href="./index.html">
+            <div class="logo"></div>
+          </a>
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarToggler"
+          aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarToggler">
+          <ul class="navbar-nav">
+            <li><a href="index.html"><span class="icon-quality-management"></span>대시보드</a></li>
+            <li><a href="bop.html"><span class="icon-BOP-diagnosis"></span>BOP진단</a></li>
+            <li><a href="stack.html" class="active-link"><span class="icon-stack-diagnosis"></span>스택진단</a></li>
+            <li><a href="analyze.html"><span class="icon-h2s-realtime-chart"></span>분석</a></li>
+            <!-- <li><a href="#"><span class="icon-device-manage"></span>장치관리</a></li> -->
+          </ul>
+          <div class="login">
+            <div class="site-select">
+              <select class="">
+                <option value="1" selected>부안연료전지 #1호기</option>
+                <option value="2">부안연료전지 #2호기</option>
+                <select>
+            </div>
+            <button class="btn btn-primary float-end"><span class="icon-exit"></span><span
+                class="xxl-only">로그아웃</span></button>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+
+    <div class="row">
+
+      <div class="col-xxl-2 col-12 stack-column-right">
+        <div class="row">
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget qoe-stack">
+              <div class="widget-head">
+                품질 지수 (스택)
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body">
+                <div class="title">QOE(Stack)</div>
+                <div class="result" id="qoe-stack-Value">10</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget FCD-unit-ctrl">
+              <div class="widget-head">
+                FuelCellDr 유닛 콘트롤
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body scrollmini scrollmini-noborder on-off-contents">
+                <div class="inner-content">
+                  <h3 class="d-inline-block"><label for="clock">시간측정</label></h3>
+                  <select id="clock" name="people" multiple>
+                    <option value="">0시</option>
+                    <option value="">1시</option>
+                    <option value="">2시</option>
+                    <option value="">3시</option>
+                    <option value="">4시</option>
+                    <option value="">5시</option>
+                    <option value="">6시</option>
+                    <option value="">7시</option>
+                    <option value="">8시</option>
+                    <option value="">9시</option>
+                    <option value="">10시</option>
+                    <option value="">11시</option>
+                    <option value="">12시</option>
+                    <option value="">13시</option>
+                    <option value="">14시</option>
+                    <option value="">15시</option>
+                    <option value="">16시</option>
+                    <option value="">17시</option>
+                    <option value="">18시</option>
+                    <option value="">19시</option>
+                    <option value="">20시</option>
+                    <option value="">21시</option>
+                    <option value="">22시</option>
+                    <option value="">23시</option>
+                  </select>
+                  <!-- 시 -->
+                  <!-- 멀티 셀렉션 시작-->
+                  <script type="text/javascript"
+                    src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+                  <script type="text/javascript" src="./js/lib/jquery.multi-select.js"></script>
+                  <script type="text/javascript">
+                    $(function () {
+                      $('#clock').multiSelect();
+                    });
+                  </script>
+                  <!-- 멀티 셀렉션 끝-->
+
+                  <hr>
+                  <h3 class="d-inline-block">주파수 범위</h3>
+                  <input type="number" min="0" max="2000"> Hz ~ <input type="number" min="0" max="2000"> Hz
+                  <hr>
+                  <h3 class="d-inline-block">통신상태</h3>
+                  <span class="connect disconnect">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </span>
+                  <div class="row box-grey">
+                    <div class="col-6">
+                      <button class="box">
+                        <div class="icon-h2s-pause-2"></div>
+                        재시작
+                      </button>
+                      <button class="box">
+                        <div class="icon-h2s-stop-2"></div>
+                        중지
+                      </button>
+                    </div>
+                    <div class="col-6 progress-section">
+                      <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="80"
+                        aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar w-75"></div>
+                      </div>
+                      <div class="text-end">80%</div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget AVHA-state">
+              <div class="widget-head">
+                전류/전압/수소/공기 현황
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body scrollmini scrollmini-noborder on-off-contents">
+                <div class="inner-content">
+                  <div class="conetent-top">
+                    <div class="ampere">
+                      <div>전류</div>
+                      <div>39.97</div>
+                      <div>A</div>
+                    </div>
+                    <div class="volt">
+                      <div>전압</div>
+                      <div>25.254</div>
+                      <div>V</div>
+                    </div>
+                    <div class="hydro">
+                      <div>수소</div>
+                      <div>9.16</div>
+                      <div>lpm</div>
+                    </div>
+                    <div class="air">
+                      <div>공기</div>
+                      <div>28.85</div>
+                      <div>lpm</div>
+                    </div>
+                  </div>
+                  <div class="conetent-bottom">
+                    <object data="./img/AVHA-Graph-2.svg" type="image/svg+xml"
+                      style="width: 100%; height: max(130px, 100%) !important;"></object>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget volt-down-prediction">
+              <div class="widget-head">
+                전압 강하 예측
+                <!-- <div class="widget-head-gadget">
+                    <button class="mini">모든기간</button>
+                    <button class="mini">그리기</button>
+                    <button class="mini critical-C">삭제</button>
+                  <span class="icon-arrow-right2"></span>
+                </div> -->
+              </div>
+              <div class="widget-body">
+                <div class="h3-column">
+                  <h3>포인트 설정</h3>
+                  <div class="text-end">
+                    <input type="text" value="2023.07.11 11:20~2023.07.11 11:20">
+                    <button class="btn-of w50px">계산</button>
+                  </div>
+                </div>
+                <!-- <object data="./img/volt-down.svg" type="image/svg+xml"></object> -->
+                <div class="mt-3">
+                  <svg width="100%" height="105" viewBox="0 0 293 105" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g id="volt-down">
+                      <text id="start" fill="black" xml:space="preserve" style="white-space: pre"
+                        font-family="Noto Sans KR" font-size="8" letter-spacing="0em" class="06 10">
+                        <tspan x="9" y="17.488">2023.06.10</tspan>
+                      </text>
+                      <text id="end" fill="black" xml:space="preserve" style="white-space: pre"
+                        font-family="Noto Sans KR" font-size="8" letter-spacing="0em" class="07 11">
+                        <tspan x="80" y="17.488">2023.07.11</tspan>
+                      </text>
+                      <text id="predict" fill="#FF0000" xml:space="preserve" style="white-space: pre"
+                        font-family="Noto Sans KR" font-size="8" letter-spacing="0em" class="12 25">
+                        <tspan x="243.047" y="17.488">2026.12.25</tspan>
+                      </text>
+                      <text id="impedance-prediction" fill="#229A04" xml:space="preserve" style="white-space: pre"
+                        font-family="Noto Sans KR" font-size="12" letter-spacing="0em">
+                        <tspan x="11" y="98.232">임피던스 예측</tspan>
+                      </text>
+                      <text id="upper-limit-of-normal" fill="#FF0000" xml:space="preserve" style="white-space: pre"
+                        font-family="Noto Sans KR" font-size="12" letter-spacing="0em">
+                        <tspan x="156" y="17.232">정상 상한선</tspan>
+                      </text>
+                      <line id="Line 183" x1="10" y1="21.5" x2="282" y2="21.5" stroke="#FF0000"></line>
+                      <line id="Line 184" x1="10" y1="81.5" x2="282" y2="81.5" stroke="#E3E3E3"></line>
+                      <path id="Line 185" d="M79.2327 66.3856L281.932 22.9146" stroke="#4472C4" stroke-width="2.5"
+                        stroke-dasharray="5 5"></path>
+                      <path id="Line 187" d="M10.9999 81.0003L10.9999 22.0003" stroke="#229A04" stroke-dasharray="5 5">
+                      </path>
+                      <path id="Line 188" d="M80.9047 81.0003L80.9047 22.0003" stroke="#229A04" stroke-dasharray="5 5">
+                      </path>
+                      <path id="Line 189" d="M281.905 81.0003L281.905 22.0003" stroke="#E3E3E3" stroke-dasharray="5 5">
+                      </path>
+                      <path id="Line 186" d="M11 80.8105L79.7768 66.3843" stroke="#229A04" stroke-width="2.5"></path>
+                    </g>
+                  </svg>
+                </div>
+                <div class="text-center mt-4">
+                  <strong>2026년 12월(30개월) 전압 강하 예상</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget stack-data-learning">
+              <div class="widget-head">
+                스택 정상 학습 데이터
+                <div class="widget-head-gadget" id="">
+                  <!-- <div class="btn-wrapper"> -->
+                  <button class="mini">모든기간</button>
+                  <button class="mini">그리기</button>
+                  <button class="mini critical-C">삭제</button>
+                  <!-- </div> -->
+                  <span class="icon-arrow-right2"></span>
+                </div>
+              </div>
+              <div class="widget-body scrollmini scrollmini-noborder">
+
+                <div class="table-responsive">
+                  <table class="table table-fixed table-striped" id="">
+                    <thead>
+                      <tr>
+                        <th><input type="checkbox"></th>
+                        <th>기간</th>
+                      </tr>
+                    </thead>
+                    <tbody class="scrollmini overflow-auto">
+                      <!-- bop_learning_data.csv  -->
+
+                      <tr>
+                        <td><input type="checkbox"></td>
+                        <td>2023-07-31 15:17 ~ 2023-07-31 15:17</td>
+                      </tr>
+
+                    </tbody>
+                  </table>
+                </div>
+                <div class="d-grid">
+                  <nav class="pagination-wrap">
+                    <ul class="pagination" id="bop-learning-data-pagination">
+                      <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
+
+                      <li class="page-item"><a class="page-link active" href="#">1</a></li>
+                      <li class="page-item"><a class="page-link" href="#">2</a></li>
+
+                      <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+
+      <div class="col-xxl-6 col-12 stack-column-center">
+        <div class="row">
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget stack-state-graph">
+              <div class="widget-head ">
+                <select class="select-title" onchange="showHide(this)">
+                  <option value="1" selected="">스택상태</option>
+                  <option value="2">Bode Plot</option>
+                </select>
+                <!--  <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div> -->
+              </div>
+              <div class="widget-body d-grid"
+                style="position: relative;  justify-content: center; align-content: center;">
+                <div class="content-section" style="padding-right: 7.5%;">
+                  <!-- <div  style="padding: 30px; height: 100%;"> -->
+                  <div>
+                    <!-- <img src="./img/stack-graph.jpg" style="height: 80%; width: auto;"> -->
+                  </div>
+                  <div class="float-end" style="position: absolute; top: 20px; right: 20px;">
+                    <button class="btn-of">샘플 그래프</button>
+                    <hr class="w70px mtb-5">
+                    <button ontouchstart="zoom_in()" onclick="zoom_in()" class="btn-of  w70px "><span
+                        class="icon-zoom-in"></span></button>
+                    <div class="mtb-5"></div>
+                    <button ontouchstart="zoom_out()" onclick="zoom_out()" class="btn-of  w70px"><span
+                        class="icon-zoom-out"></span></button>
+
+                    <div class="graph">
+
+                      <div class="graph-inner">
+                        <svg width="53" height="55" viewBox="0 0 53 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <g id="xySeting">
+                            <text id="y" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter"
+                              font-size="12" letter-spacing="0em">
+                              <tspan x="0" y="11.8636">y</tspan>
+                            </text>
+                            <text id="y_2" fill="black" xml:space="preserve" style="white-space: pre"
+                              font-family="Inter" font-size="12" letter-spacing="0em">
+                              <tspan x="0" y="39.8636">y</tspan>
+                            </text>
+                            <text id="e" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter"
+                              font-size="8" letter-spacing="0em">
+                              <tspan x="6" y="15.9091">e</tspan>
+                            </text>
+                            <text id="s" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter"
+                              font-size="8" letter-spacing="0em">
+                              <tspan x="6" y="43.9091">s</tspan>
+                            </text>
+                            <text id="s_2" fill="black" xml:space="preserve" style="white-space: pre"
+                              font-family="Inter" font-size="8" letter-spacing="0em">
+                              <tspan x="21" y="52.9091">s</tspan>
+                            </text>
+                            <text id="e_2" fill="black" xml:space="preserve" style="white-space: pre"
+                              font-family="Inter" font-size="8" letter-spacing="0em">
+                              <tspan x="47" y="52.9091">e</tspan>
+                            </text>
+                            <text id="x" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter"
+                              font-size="12" letter-spacing="0em">
+                              <tspan x="15" y="50.8636">x</tspan>
+                            </text>
+                            <text id="x_2" fill="black" xml:space="preserve" style="white-space: pre"
+                              font-family="Inter" font-size="12" letter-spacing="0em">
+                              <tspan x="41" y="51.8636">x</tspan>
+                            </text>
+                            <line id="Line 213" x1="13" y1="7.5" x2="18" y2="7.5" stroke="#B7B7B7"
+                              stroke-dasharray="1 1"></line>
+                            <line id="Line 214" x1="13" y1="36.5" x2="18" y2="36.5" stroke="#B7B7B7"
+                              stroke-dasharray="1 1"></line>
+                            <line id="Line 215" x1="18.5" y1="42" x2="18.5" y2="37" stroke="#B7B7B7"
+                              stroke-dasharray="1 1"></line>
+                            <line id="Line 216" x1="47.5" y1="42" x2="47.5" y2="37" stroke="#B7B7B7"
+                              stroke-dasharray="1 1"></line>
+                            <path id="Line 217"
+                              d="M18.3536 1.64645C18.1583 1.45118 17.8417 1.45118 17.6464 1.64645L14.4645 4.82843C14.2692 5.02369 14.2692 5.34027 14.4645 5.53553C14.6597 5.7308 14.9763 5.7308 15.1716 5.53553L18 2.70711L20.8284 5.53553C21.0237 5.7308 21.3403 5.7308 21.5355 5.53553C21.7308 5.34027 21.7308 5.02369 21.5355 4.82843L18.3536 1.64645ZM17.5 2L17.5 37L18.5 37L18.5 2L17.5 2Z"
+                              fill="black"></path>
+                            <path id="Line 218"
+                              d="M52.3536 37.3536C52.5488 37.1583 52.5488 36.8417 52.3536 36.6464L49.1716 33.4645C48.9763 33.2692 48.6597 33.2692 48.4645 33.4645C48.2692 33.6597 48.2692 33.9763 48.4645 34.1716L51.2929 37L48.4645 39.8284C48.2692 40.0237 48.2692 40.3403 48.4645 40.5355C48.6597 40.7308 48.9763 40.7308 49.1716 40.5355L52.3536 37.3536ZM52 36.5L18 36.5V37.5L52 37.5V36.5Z"
+                              fill="black"></path>
+                          </g>
+                        </svg>
+                      </div>
+                      <hr>
+                      <div class="input-setting-value">
+                        <span>x<sub>s</sub></span><input type="number" width="5">
+                      </div>
+                      <div class="input-setting-value">
+                        <span>x<sub>e</sub></span><input type="number" width="5">
+                      </div>
+                      <div class="input-setting-value">
+                        <span>y<sub>s</sub></span><input type="number" width="5">
+                      </div>
+                      <div class="input-setting-value">
+                        <span>y<sub>e</sub></span><input type="number" width="5">
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+                <div class="content-section">
+                  <div style="padding: 30px; height: 100%;">
+                    <img src="./img/BodePlot.png" style="height: 80%; width: auto;">
+                  </div>
+                  <!-- <div class="float-end" style="position: absolute; top: 20px; right: 20px;">
+                    <button class="btn-of">샘플 그래프</button>
+                    <hr class="w70px mtb-5">
+                    <button ontouchstart="zoom_in()" onclick="zoom_in()" class="btn-of  w70px "><span class="icon-zoom-in"></span></button>
+                    <div class="mtb-5"></div>
+                    <button ontouchstart="zoom_out()" onclick="zoom_out()" class="btn-of  w70px"><span class="icon-zoom-out"></span></button>
+
+                    <div class="graph">
+
+                      <div class="graph-inner">
+                        <svg width="53" height="55" viewBox="0 0 53 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <g id="xySeting">
+                          <text id="y" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter" font-size="12" letter-spacing="0em"><tspan x="0" y="11.8636">y</tspan></text>
+                          <text id="y_2" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter" font-size="12" letter-spacing="0em"><tspan x="0" y="39.8636">y</tspan></text>
+                          <text id="e" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter" font-size="8" letter-spacing="0em"><tspan x="6" y="15.9091">e</tspan></text>
+                          <text id="s" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter" font-size="8" letter-spacing="0em"><tspan x="6" y="43.9091">s</tspan></text>
+                          <text id="s_2" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter" font-size="8" letter-spacing="0em"><tspan x="21" y="52.9091">s</tspan></text>
+                          <text id="e_2" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter" font-size="8" letter-spacing="0em"><tspan x="47" y="52.9091">e</tspan></text>
+                          <text id="x" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter" font-size="12" letter-spacing="0em"><tspan x="15" y="50.8636">x</tspan></text>
+                          <text id="x_2" fill="black" xml:space="preserve" style="white-space: pre" font-family="Inter" font-size="12" letter-spacing="0em"><tspan x="41" y="51.8636">x</tspan></text>
+                          <line id="Line 213" x1="13" y1="7.5" x2="18" y2="7.5" stroke="#B7B7B7" stroke-dasharray="1 1"></line>
+                          <line id="Line 214" x1="13" y1="36.5" x2="18" y2="36.5" stroke="#B7B7B7" stroke-dasharray="1 1"></line>
+                          <line id="Line 215" x1="18.5" y1="42" x2="18.5" y2="37" stroke="#B7B7B7" stroke-dasharray="1 1"></line>
+                          <line id="Line 216" x1="47.5" y1="42" x2="47.5" y2="37" stroke="#B7B7B7" stroke-dasharray="1 1"></line>
+                          <path id="Line 217" d="M18.3536 1.64645C18.1583 1.45118 17.8417 1.45118 17.6464 1.64645L14.4645 4.82843C14.2692 5.02369 14.2692 5.34027 14.4645 5.53553C14.6597 5.7308 14.9763 5.7308 15.1716 5.53553L18 2.70711L20.8284 5.53553C21.0237 5.7308 21.3403 5.7308 21.5355 5.53553C21.7308 5.34027 21.7308 5.02369 21.5355 4.82843L18.3536 1.64645ZM17.5 2L17.5 37L18.5 37L18.5 2L17.5 2Z" fill="black"></path>
+                          <path id="Line 218" d="M52.3536 37.3536C52.5488 37.1583 52.5488 36.8417 52.3536 36.6464L49.1716 33.4645C48.9763 33.2692 48.6597 33.2692 48.4645 33.4645C48.2692 33.6597 48.2692 33.9763 48.4645 34.1716L51.2929 37L48.4645 39.8284C48.2692 40.0237 48.2692 40.3403 48.4645 40.5355C48.6597 40.7308 48.9763 40.7308 49.1716 40.5355L52.3536 37.3536ZM52 36.5L18 36.5V37.5L52 37.5V36.5Z" fill="black"></path>
+                          </g>
+                        </svg>                     
+                      </div>
+                      <hr>
+                      <div class="input-setting-value">
+                        <span>x<sub>s</sub></span><input type="number" width="5">
+                      </div>
+                      <div class="input-setting-value">
+                        <span>x<sub>e</sub></span><input type="number" width="5">
+                      </div>
+                      <div class="input-setting-value">
+                        <span>y<sub>s</sub></span><input type="number" width="5">
+                      </div>
+                      <div class="input-setting-value">
+                        <span>y<sub>e</sub></span><input type="number" width="5">
+                      </div>
+                      
+                    </div>
+                  </div> -->
+                </div>
+              </div>
+              <!-- drop down menu start-->
+              <style>
+                .stack-state-graph .content-section:not(:first-child) {
+                  display: none
+                }
+              </style>
+              <script type="text/javascript">
+                const contentDivs = document.querySelectorAll('.stack-state-graph .content-section');
+                const showHide = (e) => contentDivs.forEach((contentDiv, index) => { (index === e.selectedIndex) ? contentDiv.style.display = 'block' : contentDiv.style.display = 'none' })
+              </script>
+              <!-- drop down menu end-->
+
+            </div>
+          </div>
+
+          <div class="col-xxl-6 col-12" style="display: none;">
+            <div class="widget bode-plot-graph">
+              <div class="widget-head ">
+                Bode Plot
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body">
+                <div class="row" style="margin-top: 10px;">
+                  <div class="col"></div>
+                  <div class="col">
+                    <object data="./img/bode-plot.svg" type="image/svg+xml"></object>
+                  </div>
+                  <div class="col">
+                    <div class="float-end">
+                      <button ontouchstart="zoom_in()" onclick="zoom_in()" class="btn-of  w70px "><span
+                          class="icon-zoom-in"></span></button>
+                      <div class="mtb-5"></div>
+                      <button ontouchstart="zoom_out()" onclick="zoom_out()" class="btn-of  w70px"><span
+                          class="icon-zoom-out"></span></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-12 col-12">
+            <div class="widget fullcell-graph">
+              <div class="widget-head ">
+                연료 전지 진단
+                <div class="widget-head-gadget">
+                  <span class="icon-arrow-right2"></span>
+                </div>
+              </div>
+              <div class="widget-body">
+                <div class="inner-content">
+                  <div style="position: relative;">
+                    <div class="btn-wrapper" style="position: absolute; right:0; z-index: 1; padding: 4px">
+                      <button ontouchstart="zoom_in()" onclick="zoom_in()" class="btn-of  w50px "><span
+                          class="icon-zoom-in"></span></button>
+                      <button ontouchstart="zoom_out()" onclick="zoom_out()" class="btn-of  w50px"><span
+                          class="icon-zoom-out"></span></button>
+                      <select id="yearly">
+                        <option value="-1">-년 선택-</option>
+                        <option value="2022">2022</option>
+                        <option value="2023">2023</option>
+                      </select> <select id="monthly">
+                        <option value="-1">-월(11개)-</option>
+                        <option value="01/">01/</option>
+                        <option value="03/">03/</option>
+                        <option value="04/">04/</option>
+                        <option value="05">05</option>
+                        <option value="06">06</option>
+                        <option value="07">07</option>
+                        <option value="08">08</option>
+                        <option value="09">09</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                      </select> <select id="daily">
+                        <option value="-1">-일(10개)-</option>
+                        <option value="04/">04/</option>
+                        <option value="05/">05/</option>
+                        <option value="06/">06/</option>
+                        <option value="07/">07/</option>
+                        <option value="12/">12/</option>
+                        <option value="13/">13/</option>
+                        <option value="14/">14/</option>
+                        <option value="18/">18/</option>
+                        <option value="19/">19/</option>
+                        <option value="20/">20/</option>
+                      </select><select id="timely">
+                        <option value="-1">-시(4개)-</option>
+                        <option value="1_20231220.csv">1_20231220.csv</option>
+                        <option value="1_20231220_ma.csv">1_20231220_ma.csv</option>
+                        <option value="2_20231220.csv">2_20231220.csv</option>
+                        <option value="2_20231220_ma.csv" selected="">2_20231220_ma.csv</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col"></div>
+                    <div class="col" style="margin-top: 35px;">
+                      <img src="./img/stack-graph-2.png" alt="">
+                      <div class="result">
+
+                        <div class="bop">
+                          <div class="title">BOP</div>
+                          <div class="graph">
+                            <div class="outline">
+
+                              <div class="line" style="left: 8%">
+                                <span class="tooltip-box  air-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>
+                              </div>
+
+                              <div class="line" style="left: 16%">
+                                <span class="tooltip-box  heat-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>
+                              </div>
+
+
+
+                              <div class="line" style="left: 33%">
+                                <span class="tooltip-box  heat-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>
+                              </div>
+
+                              <div class="line" style="left: 44%">
+                                <span class="tooltip-box  air-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>
+                              </div>
+
+                              <div class="line" style="left: 45%">
+                                <span class="tooltip-box  air-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>
+                              </div>
+
+
+                              <div class="line" style="left: 55%">
+                                <span class="tooltip-box  heat-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>
+                              </div>
+
+                              <div class="line" style="left: 67%">
+                                <span class="tooltip-box  air-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>
+                              </div>
+
+                              <div class="line" style="left: 68%">
+                                <span class="tooltip-box  air-bg-color">
+                                  <div class="tooltip-box-inner">
+                                    <div class="date">10:45~10:50</div>
+                                    <div class="text">수소부족</div>
+                                  </div>
+                                </span>
+                              </div>
+
+
+
+
+
+
+
+
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                    <div class="col"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="col-xxl-4 col-12 stack-column-left">
+        <div class="row">
+
+          <div class="col-xxl-12">
+            <div class="widget search-result">
+              <div class="widget-head">
+                검색
+                <div class="widget-head-gadget">
+                  <div class="widget-head-gadget">
+                    <!-- <span class="icon-arrow-right2"></span> -->
+                  </div>
+                </div>
+              </div>
+              <div class="widget-body">
+                <h3>검색조건</h3>
+                <div class="table-responsive result-list">
+                  <table class="table table-fixed table-striped">
+                    <thead>
+                      <tr>
+                        <th><input type="checkbox" name="search-all-checkbox" id="search-all-checkbox"></th>
+                        <th>시간</th>
+                        <th>H-M</th>
+                        <th>H-L</th>
+                        <th>X1</th>
+                        <th>X2</th>
+                        <th>Y1</th>
+                        <th>Y2</th>
+                        <th>M</th>
+                        <th>L</th>
+                        <th>SQ</th>
+                        <th>BQ</th>
+                        <th>라벨</th>
+                      </tr>
+                    </thead>
+                    <tbody class="scrollmini-none filter-list">
+                      <tr class="filter-sw">
+                        <td onclick="swFilterPanel();">↕검색창</td>
+                      </tr>
+                      <tr class="filter-label">
+
+                        <td style="text-align: right !important;padding-right: 17px !important;">초과</td>
+                        <td>
+                          <input type="radio" name="a01" id="o01" class="search-condition"><label for="o01">&gt;</label>
+                        </td>
+                        <td><input type="radio" name="a02" id="o02" class="search-condition"><label
+                            for="o02">&gt;</label></td>
+                        <td><input type="radio" name="a03" id="o03" class="search-condition"><label
+                            for="o03">&gt;</label></td>
+                        <td><input type="radio" name="a04" id="o04" class="search-condition"><label
+                            for="o04">&gt;</label></td>
+                        <td><input type="radio" name="a05" id="o05" class="search-condition"><label
+                            for="o05">&gt;</label></td>
+                        <td><input type="radio" name="a06" id="o06" class="search-condition"><label
+                            for="o06">&gt;</label></td>
+                        <td><input type="radio" name="a07" id="o07" class="search-condition"><label
+                            for="o07">&gt;</label></td>
+                        <td><input type="radio" name="a08" id="o08" class="search-condition"><label
+                            for="o08">&gt;</label></td>
+                        <td><input type="radio" name="a09" id="o09" class="search-condition"><label
+                            for="o09">&gt;</label></td>
+                        <td><input type="radio" name="a10" id="o10" class="search-condition"><label
+                            for="o10">&gt;</label></td>
+                        <td></td>
+                      </tr>
+                      <tr class="filter-input">
+
+                        <td style="text-align: right !important;padding-right: 10px !important;">
+                          <button class="btn-of mx-1" id="stack_reset_btn">초기화</button>
+                          <button class="btn-of w-25 float-end" id="stack_search_btn">검색</button>
+                        </td>
+                        <td><input type="number" name="h-m" id="input-h-m" class="search-condition"></td>
+                        <td><input type="number" name="m-l" id="input-m-l" class="search-condition"></td>
+                        <td><input type="number" name="x1" id="input-x1" class="search-condition"></td>
+                        <td><input type="number" name="x2" id="input-x2" class="search-condition"></td>
+                        <td><input type="number" name="y1" id="input-y1" class="search-condition"></td>
+                        <td><input type="number" name="y2" id="input-y2" class="search-condition"></td>
+                        <td><input type="number" name="m" id="input-m" class="search-condition"></td>
+                        <td><input type="number" name="l" id="input-l" class="search-condition"></td>
+                        <td><input type="number" name="sq" id="input-sq" class="search-condition"></td>
+                        <td><input type="number" name="bq" id="input-bq" class="search-condition"></td>
+                        <td><input type="text" name="label" id="input-label" class="search-condition"></td>
+                          <!-- 텍스트 입력 필드 유지 -->
+                      </tr>
+                      <tr class="filter-label">
+
+                        <td style="text-align: right !important;padding-right: 17px !important;">미만</td>
+                        <td><input type="radio" name="a01" id="u01" class="search-condition"><label
+                            for="u01">&lt;</label></td>
+                        <td><input type="radio" name="a02" id="u02" class="search-condition"><label
+                            for="u02">&lt;</label></td>
+                        <td><input type="radio" name="a03" id="u03" class="search-condition"><label
+                            for="u03">&lt;</label></td>
+                        <td><input type="radio" name="a04" id="u04" class="search-condition"><label
+                            for="u04">&lt;</label></td>
+                        <td><input type="radio" name="a05" id="u05" class="search-condition"><label
+                            for="u05">&lt;</label></td>
+                        <td><input type="radio" name="a06" id="u06" class="search-condition"><label
+                            for="u06">&lt;</label></td>
+                        <td><input type="radio" name="a07" id="u07" class="search-condition"><label
+                            for="u07">&lt;</label></td>
+                        <td><input type="radio" name="a08" id="u08" class="search-condition"><label
+                            for="u08">&lt;</label></td>
+                        <td><input type="radio" name="a09" id="u09" class="search-condition"><label
+                            for="u09">&lt;</label></td>
+                        <td><input type="radio" name="a10" id="u10" class="search-condition"><label
+                            for="u10">&lt;</label></td>
+                        <td></td>
+                      </tr>
+                    </tbody>
+
+                    <tbody class="scrollmini result" id="stack_search_table">
+                      <!-- 데이터 결과 표 -->
+                      <!--
+                      <tr>
+                        <td><input type="checkbox" name="search-checkbox" id="search-checkbox"></td>
+                        <td>2023-07-31 15:17</td>
+                        <td>999.99</td>
+                        <td>999.99</td>
+                        <td>999.99</td>
+                        <td>999.99</td>
+                        <td>999.99</td>
+                        <td>999.99</td>
+                        <td>999.99</td>
+                        <td>999.99</td>
+                        <td>10</td>
+                        <td>10</td>
+                        <td><input type="text" value="laBel-1></td> 
+                      </tr>
+                      -->
+                    </tbody>
+                    <script>
+                      // input radio like checkbox
+                      document.querySelectorAll('.scrollmini-none input[type="radio"]').forEach(function (radio) {
+                        radio.addEventListener('click', function () {
+                          let inp = this
+                          if (inp.classList.contains('checked')) {
+                            inp.checked = false
+                            inp.classList.remove('checked')
+                          } else {
+                            document.querySelectorAll(`.scrollmini-none input[type="radio"][name=${inp.name}].checked`).forEach((radioOther) => radioOther.classList.remove('checked'))
+                            inp.classList.add('checked')
+                          }
+                        }
+                        )
+                      }
+                      )
+
+                      // filter bar show & hide switch
+                      const scrollMiniNone = document.querySelector('.result-list .scrollmini-none')
+                      const filterResult = document.querySelector('.result-list .scrollmini')
+
+                      const toggleClass = (x) => {
+                        scrollMiniNone.classList.toggle('to80px')
+                        filterResult.classList.toggle(x)
+                      }
+                      const swFilterPanel = () => window.innerWidth < 3840 ? toggleClass('to210px') : toggleClass('to1200px')
+
+                      window.addEventListener(resize, () => swFilterPanel())
+                    </script>
+                  </table>
+                </div>
+
+                <nav class="pagination-wrap">
+                  <ul class="pagination" id="stack-search-pagination">
+                    <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
+                    <!--
+                    <li class="page-item"><a class="page-link active" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    -->
+                    <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                  </ul>
+                </nav>
+
+                <!-- 헤시테그 -->
+                <div class="scrollmini hashtag-outer">
+                  <!--
+                  <div class="hashtag">
+                    <button class="main tag-selector"><span style="background: red"></span>Test1</button>
+                    <button class="del" title="삭제">×</button>
+                    <button class="finish" title="삭제">×</button>
+                  </div>
+                -->
+                </div>
+
+                <script>
+                  const mainDivs = document.querySelectorAll('.hashtag')
+                  const mainBtns = document.querySelectorAll('.hashtag > button.main')
+                  const btnDels = document.querySelectorAll('.hashtag > button.del')
+                  const btnFinishs = document.querySelectorAll('.hashtag > button.finish')
+
+                  mainBtns.forEach(e => e.addEventListener('click', function () { this.classList.toggle('active') }))
+                  btnDels.forEach((e, i) => e.addEventListener('click', function () {
+                    if (this.classList.contains('active')) {
+                      this.classList.remove('active')
+                      this.textContent = '×'
+                      this.title = '삭제'
+                    } else {
+                      this.classList.add('active')
+                      this.textContent = 'ഠ'
+                      this.title = '삭제취소'
+                    }
+                  }))
+                  btnFinishs.forEach((e, i) => e.addEventListener('click', function () { mainDivs[i].remove() }))
+                </script>
+                <!-- <input type="color" onchange="colorValue()"><input type="text" id="new-tag-text"><button class="btn-of w-24" id="new-tag">라벨 ᐧ 태그생성 / 수정</button> -->
+                <!-- 사용자가 클릭할 수 있는 색상 선택기 -->
+                <!-- <input type="color" id="tag-color" onchange="updateTagColor()"> -->
+
+                <select class="color-pick scrollmini">
+                  <option disabled selected>⎕</option>
+                  <option title="Supernova" value="color01">▉ <!--Supernova     --> </option>
+                  <option title="Bittersweet" value="color02">▉ <!--Bittersweet   --> </option>
+                  <option title="Danube" value="color03">▉ <!--Danube        --> </option>
+                  <option title="Pigeon Post" value="color04">▉ <!--Pigeon Post   --> </option>
+                  <option title="Viridian" value="color05">▉ <!--Viridian      --> </option>
+                  <option title="Strikemaster" value="color06">▉ <!--Strikemaster  --> </option>
+                  <option title="Harvest Gold" value="color07">▉ <!--Harvest Gold  --> </option>
+                  <option title="Army Green" value="color08">▉ <!--Army Green    --> </option>
+                  <option title="Pastel Purple" value="color09">▉ <!--Pastel Purple --> </option>
+                  <option title="Otter Brown" value="color10">▉ <!--Otter Brown   --> </option>
+                  <option title="Downy" value="color11">▉ <!--Downy         --> </option>
+                  <option title="Summer Green" value="color12">▉ <!--Summer Green  --> </option>
+                  <option title="Seagull" value="color13">▉ <!--Seagull       --> </option>
+                  <option title="Deco" value="color14">▉ <!--Deco          --> </option>
+                  <option title="Romantic" value="color15">▉ <!--Romantic      --> </option>
+                  <option title="New York Pink" value="color16">▉ <!--New York Pink --> </option>
+                  <option title="Link Water" value="color17">▉ <!--Link Water    --> </option>
+                  <option title="Haiti" value="color18">▉ <!--Haiti         --> </option>
+                  <option title="Dull Brown" value="color19">▉ <!--Dull Brown    --> </option>
+                  <option title="Blue Bayoux" value="color20">▉ <!--Blue Bayoux   --> </option>
+                </select>
+
+                <!-- 숨겨진 입력란, 실제 색상 값 저장용 -->
+                <input type="hidden" id="hidden-color">
+                <!-- 사용자에게 보이는 입력란, 색상 코드 표시 안 함 -->
+                <input type="text" id="new-tag-text" placeholder="태그명 입력">
+                <button class="btn-of w-24" id="new-tag">태그생성</button>
+
+                <script>
+                  const pickColors = {
+                    'color01': '#FFCC00',
+                    'color02': '#FF6B6B',
+                    'color03': '#6699CC',
+                    'color04': '#B0C4DE',
+                    'color05': '#4B9579',
+                    'color06': '#996699',
+                    'color07': '#D9BC78',
+                    'color08': '#474E20',
+                    'color09': '#BD9EB3',
+                    'color10': '#5B471F',
+                    'color11': '#66CCCC',
+                    'color12': '#8AC1A3',
+                    'color13': '#89CFEB',
+                    'color14': '#C1D98C',
+                    'color15': '#FFD5C2',
+                    'color16': '#D98981',
+                    'color17': '#C6E9F1',
+                    'color18': '#4A509B',
+                    'color19': '#8C684C',
+                    'color20': '#50607F',
+                  };
+
+                  function updateTagColor() {
+                    const selectedOption = document.querySelector('select.color-pick option:checked');
+                    const selectedColorCode = pickColors[selectedOption.value];
+                    return selectedColorCode;
+                  }
+
+                  document.addEventListener('DOMContentLoaded', function () {
+                    const colorPicker = document.querySelector('select.color-pick');
+                    const hiddenColorInput = document.querySelector('#hidden-color');
+
+                    if (colorPicker && hiddenColorInput) {
+                      colorPicker.addEventListener('change', function () {
+                        const selectedColorCode = pickColors[this.value];
+                        hiddenColorInput.value = selectedColorCode;
+                        this.style.color = selectedColorCode;
+                      });
+                    } else {
+                      console.error('색상 선택기 또는 숨겨진 입력란 요소를 찾을 수 없습니다.');
+                    }
+
+
+
+                    // 색상 선택기의 초기 색상 설정
+                    colorPicker.style.color = pickColors[colorPicker.value];
+                  });
+                </script>
+
+
+                <div class="float-end">
+                  <button class="btn-of w-24">그래프 보기</button>
+                  <button class="btn-of w-24">정상 학습</button>
+                  <button class="btn-of w-24">라벨 수정</button>
+                </div>
+
+
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-6 col-12">
+            <div class="widget state-diagnosis">
+              <div class="widget-head">
+                스택 진단
+                <div class="widget-head-gadget">
+                  <div class="widget-head-gadget">
+                    <div class="widget-head-gadget">
+                      <!-- <span class="icon-arrow-right2"></span> -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="widget-body scrollmini scrollmini-noborder">
+
+                <table class="table table-striped" id="stack-diagnosis-table">
+                  <thead id="stack-diagnosis-thead">
+                    <tr>
+                      <th></th>
+                      <th>정상</th>
+                      <th>표준편차</th>
+                      <th>현재 측정값</th>
+                    </tr>
+                  </thead>
+                  <tbody id="stack-diagnosis-tbody">
+                    <tr>
+                      <td>H-M</td>
+                      <td>999.99</td>
+                      <td>3</td>
+                      <td>999.99</td>
+                    </tr>
+                    <tr>
+                      <td>H-L</td>
+                      <td>999.99</td>
+                      <td>3</td>
+                      <td>999.99</td>
+                    </tr>
+                    <tr>
+                      <td>X1</td>
+                      <td>999.99</td>
+                      <td>3</td>
+                      <td>999.99</td>
+                    </tr>
+                    <tr>
+                      <td>X2</td>
+                      <td>999.99</td>
+                      <td>3</td>
+                      <td>999.99</td>
+                    </tr>
+                    <tr>
+                      <td>Y1</td>
+                      <td>999.99</td>
+                      <td>3</td>
+                      <td>999.99</td>
+                    </tr>
+                    <tr>
+                      <td>Y2</td>
+                      <td>999.99</td>
+                      <td>3</td>
+                      <td>999.99</td>
+                    </tr>
+                    <tr>
+                      <td>M</td>
+                      <td>999.99</td>
+                      <td>3</td>
+                      <td>999.99</td>
+                    </tr>
+                    <tr>
+                      <td>L</td>
+                      <td>999.99</td>
+                      <td>3</td>
+                      <td>999.99</td>
+                    </tr>
+                    <tr>
+                      <td colspan="2">Stack QoE</td>
+                      <td colspan="2" class="primary-C">9</td>
+                    </tr>
+                    <tr>
+                      <td colspan="2">BOP QoE</td>
+                      <td colspan="2" class="primary-C">9</td>
+                    </tr>
+
+                  </tbody>
+                </table>
+                <select name="" id="">
+                  <option value="">당일</option>
+                </select>
+                <br>
+                <div class="d-flex justify-content-between">
+                  <input type="text" value="2023-12-12 12:12"> ~ <input type="text" value="2023-12-12 12:12">
+                  <button class="btn-of  w50px">재진단</button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+
+
+          <!-- <div class="col-xxl-12 col-12 order-xxl-first"> -->
+          <div class="col-xxl-6 col-12">
+            <div class="widget diagnosis-log">
+              <div class="widget-head">
+                진단 로그
+                <div class="widget-head-gadget"><span class="icon-arrow-right2"></span></div>
+              </div>
+              <div class="widget-body">
+                <div class="table-responsive">
+                  <table class="table table-fixed table-striped">
+                    <thead>
+                      <tr>
+                        <th><input type="checkbox" name="diagnosis-log-checkboxes" id="diagnosis-log-checkboxes"></th>
+                        <th>시간</th>
+                        <th>내용</th>
+                      </tr>
+                    </thead>
+                    <tbody class="scrollmini" id="diagnosis-log-table">
+                      <tr>
+                        <!--
+                        <td><input type="checkbox" name="" id="diagnosis-log-checkbox"></td>
+                        <td>2023-07-31 14:26</td>
+                        <td>공기 유량 선서 부안.stk</td>
+                      </tr>
+                        -->
+                    </tbody>
+                  </table>
+                </div>
+                <div class="d-grid">
+                  <nav class="pagination-wrap">
+                    <ul class="pagination" id="diagnosis-log-pagination">
+                      <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
+                      <!--
+                      <li class="page-item"><a class="page-link active" href="#">1</a></li>
+                      <li class="page-item"><a class="page-link" href="#">2</a></li>
+                      -->
+                      <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+  <script src="js/main.js"></script>
+  <script src="js/imp.js"></script>
+</body>
+
+</html>

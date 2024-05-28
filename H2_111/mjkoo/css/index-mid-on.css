@@ -1,0 +1,63 @@
+.realtime-watt-all-mid-gauge,
+.realtime-heat-all-mid-gauge {
+  /* background: red; */
+  position: relative;
+  height: 180px;
+  /* margin-top: -10px;
+  margin-bottom: -15px; */
+}
+
+#realtime-eProduction,
+#realtime-tProduction {
+  margin: auto;
+}
+.realtime-e-percentage.number-1,
+.realtime-t-percentage.number-2 {
+  font-size: 3rem;
+  font-weight: 800;
+  position: absolute;
+  top: 90px;
+  width: 100%;
+  margin: auto;
+  text-align: center;
+}
+.realtime-e-percentage.number-1::after,
+.realtime-t-percentage.number-2::after {
+  content: "%";
+  font-size: 2rem;
+  color: #555;
+
+}
+.bottom-side.e-bottom-side,
+.bottom-side.t-bottom-side {
+  font-size: 1.5rem;
+  font-weight: 600;
+  position: relative;
+  top: -24px;
+  width: 100%;
+  text-align: center;
+}
+.bottom-side.e-bottom-side sub,
+.bottom-side.t-bottom-side sub {
+  font-size: 1.1rem;
+  top: 0;
+  color: #555;
+}
+#eProductionBarChart,
+#tProductionBarChart {
+  /* height: 30px; */
+  width: 100%;
+}
+
+.out-bar{
+  position: relative;
+  border: 1px solid #ccc;
+  height: 28px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+.in-bar{
+  position: absolute;
+  top: -6px;
+  width: 100%;
+}

@@ -1,0 +1,111 @@
+.wh--1 {
+    height: 234px;
+}
+.wh--2 {
+    height: 492px;
+}
+.wh--3 {
+    height: 742px;
+}
+.wh--4 {
+    height: 992px;
+}
+th {
+  white-space: nowrap;
+}
+.status-dot {
+  display: inline-block;
+  background: grey;
+  border-radius: 50%;
+}
+.b-dot {
+  width: 21px;
+  height: 21px;
+}
+.s-dot {
+  width: 9px;
+  height: 9px;
+}
+.status-dot.normal {background: #127CA9}
+.status-dot.warning {background: #EF741B}
+.status-dot.broken {background: #AC0E2D}
+.status-dot.prepare {background: #808080}
+
+.widget.generator-situation .title{
+  position: absolute;
+  font-weight: bold;
+  padding: 15px 10px;
+}
+.widget.generator-situation .all-generator {
+  width: 100%;
+  margin-block: 10px;
+  & th, td {text-align: right; font-size: 14px}
+  & th span {font-size: 20px;vertical-align: middle}
+  & th:not(:nth-of-type(3)) span {font-size: 20px}
+  & th:nth-of-type(3) span {font-size: 40px}
+  & td, thead th {height: 40px; padding-right: 15px}
+  & thead th:nth-of-type(1), thead th:nth-of-type(2), tr:not(:last-child) {border-bottom: 1px solid #000}
+  & tr:not(:last-child) {border-bottom: 1px solid #E8E8E8}
+  & thead th:nth-of-type(4), thead th:nth-of-type(5), thead th:nth-of-type(6) {border-bottom: 1px solid #DC143C}
+  & thead th:nth-of-type(1) {width: 13.5%}
+  & th:nth-of-type(3),td:nth-of-type(2) {width: 21.4%; color: #127CA9}
+  & th:nth-of-type(4),td:nth-of-type(3) {color: #EF741B}
+  & th:nth-of-type(5),td:nth-of-type(4) {color: #AC0E2D}
+  & th:nth-of-type(6),td:nth-of-type(5) {color: #808080}
+  & thead th:nth-of-type(2),thead th:nth-of-type(4),thead th:nth-of-type(5),thead th:nth-of-type(6) {width: 16.2%}
+}
+
+.widget.generator-situation .etc-info {
+  & td:first-of-type {text-align: center;  white-space: nowrap}
+  & td:last-of-type {text-align: right}
+}
+
+.widget.generator-situation .generator-list {
+  margin-block: 20px;
+  & td:nth-of-type(1),th:nth-of-type(1) {width: 5%; text-align: center}
+  & td:nth-of-type(2),th:nth-of-type(2) {width: 15%; text-align: center}
+  & td:nth-of-type(3),th:nth-of-type(3) {width: 10%; text-align: center}
+  & td:nth-of-type(4),th:nth-of-type(4) {width: 14%; text-align: right}
+  & td:nth-of-type(5),th:nth-of-type(5) {width: 14%; text-align: right}
+  & td:nth-of-type(6),th:nth-of-type(6) {width: 14%; text-align: right}
+  & td:nth-of-type(7),th:nth-of-type(7) {width: 14%; text-align: right}
+  & td:nth-of-type(8),th:nth-of-type(8) {width: 14%; text-align: right}
+  & tbody{height: 180px; overflow-y: auto;} 
+}
+
+
+.widget.alram-log-mid {
+  & tbody {height: 145px; overflow-y: auto;}
+  & tbody td:nth-of-type(1), tbody td:nth-of-type(2), tbody td:nth-of-type(4) {text-align: center}
+}
+
+.widget.each-generator .top-info {
+  margin-block: 20px;
+  & td:first-of-type {text-align: center; white-space: nowrap}
+  & td:last-of-type {text-align: right}
+}
+.widget.each-generator .title {
+  position: relative;
+  top: -10px;
+  text-align: right;
+  
+  & h5, h2 {display: inline-block}
+  & h2 {font-weight: 700; vertical-align: bottom; padding-inline: 3px}
+}
+.widget.each-generator .graph {
+  & h3 {border-bottom: 1px solid #C6C6C6; padding: 5px 0;margin: 20px 0 10px}
+  & .box {border: 1px solid #C6C6C6; padding-inline: 10px; margin-top: 10px}
+  & .progress-outter {width: calc(100% - 55px); display: inline-block}
+  & .progress {margin-top: 10px; height: 17px}
+  /* & .number-1 {width: 50px; display: inline-block; text-align: right; padding-top: 2px; font-size: 20px; font-weight: 700} */
+  & .number-1 {width: 50%; font-size: 20px; font-weight: 700;}
+  & .number-1::after {content:"%"; position: relative; top: 0; color: #717171;font-size: 16px}
+  &  sub {position: relative; top: 0; color: #555}
+  /* & .number-2 {position: relative; font-size: 15px; font-weight: 700; text-align: right; left: 3px;padding-bottom: 5px} */
+  & .number-2 {width: 49%; font-size: 15px; font-weight: 700; text-align: right; padding-top: 7px}
+& .number-2 > sub {margin-left: 1px; color: #555}
+  & .watt {background: #6EC0EE}
+  & .heat {background: #EC6D6D}
+  & .col-6.watt {background: #F7FDFF}
+  & .col-6.heat {background: #FFF7F7}
+}
