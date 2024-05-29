@@ -676,7 +676,7 @@
                     <div class="modal-header">
                       <h5 class="modal-title">탭 관리</h5>
                       <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                      onclick="toggleModal('manage-tab-modal')" title="닫기">
+                        onclick="toggleModal('manage-tab-modal')" title="닫기">
                         <span aria-hidden="true">×</span>
                       </button>
                     </div>
@@ -989,6 +989,16 @@
                           <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
                         </ul>
                         <!-- 콤보박스 선택 : 전체, 50개, 100개(default), 200개, 500개 -->
+                        <div class="data-num-select">
+                          <select id="items-per-page" class="form-select"
+                            style="width: auto; display: inline-block; margin-left: 10px;">
+                            <option value="all-data">전체</option>
+                            <option value="500">500개</option>
+                            <option value="200">200개</option>
+                            <option value="100" selected>100개</option>
+                            <option value="50">50개</option>
+                          </select>
+                        </div>
                       </nav>
                     </div>
                   </div>
@@ -1097,46 +1107,46 @@
                     </div>
 
                     <script>
-                      const pickColors = {
-                        'color00': '#00FF00',
-                        'color01': '#FFCC00',
-                        'color02': '#FF6B6B',
-                        'color03': '#6699CC',
-                        'color04': '#B0C4DE',
-                        'color05': '#4B9579',
-                        'color06': '#996699',
-                        'color07': '#D9BC78',
-                        'color08': '#474E20',
-                        'color09': '#BD9EB3',
-                        'color10': '#5B471F',
-                        'color11': '#66CCCC',
-                        'color12': '#8AC1A3',
-                        'color13': '#89CFEB',
-                        'color14': '#C1D98C',
-                        'color15': '#FFD5C2',
-                        'color16': '#D98981',
-                        'color17': '#C6E9F1',
-                        'color18': '#4A509B',
-                        'color19': '#8C684C',
-                        'color20': '#50607F',
-                      };
+                      // const pickColors = {
+                      //   'color00': '#00FF00',
+                      //   'color01': '#FFCC00',
+                      //   'color02': '#FF6B6B',
+                      //   'color03': '#6699CC',
+                      //   'color04': '#B0C4DE',
+                      //   'color05': '#4B9579',
+                      //   'color06': '#996699',
+                      //   'color07': '#D9BC78',
+                      //   'color08': '#474E20',
+                      //   'color09': '#BD9EB3',
+                      //   'color10': '#5B471F',
+                      //   'color11': '#66CCCC',
+                      //   'color12': '#8AC1A3',
+                      //   'color13': '#89CFEB',
+                      //   'color14': '#C1D98C',
+                      //   'color15': '#FFD5C2',
+                      //   'color16': '#D98981',
+                      //   'color17': '#C6E9F1',
+                      //   'color18': '#4A509B',
+                      //   'color19': '#8C684C',
+                      //   'color20': '#50607F',
+                      // };
 
-                      // mjkoo 0510 수정(color-picker 두개 다 적용될 수 있도록)
-                      document.addEventListener('DOMContentLoaded', function () {
-                        const colorPickers = document.querySelectorAll('.color-pick');
-                        const hiddenColorInput = document.querySelector('#hidden-color');
-                        colorPickers.forEach(picker => {
-                          picker.addEventListener('change', function () {
-                            const selectedColorCode = pickColors[this.value];
-                            this.style.color = selectedColorCode;
-                            hiddenColorInput.value = selectedColorCode; // 숨겨진 입력 필드의 값 업데이트
-                            console.log('선택된 색상 코드:', selectedColorCode);
-                          });
+                      // // mjkoo 0510 수정(color-picker 두개 다 적용될 수 있도록)
+                      // document.addEventListener('DOMContentLoaded', function () {
+                      //   const colorPickers = document.querySelectorAll('.color-pick');
+                      //   const hiddenColorInput = document.querySelector('#hidden-color');
+                      //   colorPickers.forEach(picker => {
+                      //     picker.addEventListener('change', function () {
+                      //       const selectedColorCode = pickColors[this.value];
+                      //       this.style.color = selectedColorCode;
+                      //       hiddenColorInput.value = selectedColorCode; // 숨겨진 입력 필드의 값 업데이트
+                      //       console.log('선택된 색상 코드:', selectedColorCode);
+                      //     });
 
-                          // 색상 선택기의 초기 색상 설정
-                          picker.style.color = pickColors[picker.value];
-                        });
-                      });
+                      //     // 색상 선택기의 초기 색상 설정
+                      //     picker.style.color = pickColors[picker.value];
+                      //   });
+                      // });
                     </script>
 
 
@@ -1314,37 +1324,64 @@
   </main>
 
   <script>
+    // resize 함수 정의
+    function resize() {
+      // resize 함수의 구현 내용을 여기에 추가합니다.
+      console.log('resize 함수가 호출되었습니다.');
+    }
+
+    // resize 함수 호출
+    resize();
     // 제목 드롭다운
     const contentDivs = document.querySelectorAll('.stack-state-graph .content-section');
     const showHide = (e) => contentDivs.forEach((contentDiv, index) => { (index === e.selectedIndex) ? contentDiv.style.display = 'block' : contentDiv.style.display = 'none' })
   </script>
 
+  <!-- 
+<script>
+   document.addEventListener('DOMContentLoaded', function () {
+    const colorPickers = document.querySelectorAll('.color-pick');
+    colorPickers.forEach(selectElement => {
+        const selectedColorId = selectElement.value;
+        selectElement.innerHTML = generateColorOptions(selectedColorId);
+        selectElement.style.color = getColorCode(selectedColorId);
+    });
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const chkbox = document.querySelectorAll('.tab-list input[type=checkbox]');
-      const dbEdit = document.querySelectorAll('.tab-list a.db-edit');
-      const dbEditValue = document.querySelectorAll('.tab-list a.db-edit span');
-      const dbEditActive = document.querySelectorAll('.tab-list div.db-edit');
-      const dbEditInput = document.querySelectorAll('.tab-list div.db-edit input');
+    const chkbox = document.querySelectorAll('.tab-list input[type=checkbox]');
+    const dbEdit = document.querySelectorAll('.tab-list a.db-edit');
+    const dbEditValue = document.querySelectorAll('.tab-list a.db-edit span');
+    const dbEditActive = document.querySelectorAll('.tab-list div.db-edit');
+    const dbEditInput = document.querySelectorAll('.tab-list div.db-edit input');
+    const dbEditSelect = document.querySelectorAll('.tab-list div.db-edit select');
 
-      dbEdit.forEach((e, i) => e.addEventListener('dblclick', function () {
+    dbEdit.forEach((e, i) => e.addEventListener('dblclick', function () {
         chkbox.forEach(e => { e.disabled = true; });
         dbEdit[i].classList.toggle('d-none');
         dbEditActive[i].classList.toggle('d-none');
-        dbEditInput[i].focus();
         dbEditInput[i].value = dbEditValue[i].innerText;
-        dbEditInput[i].addEventListener('keypress', function (e) {
-          if (e.key === 'Enter') {
+        const colorValue = dbEditSelect[i].value;
+        dbEditSelect[i].style.color = getColorCode(colorValue);
+        dbEditInput[i].focus();
+    }));
+
+    dbEditInput.forEach((input, i) => input.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
             dbEditValue[i].innerText = dbEditInput[i].value;
+            updateBookmark(dbEdit[i].dataset.bookmarkId, dbEditInput[i].value, dbEditSelect[i].value);
             dbEdit[i].classList.toggle('d-none');
             dbEditActive[i].classList.toggle('d-none');
             chkbox.forEach(e => { e.disabled = false; });
-          }
-        });
-      }));
-    });
-  </script>
+        }
+    }));
+
+    dbEditSelect.forEach((select, i) => select.addEventListener('change', function () {
+        const selectedColorCode = getColorCode(select.value);
+        select.style.color = selectedColorCode;
+        updateBookmark(dbEdit[i].dataset.bookmarkId, dbEditInput[i].value, select.value);
+    }));
+});
+</script> -->
+
 
   <script>
     // 체크박스 스타일 라디오 버튼 스크립트
@@ -1365,7 +1402,7 @@
     // 상세검색 업다운 스크립트
     const scrollMiniNone = document.querySelector('.result-list .scrollmini-none')
     const filterResult = document.querySelector('.result-list .scrollmini')
-    
+
     const swFilterPanel = () => window.innerWidth < 3840 ? toggleClass('to210px') : toggleClass('to1200px')
     window.addEventListener(resize, () => swFilterPanel())
   </script>

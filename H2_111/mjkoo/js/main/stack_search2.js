@@ -10,9 +10,57 @@ let currentBookmarkId = null; // 현재 활성화된 북마크 ID
 const currentDate = new Date();
 const formattedDate = currentDate.toISOString().slice(0, 19).replace('T', ' ');
 
+let pickColors={};
+
 ////////////////////////////////////////////////////////////////////////////
 // DOM 로딩 시 모든 이벤트 리스너를 설정하고 "항목 삭제" 버튼 상태를 초기화하는 함수 호출
 document.addEventListener('DOMContentLoaded', function () {
+
+    // 초기화 함수 호출
+    loadColorMap().then(() => {
+        // 기타 초기화 및 이벤트 리스너 설정
+        const chkbox = document.querySelectorAll('.tab-list input[type=checkbox]');
+        const dbEdit = document.querySelectorAll('.tab-list a.db-edit');
+        const dbEditValue = document.querySelectorAll('.tab-list a.db-edit span');
+        const dbEditActive = document.querySelectorAll('.tab-list div.db-edit');
+        const dbEditInput = document.querySelectorAll('.tab-list div.db-edit input');
+        const dbEditSelect = document.querySelectorAll('.tab-list div.db-edit select');
+
+        dbEdit.forEach((e, i) => e.addEventListener('dblclick', function () {
+            chkbox.forEach(e => { e.disabled = true; });
+            dbEdit[i].classList.toggle('d-none');
+            dbEditActive[i].classList.toggle('d-none');
+            dbEditInput[i].value = dbEditValue[i].innerText;
+            const colorValue = dbEditSelect[i].value;
+            dbEditSelect[i].style.color = getColorCode(colorValue);
+            dbEditInput[i].focus();
+        }));
+
+        dbEditInput.forEach((input, i) => input.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                dbEditValue[i].innerText = dbEditInput[i].value;
+                updateBookmark(
+                    dbEdit[i].parentElement.getAttribute('data-bookmark-id'), // ID를 가져오는 방법 변경
+                    dbEditInput[i].value,
+                    dbEditSelect[i].value
+                );
+                dbEdit[i].classList.toggle('d-none');
+                dbEditActive[i].classList.toggle('d-none');
+                chkbox.forEach(e => { e.disabled = false; });
+            }
+        }));
+
+        dbEditSelect.forEach((select, i) => select.addEventListener('change', function () {
+            const selectedColorCode = getColorCode(select.value);
+            select.style.color = selectedColorCode;
+            updateBookmark(
+                dbEdit[i].parentElement.getAttribute('data-bookmark-id'), // ID를 가져오는 방법 변경
+                dbEditInput[i].value,
+                select.value
+            );
+        }));
+    });
+
     // DOM 요소 초기화
     const tbody = document.querySelector('#stack_search_table');
     const graphButton = document.getElementById('graph-btn');
@@ -23,12 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const bookmarkTabContainer = document.getElementById('bookmark-tab');
     const deleteButton = document.getElementById('delete-db-in-bmk');
 
-    const colorPickers = document.querySelectorAll('.color-pick');
-    colorPickers.forEach(picker => {
-        const selectedColorCode = pickColors[picker.value];
-        picker.style.color = selectedColorCode;
-    });
-
+   
     // 초기 '항목삭제' 버튼 상태 업데이트
     // updateDeleteButtonState();
     // console.log('초기 로드시 updateDeleteButtonState 호출 완료');
@@ -174,14 +217,14 @@ document.addEventListener('DOMContentLoaded', function () {
     } else {
         console.error('북마크 추가 버튼 작동 에러');
     }
-//////////////////////////////////////////////////////////
-// 페이지 당 데이터 수 선택 콤보박스 이벤트 리스너
-const itemsPerPageSelect = document.getElementById('items-per-page');
-itemsPerPageSelect.addEventListener('change', function(){
-    itemsPerPage = this.value === 'all-data' ? 'all-data' : parseInt(this.value); // 'all-data'로 설정
-    goToPage(1); // 첫 페이지로 이동하여 데이터 로드
-});
-//////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+    // 페이지 당 데이터 수 선택 콤보박스 이벤트 리스너
+    const itemsPerPageSelect = document.getElementById('items-per-page');
+    itemsPerPageSelect.addEventListener('change', function () {
+        itemsPerPage = this.value === 'all-data' ? 'all-data' : parseInt(this.value); // 'all-data'로 설정
+        goToPage(1); // 첫 페이지로 이동하여 데이터 로드
+    });
+    //////////////////////////////////////////////////////////
 
     // 데이터 로드 및 기타 초기화
     searchWithData({});
@@ -194,6 +237,90 @@ itemsPerPageSelect.addEventListener('change', function(){
     getTabList();
 });
 
+// 컬러
+//////////////////////////////////////////////////////////////////////////
+// 색상 맵을 로드하는 함수
+ async function loadColorMap() {
+    return fetch('/FDC/Proj/mjkoo/js/main/color_map.php') // 경로 확인
+        .then(response => response.json())
+        .then(data => {
+            pickColors = data;
+            initializeColorPickers(); // 색상 맵이 로드된 후 초기화 함수 호출
+        })
+        .catch(error => {
+            console.error('Error loading color map:', error);
+        });
+}
+
+// 초기 색상 설정 스크립트
+function initializeColorPickers() {
+    const colorPickers = document.querySelectorAll('.color-pick');
+    colorPickers.forEach(picker => {
+        const selectedColorId = picker.value;
+        picker.innerHTML = generateColorOptions(selectedColorId);
+        picker.style.color = getColorCode(selectedColorId);
+
+        picker.addEventListener('change', function () {
+            const selectedColorCode = getColorCode(this.value);
+            this.style.color = selectedColorCode;
+            updateBookmark(
+                picker.closest('tr').getAttribute('data-bookmark-id'), // ID를 가져오는 방법
+                picker.closest('tr').querySelector('input[type="text"]').value, // 이름 가져오기
+                this.value // 선택된 색상 ID
+            );
+        });
+    });
+}
+
+// 색상 코드를 반환하는 함수
+function getColorCode(colorId) {
+    return pickColors[colorId] || '#6699CC'; // 기본색상 지정
+}
+
+// 색상 옵션들을 생성하는 함수
+function generateColorOptions(selectedColorId) {
+    let optionsHtml = '';
+    for (const [colorId, colorCode] of Object.entries(pickColors)) {
+        const selectedAttribute = colorId === selectedColorId ? ' selected' : '';
+        optionsHtml += `<option value="${colorId}" style="color: ${colorCode};"${selectedAttribute}>🖿 <!--${colorId}--></option>`;
+    }
+    return optionsHtml;
+}
+
+// document.querySelectorAll('.color-pick').forEach(selectElement => {
+//     const selectedColorId = selectElement.value; // 선택된 색상 ID를 가져옴
+//     selectElement.innerHTML = generateColorOptions(selectedColorId);
+//     selectElement.style.color = getColorCode(selectedColorId);
+// });
+
+// 색상 식별자를 클래스 이름으로 변환하는 함수
+function getColorClass(colorId) {
+    const colorClassMap = {
+        'color00': 'tab-color-00',
+        'color01': 'tab-color-01',
+        'color02': 'tab-color-02',
+        'color03': 'tab-color-03',
+        'color04': 'tab-color-04',
+        'color05': 'tab-color-05',
+        'color06': 'tab-color-06',
+        'color07': 'tab-color-07',
+        'color08': 'tab-color-08',
+        'color09': 'tab-color-09',
+        'color10': 'tab-color-10',
+        'color11': 'tab-color-11',
+        'color12': 'tab-color-12',
+        'color13': 'tab-color-13',
+        'color14': 'tab-color-14',
+        'color15': 'tab-color-15',
+        'color16': 'tab-color-16',
+        'color17': 'tab-color-17',
+        'color18': 'tab-color-18',
+        'color19': 'tab-color-19',
+        'color20': 'tab-color-20',
+        'color21': 'tab-color-21'
+    };
+    return colorClassMap[colorId] || 'tab-color-00';
+}
 ////////////////////////////////////////////////////////////////////////////
 // "항목 삭제" 버튼 상태를 업데이트하는 함수
 /*
@@ -481,7 +608,7 @@ function copySelectedFiles() {
             const hiddenColorInput = document.querySelector('#hidden-color').value; // 색상 코드 가져오기
             checkboxes.forEach(checkbox => {
                 const no = checkbox.getAttribute('data-no');
-                console.log(`선택된 체크박스로 이동할 파일 NO: ${no}`);
+                // console.log(`선택된 체크박스로 이동할 파일 NO: ${no}`);
                 copyFilesForGraph(no, hiddenColorInput); // search_copyFile.js 에서 import한 함수에 no랑 색상코드 인자로 전달
             });
         })
@@ -687,21 +814,18 @@ function addBookmark(bookmarkName) {
 // 탭관리
 // 서버에서 북마크 목록을 가져와서 목록 표시(왼쪽 상단 +인 '탭 관리' 버튼)
 function getTabList() {
-    // console.log("getTabList() 호출됨");
     fetch('/FDC/Proj/mjkoo/js/main/get_bookmark.php')
-        .then(function (response) {
+        .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
             return response.json();
         })
-        .then(function (data) {
-            console.log("Data from server:", data);
+        .then(data => {
             const tabList = document.querySelector('.table.tab-list tbody');
             tabList.innerHTML = '';
-            data.forEach((bookmark, index) => {
+            data.forEach((bookmark) => {
                 const colorClass = getColorClass(bookmark.colorId);
-                // console.log("선택된 colorId: ", bookmark.colorId);
                 const tr = document.createElement('tr');
                 tr.setAttribute('data-bookmark-id', bookmark.id);
                 tr.setAttribute('data-bookmark-name', bookmark.name);
@@ -711,7 +835,6 @@ function getTabList() {
                     <td>
                         <div class="db-edit" style="display: none;">
                             <select class="color-pick scrollmini" id="tab-color-edit-${bookmark.id}">
-                                <!-- 색상 옵션들 -->
                                 ${generateColorOptions(bookmark.colorId)}
                             </select>
                             <input type="text" value="${bookmark.name}">
@@ -721,7 +844,6 @@ function getTabList() {
                 `;
                 tabList.appendChild(tr);
 
-                // 더블클릭 이벤트 리스너 추가
                 const aTag = tr.querySelector('a');
                 const dbEditDiv = tr.querySelector('.db-edit');
                 aTag.addEventListener('dblclick', function () {
@@ -730,67 +852,31 @@ function getTabList() {
                     dbEditDiv.querySelector('input').focus();
                 });
 
-                // 엔터 키 이벤트 리스너 추가
                 const inputField = dbEditDiv.querySelector('input');
                 inputField.addEventListener('keypress', function (event) {
                     if (event.key === 'Enter') {
                         aTag.querySelector('span').textContent = inputField.value;
                         aTag.style.display = 'block';
                         dbEditDiv.style.display = 'none';
-                        updateBookmark(bookmark.id, inputField.value, colorSelect.value); // 서버로 데이터 업데이트
+                        updateBookmark(bookmark.id, inputField.value, colorSelect.value);
                     }
                 });
 
-                // 색상 선택 이벤트 리스너 추가
                 const colorSelect = dbEditDiv.querySelector('.color-pick');
                 colorSelect.addEventListener('change', function () {
-                    const selectedColor = colorSelect.options[colorSelect.selectedIndex].value;
+                    const selectedColor = colorSelect.value;
+                    colorSelect.style.color = getColorCode(selectedColor);
                     aTag.style.color = getColorCode(selectedColor);
-                    updateBookmark(bookmark.id, inputField.value, selectedColor); // 서버로 데이터 업데이트
+                    updateBookmark(bookmark.id, inputField.value, selectedColor);
                 });
             });
         })
-        .catch(function (error) {
+        .catch(error => {
             console.error('There was a problem with the fetch operation:', error);
         });
 }
 
 let colorMap = {};
-
-// 색상 옵션들을 생성하는 함수
-function generateColorOptions(selectedColorId) {
-    const pickColors = {
-        'color00': '#00FF00',
-        'color01': '#FFCC00',
-        'color02': '#FF6B6B',
-        'color03': '#6699CC',
-        'color04': '#B0C4DE',
-        'color05': '#4B9579',
-        'color06': '#996699',
-        'color07': '#D9BC78',
-        'color08': '#474E20',
-        'color09': '#BD9EB3',
-        'color10': '#5B471F',
-        'color11': '#66CCCC',
-        'color12': '#8AC1A3',
-        'color13': '#89CFEB',
-        'color14': '#C1D98C',
-        'color15': '#FFD5C2',
-        'color16': '#D98981',
-        'color17': '#C6E9F1',
-        'color18': '#4A509B',
-        'color19': '#8C684C',
-        'color20': '#50607F',
-    };
-
-      let optionsHtml = '';
-    for (const [colorId, colorCode] of Object.entries(pickColors)) {
-        const selectedAttribute = colorId === selectedColorId ? ' selected' : '';
-        optionsHtml += `<option value="${colorId}" style="color: ${colorCode};"${selectedAttribute}>🖿 <!--${colorId}--></option>`;
-    }
-    return optionsHtml;
-}
-
 
 // 상단 북마크 탭 불러오는 함수(북마크 탭 관련 초기화)
 function getBookmarkTabs() {
@@ -1104,68 +1190,12 @@ function loadBookmarkListToModal() {
         });
 }
 
-function getColorCode(colorId) {
-    const colorMap = {
-        'color00': '#00FF00',
-        'color01': '#FFCC00',
-        'color02': '#FF6B6B',
-        'color03': '#6699CC',
-        'color04': '#B0C4DE',
-        'color05': '#4B9579',
-        'color06': '#996699',
-        'color07': '#D9BC78',
-        'color08': '#474E20',
-        'color09': '#BD9EB3',
-        'color10': '#5B471F',
-        'color11': '#66CCCC',
-        'color12': '#8AC1A3',
-        'color13': '#89CFEB',
-        'color14': '#C1D98C',
-        'color15': '#FFD5C2',
-        'color16': '#D98981',
-        'color17': '#C6E9F1',
-        'color18': '#4A509B',
-        'color19': '#8C684C',
-        'color20': '#50607F'
-    };
-    return colorMap[colorId] || ''; // 기본 색상은 검정색
-}
 
-document.querySelectorAll('.color-pick').forEach(selectElement => {
-    const selectedColorId = selectElement.value; // 선택된 색상 ID를 가져옴
-    selectElement.innerHTML = generateColorOptions(selectedColorId);
-    selectElement.style.color = getColorCode(selectedColorId);
-});
-
-// 색상 식별자를 클래스 이름으로 변환하는 함수
-function getColorClass(colorId) {
-    const colorClassMap = {
-        'color00': 'tab-color-00',
-        'color01': 'tab-color-01',
-        'color02': 'tab-color-02',
-        'color03': 'tab-color-03',
-        'color04': 'tab-color-04',
-        'color05': 'tab-color-05',
-        'color06': 'tab-color-06',
-        'color07': 'tab-color-07',
-        'color08': 'tab-color-08',
-        'color09': 'tab-color-09',
-        'color10': 'tab-color-10',
-        'color11': 'tab-color-11',
-        'color12': 'tab-color-12',
-        'color13': 'tab-color-13',
-        'color14': 'tab-color-14',
-        'color15': 'tab-color-15',
-        'color16': 'tab-color-16',
-        'color17': 'tab-color-17',
-        'color18': 'tab-color-18',
-        'color19': 'tab-color-19',
-        'color20': 'tab-color-20',
-        'color21': 'tab-color-21'
-    };
-    return colorClassMap[colorId] || 'tab-color-00';
-}
-
+/*
+오류 : undefined 메세지 뜨는 이유는 data.message나 data.error 접근하려 할 때,
+data 객체가 올바르게 파싱되지 않았거나 응답 데이터에 message 혹은 error필드가 없을 때 발생
+*/
+// 북마크 업데이트 함수
 function updateBookmark(id, newName, newColorId) {
     fetch('/FDC/Proj/mjkoo/js/main/update_bookmark.php', {
         method: 'POST',
@@ -1178,36 +1208,43 @@ function updateBookmark(id, newName, newColorId) {
             'color': newColorId
         })
     })
-    .then(response => response.text()) // 변경된 부분: .json() 대신 .text()로
+    .then(response => response.text())
     .then(text => {
-        try {
-            const data = JSON.parse(text);
-            if (data.error) {
-                alert(data.error);
-            } else {
-                alert(data.message);
-                loadBookmarkListToModal(); // 업데이트 후 북마크 목록을 다시 불러옴
+        console.log('Response text:', text); // 서버에서 반환된 응답을 로그로 출력
+
+        // 응답을 두 개의 JSON 객체로 나누기
+        const jsonResponses = text.split('}{').map((part, index, arr) => {
+            if (index === 0) return part + '}';
+            if (index === arr.length - 1) return '{' + part;
+            return '{' + part + '}';
+        });
+
+        jsonResponses.forEach(jsonResponse => {
+            try {
+                const data = JSON.parse(jsonResponse);
+                console.log('Parsed response data:', data);
+                    getTabList(); // 업데이트 후 북마크 목록을 다시 불러옴
+                    getBookmarkTabs();
+            } catch (e) {
+                console.error('Error parsing JSON:', e);
+                console.error('Response text:', jsonResponse); // 파싱 오류 발생 시 응답 텍스트를 로그로 출력
             }
-        } catch (e) {
-            console.error('Error parsing JSON:', e);
-            console.error('Response text:', text);
-            alert('북마크 업데이트 중 오류가 발생했습니다.');
-        }
+        });
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('북마크 업데이트 중 오류가 발생했습니다.');
     });
 }
 
+
 // 초기 색상 설정 스크립트
-document.addEventListener('DOMContentLoaded', function () {
-    const colorPickers = document.querySelectorAll('.color-pick');
-    colorPickers.forEach(picker => {
-        const selectedColorCode = pickColors[picker.value];
-        picker.style.color = selectedColorCode;
-    });
-});
+// document.addEventListener('DOMContentLoaded', function () {
+//     const colorPickers = document.querySelectorAll('.color-pick');
+//     colorPickers.forEach(picker => {
+//         const selectedColorCode = pickColors[picker.value];
+//         picker.style.color = selectedColorCode;
+//     });
+// });
 
 ////////////////////////////////////////////////////////////////////////////////////
 // 북마크 삭제
@@ -1312,12 +1349,12 @@ function saveBookmarkData(dataNo, bookmarkId) {
         },
         body: payload
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        });
 }
 
 function saveMultipleBookmarkData(bookmarkData) {
@@ -1356,7 +1393,7 @@ function toggleModal(modalId) {
             }
         }
     } else {
-        console.error(`Modal with ID ${modalId} not found.`);
+        // console.error(`Modal with ID ${modalId} not found.`);
     }
 }
 
@@ -1420,28 +1457,28 @@ function deleteBookmarkItems(bookmarkId, dataNos) {
         },
         body: JSON.stringify({ bookmarkId: bookmarkId, dataNos: dataNos })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('항목이 성공적으로 삭제되었습니다.');
-            // 선택된 체크박스를 기준으로 테이블에서 항목 제거
-            const selectedCheckboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]:checked');
-            selectedCheckboxes.forEach(checkbox => {
-                const row = checkbox.closest('tr');
-                if (row) {
-                    row.remove();
-                }
-            });
-            // 탭 이동 및 데이터 필터링
-            filterDataByBookmark(bookmarkId); // 변경된 데이터를 다시 로드하여 실시간으로 UI를 업데이트
-        } else {
-            alert('항목 삭제에 실패했습니다: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('항목 삭제 중 오류가 발생했습니다.');
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('항목이 성공적으로 삭제되었습니다.');
+                // 선택된 체크박스를 기준으로 테이블에서 항목 제거
+                const selectedCheckboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]:checked');
+                selectedCheckboxes.forEach(checkbox => {
+                    const row = checkbox.closest('tr');
+                    if (row) {
+                        row.remove();
+                    }
+                });
+                // 탭 이동 및 데이터 필터링
+                filterDataByBookmark(bookmarkId); // 변경된 데이터를 다시 로드하여 실시간으로 UI를 업데이트
+            } else {
+                alert('항목 삭제에 실패했습니다: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('항목 삭제 중 오류가 발생했습니다.');
+        });
 }
 
 

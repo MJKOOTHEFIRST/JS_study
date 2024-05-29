@@ -1,5 +1,5 @@
 <?php
-// update_bookmark.php
+header('Content-Type: application/json'); // JSON 형식으로 응답을 반환하도록 헤더 설정
 
 require 'db_config.php';
 require 'color_map.php';
