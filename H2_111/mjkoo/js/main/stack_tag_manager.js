@@ -1,4 +1,16 @@
 // stack_tag_manager.js
+import { 
+  initializeColorPickers,
+  getColorCode,
+  addSearchButtonListener, 
+  initCheckboxStateAndSelectAll, 
+  loadColorMap,
+  searchWithData,  
+  handleSelectAllChange, 
+  updateSelectedCount, 
+  generateColorOptions,
+  getColorClass
+} from './stack_search2.js';
 
 // 기능 플래그 설정
 const featureFlags = {
@@ -8,6 +20,7 @@ const featureFlags = {
   updateTagButtonLabel: false,
   tagSelection: true
 };
+
 
 // 체크박스 상태 변경 감지 및 버튼 텍스트 업데이트
 if (featureFlags.updateTagButtonLabel) {
@@ -19,7 +32,14 @@ if (featureFlags.updateTagButtonLabel) {
 }
 
 // 태그 호출(GET, fetch는 HTTP 메소드를 별도로 지정하지 않으면 GET 요청이 기본적으로 수행된다.)
+// 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function () {
+  loadColorMap().then(() => {
+    initializeColorPickers();
+  }); // 색상 맵 로드 및 초기화
+
+  initCheckboxStateAndSelectAll(false);
+
   fetch('/FDC/Proj/trunk/js/main/load_tags.php')
     .then(response => {
       if (!response.ok) {
@@ -29,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
     })
     .then(tags => {
       if (featureFlags.renderTags) {
-        renderTags(tags); // 여기에서 renderTags 함수를 호출하여 태그 렌더링 처리
+        renderTags(tags);
       }
     })
     .catch(error => console.error('Error loading tags:', error));
@@ -46,32 +66,39 @@ function generateRandomColor() {
 }
 
 // 환경상 GET으로 태그 데이터를 저장하는 것으로 개발
-// 태그와 색상을 서버로 전송하는 함수 
+// 태그와 색상을 서버로 전송하는 함수
 function saveTagWithGet(tagName) {
-  const randomColor = generateRandomColor(); // 랜덤 색상 생성
-  const url = new URL('/FDC/Proj/trunk/js/main/save_tag.php', window.location.origin);
-  const params = { tag: tagName, color: randomColor };
-  url.search = new URLSearchParams(params).toString();
+  const colorSelector = document.getElementById('tag-color-selector');
+  const selectedColorValue = colorSelector.value;
 
-  fetch(url)
-    .then(response => {
-      if (response.ok) {
-        return response.json();
-      }
-      throw new Error('태그 저장에 실패했습니다.');
+  fetch('/FDC/Proj/mjkoo/js/main/color_map.php')
+    .then(response => response.json())
+    .then(colorMap => {
+      const selectedColor = selectedColorValue !== 'color-null' ? colorMap[selectedColorValue] : generateRandomColor();
+      
+      const url = new URL('/FDC/Proj/mjkoo/js/main/save_tag.php', window.location.origin);
+      const params = { tag: tagName, color: selectedColor };
+      url.search = new URLSearchParams(params).toString();
+
+      fetch(url)
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          }
+          throw new Error('태그 저장에 실패했습니다.');
+        })
+        .then(data => {
+          if (data.message === '태그가 성공적으로 저장되었습니다.') {
+            renderTags([{ name: tagName, color: selectedColor }]);
+            document.getElementById('new-tag-text').value = '';
+            colorSelector.value = 'color-null';
+            colorSelector.style.color = getColorCode('color-null'); // 색상 초기화
+          }
+        })
+        .catch(error => console.error(error));
     })
-    .then(data => {
-      if (data.message === '태그가 성공적으로 저장되었습니다.') {
-        // 서버로부터의 응답이 성공적일 때만 태그를 DOM에 추가
-        renderTags([{ name: tagName, color: randomColor }]);
-        // 입력 필드 초기화
-        document.getElementById('new-tag-text').value = '';
-      }
-    })
-    .catch(error => console.error(error));
+    .catch(error => console.error('색상 맵 로딩에 실패했습니다.', error));
 }
-
-
 
 // 태그 추가 및 서버로 전송
 document.getElementById('new-tag').addEventListener('click', function () {
@@ -120,7 +147,7 @@ function renderTags(tags) {
     // 태그 이름 설정
     newSpan.textContent = tag.name;
 
-      // 배경색 설정
+    // 배경색 설정
     if (tag.color && tag.color !== 'undefined') {
       newSpan.dataset.color = tag.color;
       button.style.setProperty('--tag-color', tag.color); //CSS 변수 설정을 button에 적용
@@ -162,7 +189,7 @@ function renderTags(tags) {
         button.classList.remove('active');
         const newInputValue = currentInputValue.replace(new RegExp(`\\s*${tagWithHash}\\s*`, 'g'), ' ').trim();
         labelInput.value = newInputValue;
-         console.log("입력 필드 값 (태그 제거 후):", newInputValue); // 태그 제거 후 입력 필드 값 확인
+        console.log("입력 필드 값 (태그 제거 후):", newInputValue); // 태그 제거 후 입력 필드 값 확인
       } else {
         // 태그 추가
         button.classList.add('active');
@@ -173,11 +200,17 @@ function renderTags(tags) {
         }
         console.log("입력 필드 값 (태그 추가 후):", labelInput.value); // 태그 추가 후 입력 필드 값 확인
       }
+      // 자동으로 검색 버튼 클릭 이벤트 트리거
+      document.querySelector('.stk-sch-btn').click();
     });
   });
 }
 
-function updateInputLabel(inputLabel){
+// 검색 버튼 리스너
+addSearchButtonListener();
+
+
+function updateInputLabel(inputLabel) {
   const activeTags = document.querySelectorAll('.main.tag-selector.active');
   const tagNames = Array.from(activeTags).map(tag => `#${tag.textContent.trim()}`);
   inputLabel.value = tagNames.join('');

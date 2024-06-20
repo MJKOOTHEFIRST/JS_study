@@ -2,6 +2,7 @@
 // color_map.php
 // color ID = color code
 $colorMap = [
+    'color-null' => null,
     'color00' => '#00FF00',
     'color01' => '#FFCC00',
     'color02' => '#FF6B6B',
@@ -26,5 +27,6 @@ $colorMap = [
 ];
 
 header('Content-Type: application/json');
+// 컬러 맵을 json으로 반환하는 API 엔드포인트를 만듦.
 echo json_encode($colorMap);
 ?>

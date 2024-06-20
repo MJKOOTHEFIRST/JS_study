@@ -1,20 +1,22 @@
 import { copyFilesForGraph } from './search_copyFile.js';
 
+export let currentPage = 1;
 let itemsPerPage = 100; // 기본값
 let currentSearchConditions = {};
 let totalRowsFiltered = 0; //필터링 된 데이터의 총 수를 저장할 변수
-export let currentPage = 1;
 let currentPageContext = 'all'; // 'all', 'search', 'bookmark' (페이지 컨텍스트 추적 기능)
 let currentBookmarkId = null; // 현재 활성화된 북마크 ID
 
 const currentDate = new Date();
 const formattedDate = currentDate.toISOString().slice(0, 19).replace('T', ' ');
 
-let pickColors={};
+let pickColors = {};
 
 ////////////////////////////////////////////////////////////////////////////
 // DOM 로딩 시 모든 이벤트 리스너를 설정하고 "항목 삭제" 버튼 상태를 초기화하는 함수 호출
 document.addEventListener('DOMContentLoaded', function () {
+    // 처음 로드될 때 체크박스가 체크되지 않도록 설정
+    initCheckboxStateAndSelectAll(false);
 
     // 초기화 함수 호출
     loadColorMap().then(() => {
@@ -64,14 +66,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // DOM 요소 초기화
     const tbody = document.querySelector('#stack_search_table');
     const graphButton = document.getElementById('graph-btn');
-    const bookmarkButton = document.getElementById('bookmark-btn');
     let checkboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]');
     const addButton = document.getElementById('add-bmk-btn');
     const stackDataMngHeadElement = document.getElementById('stack-data-mng-head');
     const bookmarkTabContainer = document.getElementById('bookmark-tab');
     const deleteButton = document.getElementById('delete-db-in-bmk');
 
-   
     // 초기 '항목삭제' 버튼 상태 업데이트
     // updateDeleteButtonState();
     // console.log('초기 로드시 updateDeleteButtonState 호출 완료');
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // '스택 데이터 관리' 클릭 시 '항목 삭제' 버튼 상태 업데이트 이벤트 리스너
     if (stackDataMngHeadElement) {
         stackDataMngHeadElement.addEventListener('click', function () {
-            console.log("스택 데이터 관리 클릭시 updateDeleteButtonState 호출");
+            // console.log("스택 데이터 관리 클릭시 updateDeleteButtonState 호출");
             // updateDeleteButtonState();
         });
     }
@@ -89,9 +89,10 @@ document.addEventListener('DOMContentLoaded', function () {
         bookmarkTabContainer.addEventListener('click', function (event) {
             const target = event.target.closest('a');
             if (target && target.classList.contains('tab-item')) {
-                console.log('탭 클릭 시 updateDeleteButtonState 호출');
+                // console.log('탭 클릭 시 updateDeleteButtonState 호출');
                 document.querySelectorAll('.tab-item a').forEach(tab => tab.classList.remove('active'));
                 target.classList.add('active');
+
                 // updateDeleteButtonState();
             }
         });
@@ -101,8 +102,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (tbody) {
         tbody.addEventListener('change', function (event) {
             if (event.target.type === 'checkbox' && event.target.name === 'search-checkbox') {
+                const dataNo = event.target.getAttribute('data-no');
+                // console.log(`체크박스 클릭됨, DATA-NO: ${dataNo}`);
                 updateSelectedCount();
-                console.log('체크박스 상태 변경됨');
+                // searchWithData({'NO': dataNo });
             }
         });
     }
@@ -111,80 +114,21 @@ document.addEventListener('DOMContentLoaded', function () {
         graphButton.addEventListener('click', copySelectedFiles);
     }
 
-    if (bookmarkButton) {
-        bookmarkButton.addEventListener('click', function () {
-            checkboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]:checked');
-            const allItemsTab = document.querySelector('.all-item-tab.active');
+    // 기존 탭 버튼 설정
+    const tabBtns = document.querySelectorAll('.sub-tab .tab-item a');
+    tabBtns.forEach(e => e.addEventListener('click', function () {
+        tabBtns.forEach(tab => tab.classList.remove('active'));
+        this.classList.add('active');
+    }));
 
-            // 체크박스가 선택되었는지 확인
-            if (checkboxes.length === 0) {
-                alert('하나 이상의 데이터를 선택해주세요.');
-                return;
-            }
+    // 초기 로드 시 북마크 탭 불러오기
+    getBookmarkTabs();
 
-            // 전체항목 탭이 활성화되어 있는지 확인
-            if (!allItemsTab) {
-                alert('전체항목에서 선택해주세요.');
-                return;
-            }
-
-            // 모달을 열기 전에 북마크 목록을 로드
-            toggleModal('manage-tab-modal');
-
-            // 모달의 제목을 변경
-            document.querySelector('#manage-tab-modal .modal-title').textContent = '데이터 등록';
-
-            // .add-tab-row 요소 숨기기
-            document.querySelector('#manage-tab-modal .add-tab-row').style.display = 'none';
-
-            // .db-edit 요소 숨기기
-            const dbEditElements = document.querySelectorAll('#manage-tab-modal .db-edit');
-            dbEditElements.forEach(element => {
-                element.style.display = 'none';
-            });
-
-            //tab-list-checkbox 숨기기
-            const tabListCheckboxes = document.querySelectorAll('#manage-tab-modal input[name="tab-list-checkbox"]');
-            tabListCheckboxes.forEach(checkbox => {
-                checkbox.style.display = 'none';
-            });
-
-            // 삭제 버튼 숨기기
-            document.querySelector('#manage-tab-modal .delete-bmk').style.display = 'none';
-
-            // a 링크 클릭 이벤트 리스너 추가
-            const bookmarkLinks = document.querySelectorAll('#manage-tab-modal a');
-            bookmarkLinks.forEach(link => {
-                link.addEventListener('click', function (event) {
-                    event.preventDefault();
-                    const tr = this.closest('tr');
-                    const bookmarkId = tr.getAttribute('data-bookmark-id');
-                    const bookmarkName = tr.getAttribute('data-bookmark-name');
-                    console.log("bookmark Id, bookmarkName:", bookmarkId, bookmarkName);
-
-                    // 선택된 체크박스 데이터 전송
-                    const selectedData = Array.from(checkboxes).map(checkbox => ({
-                        no: checkbox.getAttribute('data-no'),
-                        bookmarkId: bookmarkId
-                    }));
-
-                    // saveBookmarkData(selectedData, bookmarkId);
-                    saveMultipleBookmarkData(selectedData);
-
-                    // 모달 닫기
-                    toggleModal('manage-tab-modal');
-
-                    // 탭 이동 및 데이터 필터링
-                    filterDataByBookmark(bookmarkId);
-
-                    // 북마크 탭에 active 클래스 추가
-                    const tabItem = document.querySelector(`.tab-item a[data-bookmark-id="${bookmarkId}"]`);
-                    if (tabItem) {
-                        document.querySelectorAll('.tab-item a').forEach(tab => tab.classList.remove('active'));
-                        tabItem.classList.add('active');
-                    }
-                });
-            });
+    const bookmarkBtn = document.getElementById('bookmark-btn');
+    if (bookmarkBtn) {
+        bookmarkBtn.addEventListener('click', function () {
+            toggleModal('manage-tab-modal'); // 모달 ID를 명시적으로 전달
+            setupBookmarkModal();
         });
     }
 
@@ -194,16 +138,22 @@ document.addEventListener('DOMContentLoaded', function () {
         allItemsTab.addEventListener('click', function (event) {
             event.preventDefault();
             console.log('전체항목 탭 클릭됨');
+
             document.querySelectorAll('.tab-item a').forEach(tab => tab.classList.remove('active'));
             this.classList.add('active');
-            searchWithData({}); // 전체 데이터를 다시 로드
+
+            searchWithData({}).then(() => {
+                // 체크박스 상태 초기화
+                console.log('Before initCheckboxStateAndSelectAll');
+                document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]').forEach(checkbox => {
+                    console.log(`Before: ${checkbox.checked}`);
+                });
+
+                initCheckboxStateAndSelectAll(false);
+
+            });
         });
     }
-
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateSelectedCount);
-        // console.log('updateSelectedCount 이벤트 리스너 추가됨');
-    });
 
     if (addButton) {
         addButton.addEventListener('click', function () {
@@ -217,19 +167,24 @@ document.addEventListener('DOMContentLoaded', function () {
     } else {
         console.error('북마크 추가 버튼 작동 에러');
     }
-    //////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////
     // 페이지 당 데이터 수 선택 콤보박스 이벤트 리스너
     const itemsPerPageSelect = document.getElementById('items-per-page');
     itemsPerPageSelect.addEventListener('change', function () {
         itemsPerPage = this.value === 'all-data' ? 'all-data' : parseInt(this.value); // 'all-data'로 설정
         goToPage(1); // 첫 페이지로 이동하여 데이터 로드
     });
-    //////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
 
     // 데이터 로드 및 기타 초기화
-    searchWithData({});
+    searchWithData({}).then(() => {
+        // 필터링된 항목 선택 상태 초기화 및 체크박스 업데이트
+        initCheckboxStateAndSelectAll(false);
+        updateSelectedCount();
+    });
     setupSelectAllCheckbox();
-    updateSelectedCount();
+    // updateSelectedCount();
     // updateDeleteButtonState(); // 전체 항목에 해당될 시에는 '항목 삭제' 버튼 상태 업데이트
 
     // 북마크 관련 초기화
@@ -237,10 +192,10 @@ document.addEventListener('DOMContentLoaded', function () {
     getTabList();
 });
 
-// 컬러
+// 컬러(색깔)
 //////////////////////////////////////////////////////////////////////////
 // 색상 맵을 로드하는 함수
- async function loadColorMap() {
+export async function loadColorMap() {
     return fetch('/FDC/Proj/mjkoo/js/main/color_map.php') // 경로 확인
         .then(response => response.json())
         .then(data => {
@@ -253,8 +208,8 @@ document.addEventListener('DOMContentLoaded', function () {
 }
 
 // 초기 색상 설정 스크립트
-function initializeColorPickers() {
-    const colorPickers = document.querySelectorAll('.color-pick');
+export function initializeColorPickers() {
+    const colorPickers = document.querySelectorAll('.color-pick, #tag-color-selector');
     colorPickers.forEach(picker => {
         const selectedColorId = picker.value;
         picker.innerHTML = generateColorOptions(selectedColorId);
@@ -263,39 +218,56 @@ function initializeColorPickers() {
         picker.addEventListener('change', function () {
             const selectedColorCode = getColorCode(this.value);
             this.style.color = selectedColorCode;
-            updateBookmark(
-                picker.closest('tr').getAttribute('data-bookmark-id'), // ID를 가져오는 방법
-                picker.closest('tr').querySelector('input[type="text"]').value, // 이름 가져오기
-                this.value // 선택된 색상 ID
-            );
+
+            // hidden-color 값 설정
+            const hiddenColorInput = document.getElementById('hidden-color');
+            hiddenColorInput.value = this.value === 'color-null' ? 'null' : selectedColorCode;
+
+            const closestTr = picker.closest('tr'); // tr 요소를 찾음
+            if (closestTr) {
+                const bookmarkId = closestTr.getAttribute('data-bookmark-id'); // data-bookmark-id 속성 가져오기
+                const inputElement = closestTr.querySelector('input[type="text"]'); // input 요소 찾기
+
+                if (inputElement) {
+                    const inputValue = inputElement.value; // input 값 가져오기
+                    updateBookmark(bookmarkId, inputValue, this.value); // updateBookmark 함수 호출
+                } else {
+                    console.error('Input element not found within tr');
+                }
+            } else {
+                console.error('tr element not found for picker', picker);
+                // 추가 디버깅 로깅
+                console.error('picker:', picker);
+                console.error('picker parent element:', picker.parentElement);
+            }
         });
+        // 초기 값 설정
+        const hiddenColorInput = document.getElementById('hidden-color');
+        hiddenColorInput.value = selectedColorId === 'color-null' ? '' : getColorCode(selectedColorId);
     });
 }
 
-// 색상 코드를 반환하는 함수
-function getColorCode(colorId) {
+export function getColorCode(colorId) {
+    if (colorId === 'color-null') {
+        return '#EEEEEE'; // 'color-null'일 때 null 반환
+    }
     return pickColors[colorId] || '#6699CC'; // 기본색상 지정
 }
 
-// 색상 옵션들을 생성하는 함수
-function generateColorOptions(selectedColorId) {
+export function generateColorOptions(selectedColorId) {
     let optionsHtml = '';
     for (const [colorId, colorCode] of Object.entries(pickColors)) {
         const selectedAttribute = colorId === selectedColorId ? ' selected' : '';
-        optionsHtml += `<option value="${colorId}" style="color: ${colorCode};"${selectedAttribute}>🖿 <!--${colorId}--></option>`;
+        const colorStyle = colorId === 'color-null' ? 'color: #F6F5F2;' : `color: ${colorCode};`; // 'color-null'일 때 색상 설정
+        optionsHtml += `<option value="${colorId}" style="${colorStyle}"${selectedAttribute}>▉ <!--${colorId}--></option>`;
     }
     return optionsHtml;
 }
 
-// document.querySelectorAll('.color-pick').forEach(selectElement => {
-//     const selectedColorId = selectElement.value; // 선택된 색상 ID를 가져옴
-//     selectElement.innerHTML = generateColorOptions(selectedColorId);
-//     selectElement.style.color = getColorCode(selectedColorId);
-// });
-
 // 색상 식별자를 클래스 이름으로 변환하는 함수
-function getColorClass(colorId) {
+export function getColorClass(colorId) {
     const colorClassMap = {
+        'color-null': 'tab-color-null',
         'color00': 'tab-color-00',
         'color01': 'tab-color-01',
         'color02': 'tab-color-02',
@@ -319,30 +291,8 @@ function getColorClass(colorId) {
         'color20': 'tab-color-20',
         'color21': 'tab-color-21'
     };
-    return colorClassMap[colorId] || 'tab-color-00';
+    return colorClassMap[colorId] || 'tab-color-null';
 }
-////////////////////////////////////////////////////////////////////////////
-// "항목 삭제" 버튼 상태를 업데이트하는 함수
-/*
-function updateDeleteButtonState() {
-    const activeTab = document.querySelector('.tab-item a.active');
-    const stackDataMngHead = document.getElementById('stack-data-mng-head');
-    const deleteButton = document.getElementById('delete-db-in-bmk');
-
-    if (
-        (activeTab && activeTab.classList.contains('all-item-tab')) ||
-        (stackDataMngHead && stackDataMngHead.classList.contains('bold'))
-    ) {
-        deleteButton.disabled = true; // 전체 항목 탭 또는 스택 데이터 관리 활성화 시 삭제 버튼 비활성화
-        console.log("삭제 버튼 비활성화됨");
-    } else {
-        deleteButton.disabled = false; // 그 외의 경우 버튼 활성화
-        console.log("삭제 버튼 활성화됨");
-    }
-}
-*/
-
-
 ////////////////////////////////////////////////////////////////////////////
 document.getElementById('stack-data-mng-head').addEventListener('click', function () {
     // console.log('스택 데이터 관리 헤더 클릭');
@@ -361,18 +311,23 @@ document.getElementById('stack-data-mng-head').addEventListener('click', functio
         allItemsTab.classList.add('active');
     }
 });
+
+let isResetTriggered = false;
+
 // 필터 검색 초기화 버튼
 document.querySelectorAll('.search_reset').forEach(button => {
     button.addEventListener('click', function () {
-        console.log('초기화 버튼 클릭 이벤트 발생');
+        // console.log('초기화 버튼 클릭 이벤트 발생');
         resetSearchConditions(); // 검색 조건 초기화 함수 호출
-        // searchWithData({});//서버에 빈 검색 요청 전송
-        // totalRowsFiltered = 0; //필터링 된 데이터의 총 수 초기화
+        isResetTriggered = true;
+        document.querySelector('.stk-sch-btn').click(); // 검색 버튼 클릭 이벤트 트리거
     });
 });
 
 // 검색 조건 초기화 함수
 export function resetSearchConditions() {
+    console.log('resetSearchConditions called');
+
     // 입력 필드 초기화
     document.querySelectorAll('.search-condition').forEach(input => {
         input.value = ''; // 빈 문자열로 설정
@@ -392,10 +347,28 @@ export function resetSearchConditions() {
     // 전체선택 체크박스 초기화
     document.getElementById('search-all-checkbox').checked = false;
 
+    // 페이지에 있는 모든 체크박스 해제
+    const allCheckboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]');
+    allCheckboxes.forEach(checkbox => {
+        checkbox.checked = false; // 체크 해제
+    });
+
+    // 체크박스 상태 확인
+    console.log('Checkbox states after reset:');
+    allCheckboxes.forEach(checkbox => {
+        console.log(`Checkbox ${checkbox.getAttribute('data-no')}: ${checkbox.checked}`);
+    });
+
+    // 모든 체크박스 상태 변경 후 선택된 항목의 개수 업데이트
+    updateSelectedCount();
+
     // 현재 컨텍스트에 따른 초기화 동작
     if (currentPageContext === 'all') {
         // 전체 데이터 초기화
-        searchWithData({});
+        searchWithData({}).then(() => {
+            // 필터링된 항목 선택 상태 초기화 및 체크박스 업데이트
+            updateSelectedCount();
+        });
         document.getElementById('stack-data-mng-head').classList.add('bold');
     } else if (currentPageContext === 'bookmark') {
         // 북마크 내 데이터 초기화
@@ -407,133 +380,300 @@ export function resetSearchConditions() {
     document.querySelectorAll('.tag-selector.active').forEach(button => {
         button.classList.remove('active');
     });
+
+    // 검색 버튼 클릭 이벤트 트리거
+    // document.querySelector('.stk-sch-btn').click();
 }
 
-// 검색 버튼 이벤트 리스너 추가
-document.querySelectorAll('.stk-sch-btn').forEach(button => {
-    button.addEventListener('click', function () {
-        console.log('검색 버튼 클릭 이벤트 발생');
+// 검색 버튼 클릭 이벤트 리스너 
+export function addSearchButtonListener() {
+    document.querySelectorAll('.stk-sch-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            // 검색 버튼 클릭 이벤트 발생
 
-        // 검색 조건 수집 함수
-        const getInputValue = (inputId) => {
-            const inputElement = document.getElementById(inputId);
-            if (!inputElement) {
-                console.log(`Element not found for ID: ${inputId}`);
-                return ''; // 빈 문자열 반환하거나, 적절한 기본값 설정
-            }
-
-            const value = inputElement.value.trim(); // 입력값에서 앞뒤 공백 제거
-            if (value) { // 값이 있는 경우에만 로깅
-                console.log(`입력 값 가져오기: ${inputId}`);
-                console.log(`Value for ${inputId}: ${value}`);
-            }
-            return value;
-        };
-
-        // 시작 날짜와 종료 날짜 수집
-        const startDate = getInputValue('start-date');
-        const endDate = getInputValue('end-date');
-
-        console.log(`시작일: ${startDate}`);
-        console.log(`종료일: ${endDate}`);
-
-        // 날짜 유효성 검사
-        if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-            alert('시작 날짜가 종료 날짜보다 뒤에 있습니다.');
-            return;
-        }
-
-        // 검색 조건 수집
-        const searchConditions = {
-            'start-date': startDate, // 시작 날짜 수집
-            'end-date': endDate, // 종료 날짜 수집
-            'H-M': { value: getInputValue('input-h-m'), condition: getSelectedCondition('a01') },
-            'M-L': { value: getInputValue('input-m-l'), condition: getSelectedCondition('a02') },
-            'X1': { value: getInputValue('input-x1'), condition: getSelectedCondition('a03') },
-            'X2': { value: getInputValue('input-x2'), condition: getSelectedCondition('a04') },
-            'Y1': { value: getInputValue('input-y1'), condition: getSelectedCondition('a05') },
-            'Y2': { value: getInputValue('input-y2'), condition: getSelectedCondition('a06') },
-            'M': { value: getInputValue('input-m'), condition: getSelectedCondition('a07') },
-            'L': { value: getInputValue('input-l'), condition: getSelectedCondition('a08') },
-            'SQ': { value: getInputValue('input-sq'), condition: getSelectedCondition('a09') },
-            'BQ': { value: getInputValue('input-bq'), condition: getSelectedCondition('a10') },
-            'LABEL': { value: getInputValue('input-label') }
-        };
-
-        // 빈 값 필터링
-        Object.keys(searchConditions).forEach(key => {
-            // 값이 객체인 경우 .value를 확인하고, 그렇지 않은 경우 값을 직접 확인
-            if (typeof searchConditions[key] === 'object' && searchConditions[key] !== null) {
-                if (!searchConditions[key].value) {
-                    delete searchConditions[key];
+            // 검색 조건 수집 함수
+            const getInputValue = (inputId) => {
+                const inputElement = document.getElementById(inputId);
+                if (!inputElement) {
+                    console.log(`Element not found for ID: ${inputId}`);
+                    return ''; // 빈 문자열 반환하거나, 적절한 기본값 설정
                 }
+
+                const value = inputElement.value.trim(); // 입력값에서 앞뒤 공백 제거
+                if (value) { // 값이 있는 경우에만 로깅
+                    console.log(`입력 값 가져오기: ${inputId}`);
+                    console.log(`Value for ${inputId}: ${value}`);
+                }
+                return value;
+            };
+
+            // 시작 날짜와 종료 날짜 수집
+            const startDate = getInputValue('start-date');
+            const endDate = getInputValue('end-date');
+
+            console.log(`시작일: ${startDate}`);
+            console.log(`종료일: ${endDate}`);
+
+            // 날짜 유효성 검사
+            if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+                alert('시작 날짜가 종료 날짜보다 뒤에 있습니다.');
+                return;
+            }
+
+            // 검색 조건 수집
+            const searchConditions = {
+                'start-date': startDate, // 시작 날짜 수집
+                'end-date': endDate, // 종료 날짜 수집
+                'H-M': { value: getInputValue('input-h-m'), condition: getSelectedCondition('a01') },
+                'M-L': { value: getInputValue('input-m-l'), condition: getSelectedCondition('a02') },
+                'X1': { value: getInputValue('input-x1'), condition: getSelectedCondition('a03') },
+                'X2': { value: getInputValue('input-x2'), condition: getSelectedCondition('a04') },
+                'Y1': { value: getInputValue('input-y1'), condition: getSelectedCondition('a05') },
+                'Y2': { value: getInputValue('input-y2'), condition: getSelectedCondition('a06') },
+                'M': { value: getInputValue('input-m'), condition: getSelectedCondition('a07') },
+                'L': { value: getInputValue('input-l'), condition: getSelectedCondition('a08') },
+                'SQ': { value: getInputValue('input-sq'), condition: getSelectedCondition('a09') },
+                'BQ': { value: getInputValue('input-bq'), condition: getSelectedCondition('a10') },
+                'LABEL': { value: getInputValue('input-label') }
+            };
+
+            // 빈 값 필터링
+            Object.keys(searchConditions).forEach(key => {
+                // 값이 객체인 경우 .value를 확인하고, 그렇지 않은 경우 값을 직접 확인
+                if (typeof searchConditions[key] === 'object' && searchConditions[key] !== null) {
+                    if (!searchConditions[key].value) {
+                        delete searchConditions[key];
+                    }
+                } else {
+                    // 값이 단순 데이터 타입인 경우 (예: 문자열), 값 자체를 확인
+                    if (!searchConditions[key]) {
+                        delete searchConditions[key];
+                    }
+                }
+            });
+
+            console.log('검색 조건:', searchConditions);
+
+            // 서버에 검색 요청
+            if (currentPageContext === 'bookmark') {
+                filterDataByBookmark(currentBookmarkId, 1, searchConditions).then(() => {
+                    // 필터링된 항목 선택 상태 초기화 및 체크박스 업데이트
+                    initCheckboxStateAndSelectAll(true); // 북마크 탭에서도 체크박스 선택
+                    updateSelectedCount();
+                });
             } else {
-                // 값이 단순 데이터 타입인 경우 (예: 문자열), 값 자체를 확인
-                if (!searchConditions[key]) {
-                    delete searchConditions[key];
-                }
+                searchWithData(searchConditions).then(() => {
+                    // 필터링된 항목 선택 상태 초기화 및 체크박스 업데이트
+                    initCheckboxStateAndSelectAll();
+
+                    // 초기화 버튼이 눌린 후에는 모든 체크박스를 해제
+                    if (isResetTriggered) {
+                        initCheckboxStateAndSelectAll(false);
+                        isResetTriggered = false;
+                    }
+
+                    updateSelectedCount();
+                });
             }
         });
-
-        console.log('검색 조건:', searchConditions);
-
-        // 서버에 검색 요청
-        if (currentPageContext === 'bookmark') {
-            filterDataByBookmark(currentBookmarkId, 1, searchConditions);
-        } else {
-            searchWithData(searchConditions);
-        }
     });
-});
-
+}
 
 // 선택된 조건을 반환하는 함수
 function getSelectedCondition(name) {
     const over = document.getElementById(`o${name.substring(1)}`).checked;
     const under = document.getElementById(`u${name.substring(1)}`).checked;
-    console.log(`조건 ${name}:`, over ? 'over' : (under ? 'under' : 'none'));
+    // console.log(`조건 ${name}:`, over ? 'over' : (under ? 'under' : 'none'));
     return over ? 'over' : (under ? 'under' : '');
 }
 
+//필터된 데이터
 // 서버에 검색 조건을 전송하고 결과를 받아 테이블에 표시하는 함수 (GET 요청 사용) / 퀴리 문자열 생성
 // encodeURIComponent 함수 : URL에서 사용할 수 있도록 문자열 인코딩
 export function searchWithData(conditions, page = 1) {
-    currentPageContext = 'search'; // 검색 조건 필터링 컨텍스트 설정
-    currentSearchConditions = conditions;
+    return new Promise((resolve, reject) => {
+        currentPageContext = 'search'; // 검색 조건 필터링 컨텍스트 설정
+        currentSearchConditions = conditions;
 
-    let query = Object.keys(conditions).map(key => {
-        if (key === 'LABEL') {
-            return `${encodeURIComponent(key)}=${encodeURIComponent(conditions[key].value)}`;
-        } else if (key === 'start-date' || key === 'end-date') {
-            return `${encodeURIComponent(key)}=${encodeURIComponent(conditions[key])}`;
-        } else {
-            return `${encodeURIComponent(key)}=${encodeURIComponent(conditions[key].value)}&${encodeURIComponent(key + 'Condition')}=${encodeURIComponent(conditions[key].condition)}`;
-        }
-    }).join('&');
+        let query = Object.keys(conditions).map(key => {
+            if (key === 'LABEL') {
+                return `${encodeURIComponent(key)}=${encodeURIComponent(conditions[key].value)}`;
+            } else if (key === 'start-date' || key === 'end-date') {
+                return `${encodeURIComponent(key)}=${encodeURIComponent(conditions[key])}`;
+            } else {
+                return `${encodeURIComponent(key)}=${encodeURIComponent(conditions[key].value)}&${encodeURIComponent(key + 'Condition')}=${encodeURIComponent(conditions[key].condition)}`;
+            }
+        }).join('&');
 
-    query += `&page=${page}&perPage=${itemsPerPage}`;
-    const url = `/FDC/Proj/mjkoo/js/main/stack_search2.php?${query}`;
+        query += `&page=${page}&perPage=${itemsPerPage}`;
+        const url = `/FDC/Proj/mjkoo/js/main/stack_search2.php?${query}`;
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.onload = function () {
+            if (this.status === 200) {
+                const response = JSON.parse(this.responseText);
+                if (Array.isArray(response.data)) {
+                    totalRowsFiltered = response.totalRows;
+                    displayResults(response.data, page, totalRowsFiltered);
+                    displayPagination(totalRowsFiltered, page);
+
+                    // 체크박스 초기화 및 자동 선택 함수 호출
+                    initCheckboxStateAndSelectAll();
+
+                    resolve(); // 성공적으로 완료된 경우 resolve 호출
+                } else {
+                    console.error('Results is not an array', response.data);
+                    reject('Results is not an array');
+                }
+            } else {
+                console.error('서버응답 실패:', this.status);
+                reject(`서버응답 실패: ${this.status}`);
+            }
+        };
+        xhr.onerror = function () {
+            console.error('Request failed');
+            reject('Request failed');
+        };
+        console.log('요청된 Query:', query);
+        xhr.send();
+    });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+// 체크박스 함수들
+
+// 체크박스 초기화 및 자동 선택 함수 추가
+export function initCheckboxStateAndSelectAll(shouldCheckAll = true) {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = shouldCheckAll;
+    });
+    // 체크박스 상태를 초기화한 후 선택된 항목의 개수를 업데이트
+    updateSelectedCount();
+}
+
+
+// 체크박스가 변경될 때마다 선택된 항목의 개수를 업데이트하고, 모든 체크박스가 선택되었는지 확인하여 전체 선택 체크박스의 상태를 업데이트하는 함수
+export function updateSelectedCount() {
+    const allCheckboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]');
+    const checkedCheckboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]:checked');
+
+    console.log(`Checked checkboxes: ${checkedCheckboxes.length}`); // 로그 추가
+    const countSpan = document.getElementById('count-checked');
+    if (countSpan) {
+        countSpan.textContent = `선택된 항목 ${checkedCheckboxes.length}개`;
+    } else {
+        console.error('count-checked 요소를 찾을 수 없습니다.'); // 에러 로그 추가
+    }
+
+    // 해당 페이지의 모든 체크박스가 체크되면 전체 선택 체크박스의 상태 업데이트
+    const selectAllCheckbox = document.getElementById('search-all-checkbox');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = allCheckboxes.length === checkedCheckboxes.length;
+    }
+}
+
+// 전체 선택 체크박스의 변경 이벤트 처리. 전체 선택/해제 로직만 수행
+export function handleSelectAllChange(event) {
+    if (!event) return; // event 객체가 없으면 함수를 종료
+    const isChecked = event.target.checked;
+    const allCheckboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]');
+    allCheckboxes.forEach(checkbox => {
+        checkbox.checked = isChecked;
+    });
+    updateSelectedCount();
+}
+
+// document.getElementById('search-all-checkbox').addEventListener('change', function (event) {
+//     handleSelectAllChange(event);
+// });
+
+
+// 페이지 로드 또는 페이지 변경 시 호출될 함수
+function setupSelectAllCheckbox() {
+    const selectAllCheckbox = document.getElementById('search-all-checkbox');
+    if (selectAllCheckbox) {
+        // 기존 이벤트 리스너 제거
+        selectAllCheckbox.removeEventListener('change', handleSelectAllChange);
+        // 새 이벤트 리스너 등록
+        selectAllCheckbox.addEventListener('change', handleSelectAllChange);
+    }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+// 그래프그리기 버튼 누를시
+// 버튼 클릭 이벤트 처리. 파일 복사 로직 수행
+function copySelectedFiles() {
+    // console.log('Starting copySelectedFiles function');
+    fetch('/FDC/Proj/trunk/js/main/delete_files_in_selected.php')
+        .then(response => response.json())
+        .then(data => {
+            // console.log('Data from delete_files_in_selected.php:', data);
+            const checkboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]:checked');
+            const hiddenColorInput = document.querySelector('#hidden-color').value;
+            // console.log('Selected color:', hiddenColorInput);
+
+            const fetchPromises = Array.from(checkboxes).map(checkbox => {
+                const no = checkbox.getAttribute('data-no');
+                // console.log(`Copying file for NO: ${no}`);
+                return copyFilesForGraph(no, hiddenColorInput); // copyFilesForGraph 함수 호출
+            });
+
+            Promise.all(fetchPromises).then(results => {
+                const allData = results.filter(data => data !== null); // null 값을 제외한 모든 결과를 하나의 배열로 합침
+                // console.log('All fetched data:', allData); // 모든 가져온 데이터를 출력하는 콘솔 로그
+                handleDataResponse(allData); // 모든 데이터 처리가 완료된 후 handleDataResponse 호출
+            });
+        })
+        .catch(error => {
+            console.error('Error during delete_files_in_selected.php fetch:', error);
+        });
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// 체크박스 선택된 값 안에서 최대값 구해서 selected.conf에 저장하는 함수 
+function handleDataResponse(data) {
+    // console.log('handleDataResponse called with data:', data);
+    let maxValues = { X1: -Infinity, X2: -Infinity, Y1: -Infinity, Y2: -Infinity };
+
+    data.forEach(row => {
+        maxValues.X1 = Math.max(maxValues.X1, parseFloat(row.X1));
+        maxValues.X2 = Math.max(maxValues.X2, parseFloat(row.X2));
+        maxValues.Y1 = Math.max(maxValues.Y1, parseFloat(row.Y1));
+        maxValues.Y2 = Math.max(maxValues.Y2, parseFloat(row.Y2));
+    });
+
+    console.log(`Calculated Max Values: X1=${maxValues.X1}, X2=${maxValues.X2}, Y1=${maxValues.Y1}, Y2=${maxValues.Y2}`);
+
+    const maxValueString = `X1=${maxValues.X1}\nX2=${maxValues.X2}\nY1=${maxValues.Y1}\nY2=${maxValues.Y2}`;
+
+    if (maxValues.X1 !== -Infinity && maxValues.X2 !== -Infinity && maxValues.Y1 !== -Infinity && maxValues.Y2 !== -Infinity) {
+        saveMaxValueToFile(maxValueString);
+    }
+}
+
+function saveMaxValueToFile(maxValueString) {
+    console.log(`Original max value string: ${maxValueString}`);  // 원본 문자열 로그
+    const cleanedValue = maxValueString.replace(/MaxValue\s*=\s*/, '');
+    console.log(`Cleaned max value string: ${cleanedValue}`);  // 정제된 문자열 로그
+
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
+    const url = '/FDC/Proj/mjkoo/js/main/saveMaxValue.php';
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     xhr.onload = function () {
         if (this.status === 200) {
-            const response = JSON.parse(this.responseText);
-            if (Array.isArray(response.data)) {
-                totalRowsFiltered = response.totalRows;
-                displayResults(response.data, page, totalRowsFiltered);
-                displayPagination(totalRowsFiltered, page);
-            } else {
-                console.error('Results is not an array', response.data);
-            }
+            console.log('Max value saved:', this.responseText);
         } else {
-            console.error('서버응답 실패:', this.status);
+            console.error('Failed to save max value:', this.status);
         }
     };
     xhr.onerror = function () {
-        console.error('Request failed');
+        console.error('Request error:', this.status);
     };
-    console.log('요청된 Query:', query);
-    xhr.send();
+    xhr.send(`maxValue=${encodeURIComponent(cleanedValue)}`);
 }
 
 // 북마크 아닌 전체 데이터에서 결과를 표시하는 함수
@@ -583,56 +723,6 @@ export function displayResults(results, currentPage, totalRowsFiltered) {
     }
 }
 
-// 전체 선택 체크박스의 변경 이벤트 처리. 전체 선택/해제 로직만 수행
-function handleSelectAllChange() {
-    const allCheckboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]');
-    console.log(`전체 선택 체크박스 상태: ${this.checked}`); // 전체 선택 체크박스 상태 로깅
-    allCheckboxes.forEach(checkbox => {
-        checkbox.checked = this.checked; // 'this'는 selectAllCheckbox
-        console.log(`체크박스 ${checkbox.getAttribute('data-no')} 상태: ${checkbox.checked}`); // 각 체크박스 상태 로깅
-    });
-
-    // 모든 체크박스 상태 변경 후 선택된 항목의 개수 업데이트
-    updateSelectedCount();
-}
-
-// 버튼 클릭 이벤트 처리. 파일 복사 로직 수행
-function copySelectedFiles() {
-    // `/selected` 디렉터리 내의 파일을 모두 삭제하는 서버 측 스크립트 호출
-    fetch('/FDC/Proj/trunk/js/main/delete_files_in_selected.php')
-        .then(response => response.json())
-        .then(data => {
-            // console.log(data.message); // 성공 메시지 로깅
-            // 파일 삭제 성공 후, 기존 로직 수행
-            const checkboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]:checked');
-            const hiddenColorInput = document.querySelector('#hidden-color').value; // 색상 코드 가져오기
-            checkboxes.forEach(checkbox => {
-                const no = checkbox.getAttribute('data-no');
-                // console.log(`선택된 체크박스로 이동할 파일 NO: ${no}`);
-                copyFilesForGraph(no, hiddenColorInput); // search_copyFile.js 에서 import한 함수에 no랑 색상코드 인자로 전달
-            });
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-}
-
-// 페이지 로드 또는 페이지 변경 시 호출될 함수
-function setupSelectAllCheckbox() {
-    const selectAllCheckbox = document.getElementById('search-all-checkbox');
-    if (selectAllCheckbox) {
-        // 기존 이벤트 리스너 제거
-        selectAllCheckbox.removeEventListener('change', handleSelectAllChange);
-        // 새 이벤트 리스너 등록
-        selectAllCheckbox.addEventListener('change', handleSelectAllChange);
-    }
-
-    const graphButton = document.getElementById('graph-btn');
-    if (graphButton) {
-        // 새 이벤트 리스너 등록('그래프 보기')
-        graphButton.addEventListener('click', copySelectedFiles);
-    }
-}
 
 // 라벨 입력 필드에 대한 엔터 키 이벤트 리스너 추가(엔터 치면 수정사항 저장되도록)
 document.querySelectorAll('.label-input').forEach(input => {
@@ -653,7 +743,7 @@ function updateLabel(date, label) {
     const queryString = `date=${encodeURIComponent(date)}&label=${encodeURIComponent(label)}`;
 
     // fetch 요청 URL에 쿼리 문자열 추가
-    fetch(`/FDC/Proj/trunk/js/main/stack_label_update.php?${queryString}`, {
+    fetch(`/FDC/Proj/mjkoo/js/main/stack_label_update.php?${queryString}`, {
         method: 'GET', // GET 요청 명시
         mode: 'no-cors', //CORS 정책 우회
         headers: {
@@ -742,7 +832,7 @@ export function goToPage(pageNumber, bookmarkId = null) {
         perPage: itemsPerPage // 여기서 itemsPerPage 값을 서버로 전송
     });
 
-    let url = '/your-endpoint?';
+    let url = '/FDC/Proj/mjkoo/js/main/stack_search2.php?';
 
     if (currentPageContext === 'all') {
         url += `context=all&${params.toString()}`;
@@ -758,7 +848,7 @@ export function goToPage(pageNumber, bookmarkId = null) {
     fetch(url)
         .then(response => response.json())
         .then(data => {
-            console.log('Received data:', data);
+            // console.log('Received data:', data);
             // 데이터를 UI에 반영하는 로직 추가
             if (currentPageContext === 'all' || currentPageContext === 'search') {
                 displayResults(data.data, currentPage, data.totalRows);
@@ -777,7 +867,7 @@ export function goToPage(pageNumber, bookmarkId = null) {
 // 항목 관리 버튼(상단의 '+' 기호) 추가하는 함수
 function addPlusButton(bookmarkList) {
     var plusListItem = document.createElement('li');
-    plusListItem.innerHTML = '<a class="plus" title="항목관리" onclick="toggleModal()">+</a>';
+    plusListItem.innerHTML = '<a class="plus" title="항목관리" onclick="toggleModal(\'manage-tab-modal\')">+</a>';
     plusListItem.classList.add('bmk-list-mng-plus-btn');
     bookmarkList.appendChild(plusListItem);
 }
@@ -883,7 +973,7 @@ function getBookmarkTabs() {
     fetch('/FDC/Proj/mjkoo/js/main/get_bookmark.php')
         .then(response => response.json())
         .then(data => {
-            console.log("loaded bookmark data:", data);
+            // console.log("loaded bookmark data:", data);
             var bookmarkList = document.getElementById('bookmark-tab').querySelector('ul');
             bookmarkList.innerHTML = ''; // 기존 목록 초기화
 
@@ -901,7 +991,7 @@ function getBookmarkTabs() {
 
             // '전체항목' 탭 클릭 이벤트 리스너 추가
             allItemsTab.querySelector('a').addEventListener('click', function () {
-                console.log('전체항목 클릭 이벤트 발생');
+                // console.log('전체항목 클릭 이벤트 발생');
                 resetSearchConditions(); // 검색 조건 초기화 함수 호출
                 searchWithData({}); // 서버에 빈 검색 요청 전송
                 totalRowsFiltered = 0; //필터링 된 데이터 총 수 초기화
@@ -944,14 +1034,14 @@ document.getElementById('bookmark-tab').addEventListener('click', function (even
 
         // 항목관리 하는 + 버튼 클릭 확인
         if (target.parentElement.classList.contains('bmk-list-mng-plus-btn')) {
-            console.log('추가 버튼 클릭');
+            // console.log('추가 버튼 클릭');
             toggleModal();
             return; // 데이터 조회 로직 실행 안함
         }
 
         // 전체항목 탭을 클릭했는지 확인
         if (target.classList.contains('all-item-tab')) {
-            console.log('전체항목 탭 클릭');
+            // console.log('전체항목 탭 클릭');
             resetSearchConditions(); // 검색 조건 초기화
             searchWithData({}); // 전체 데이터 검색
             return; // 이후 로직을 실행하지 않음
@@ -960,7 +1050,7 @@ document.getElementById('bookmark-tab').addEventListener('click', function (even
         // 다른 북마크 탭을 클릭했을 경우
         const bookmarkId = target.dataset.bookmarkId;
         if (bookmarkId) {
-            console.log("Clicked bookmark ID:", bookmarkId);
+            // console.log("Clicked bookmark ID:", bookmarkId);
             filterDataByBookmark(bookmarkId);
         } else {
             console.error('Bookmark ID not found');
@@ -996,12 +1086,12 @@ export function filterBookmarkData(conditions, page = 1, searchConditions = {}) 
     xhr.onerror = function () {
         console.error('Request failed');
     };
-    console.log('Requested Query for Bookmarks:', query);
+    // console.log('Requested Query for Bookmarks:', query);
     xhr.send();
 }
 
 // 북마크 데이터를 필터링하고 표시하는 함수
-function filterDataByBookmark(bookmarkId, page = 1, searchConditions = {}) {
+async function filterDataByBookmark(bookmarkId, page = 1, searchConditions = {}, shouldCheckAll = false) {
     currentPageContext = 'bookmark'; // 북마크 필터링 컨텍스트 설정
     currentBookmarkId = bookmarkId;
 
@@ -1020,33 +1110,32 @@ function filterDataByBookmark(bookmarkId, page = 1, searchConditions = {}) {
     const timestamp = new Date().getTime();
     query += `&t=${timestamp}`;
 
-    fetch(`/FDC/Proj/mjkoo/js/main/filter_bookmark.php?${query}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log("Data received for bookmark ID :", bookmarkId, data);
-            if (data.data) {
-                displayBookmarkResults(data.data, data.total);
-                displayPagination(data.total, page, bookmarkId); // 페이지네이션 표시
-            } else {
-                console.error("Expected data to be an array, received:", data.data);
-                displayBookmarkResults([], 0); // 빈 배열 전달
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching filtered data:', error);
-            alert('데이터를 불러오는 중 오류가 발생했습니다.');
-        });
-}
+    try {
+        const response = await fetch(`/FDC/Proj/mjkoo/js/main/filter_bookmark.php?${query}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (data.data) {
+            displayBookmarkResults(data.data, data.total);
+            displayPagination(data.total, page, bookmarkId);
 
+            // 필터링된 항목 선택 상태 초기화 및 체크박스 업데이트
+            initCheckboxStateAndSelectAll(shouldCheckAll);
+            updateSelectedCount();
+        } else {
+            console.error("Expected data to be an array, received:", data.data);
+            displayBookmarkResults([], 0);
+        }
+    } catch (error) {
+        console.error('Error fetching filtered data:', error);
+        alert('데이터를 불러오는 중 오류가 발생했습니다.');
+    }
+}
 
 // 필터링된 데이터를 화면에 표시하는 함수
 function displayBookmarkResults(data, totalRows) {
-    console.log("displayBookmarkResults 호출됨, 데이터:", data); // 데이터 로깅 추가
+    // console.log("displayBookmarkResults 호출됨, 데이터:", data); // 데이터 로깅 추가
 
     const tbody = document.querySelector('#stack_search_table');
     if (!tbody) {
@@ -1208,32 +1297,32 @@ function updateBookmark(id, newName, newColorId) {
             'color': newColorId
         })
     })
-    .then(response => response.text())
-    .then(text => {
-        console.log('Response text:', text); // 서버에서 반환된 응답을 로그로 출력
+        .then(response => response.text())
+        .then(text => {
+            // console.log('Response text:', text); // 서버에서 반환된 응답을 로그로 출력
 
-        // 응답을 두 개의 JSON 객체로 나누기
-        const jsonResponses = text.split('}{').map((part, index, arr) => {
-            if (index === 0) return part + '}';
-            if (index === arr.length - 1) return '{' + part;
-            return '{' + part + '}';
-        });
+            // 응답을 두 개의 JSON 객체로 나누기
+            const jsonResponses = text.split('}{').map((part, index, arr) => {
+                if (index === 0) return part + '}';
+                if (index === arr.length - 1) return '{' + part;
+                return '{' + part + '}';
+            });
 
-        jsonResponses.forEach(jsonResponse => {
-            try {
-                const data = JSON.parse(jsonResponse);
-                console.log('Parsed response data:', data);
+            jsonResponses.forEach(jsonResponse => {
+                try {
+                    const data = JSON.parse(jsonResponse);
+                    // console.log('Parsed response data:', data);
                     getTabList(); // 업데이트 후 북마크 목록을 다시 불러옴
                     getBookmarkTabs();
-            } catch (e) {
-                console.error('Error parsing JSON:', e);
-                console.error('Response text:', jsonResponse); // 파싱 오류 발생 시 응답 텍스트를 로그로 출력
-            }
+                } catch (e) {
+                    console.error('Error parsing JSON:', e);
+                    console.error('Response text:', jsonResponse); // 파싱 오류 발생 시 응답 텍스트를 로그로 출력
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
         });
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
 }
 
 
@@ -1340,7 +1429,7 @@ function registerBookmarkData(bookmarkId, checkboxes) {
 // 북마크 데이터를 서버에 저장하는 함수
 function saveBookmarkData(dataNo, bookmarkId) {
     const payload = JSON.stringify({ no: dataNo, bookmarkId: bookmarkId });
-    console.log('Sending payload:', payload);
+    // console.log('Sending payload:', payload);
 
     return fetch('/FDC/Proj/mjkoo/js/main/save_bookmark_data.php', {
         method: 'POST',
@@ -1357,12 +1446,51 @@ function saveBookmarkData(dataNo, bookmarkId) {
         });
 }
 
+// 모달을 여러번 열고 닫을때마다 이벤트 리스너 중복으로 추가되는 문제 발생되어서
+// 이벤트 리스너 중복 등록 방지를 위해 handleBookmarkLinkClick과 setupBookmarkModal을 함께 작동시킨다. 
+function handleBookmarkLinkClick(event) {
+    event.preventDefault(); // 기본 이벤트를 방지
+    const tr = this.closest('tr');
+    const bookmarkId = tr.getAttribute('data-bookmark-id'); // data-bookmark-id 속성의 값 가져옴
+    const checkboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]:checked'); //체크된 모드 체크박스 선택
+    const selectedData = Array.from(checkboxes).map(checkbox => ({
+        no: checkbox.getAttribute('data-no'), // 체크박스에서 'data-no' 속성 가져와 객체에 저장
+        bookmarkId: bookmarkId // 위에서 얻은 bookmarkId를 객체에 저장
+    }));
+
+    saveMultipleBookmarkData(selectedData); 
+    toggleModal('manage-tab-modal'); // 모달의 표시 상태 토글
+    filterDataByBookmark(bookmarkId); 
+
+    const tabItem = document.querySelector(`.tab-item a[data-bookmark-id="${bookmarkId}"]`); //bookmarkId에 해당하는 탭 아이템 선택
+    if (tabItem) {
+        document.querySelectorAll('.tab-item a').forEach(tab => tab.classList.remove('active')); // 모든 탭 아이템에서 active 클래스 제거
+        tabItem.classList.add('active'); // 현재 탭 아이템에 active 클래스 추가
+    }
+}
+
+function setupBookmarkModal() {
+    document.querySelector('#manage-tab-modal .modal-title').textContent = '데이터 등록';
+    document.querySelector('#manage-tab-modal .add-tab-row').style.display = 'none';
+    const dbEditElements = document.querySelectorAll('#manage-tab-modal .db-edit');
+    dbEditElements.forEach(element => element.style.display = 'none');
+    const tabListCheckboxes = document.querySelectorAll('#manage-tab-modal input[name="tab-list-checkbox"]');
+    tabListCheckboxes.forEach(checkbox => checkbox.style.display = 'none');
+    document.querySelector('#manage-tab-modal .delete-bmk').style.display = 'none';
+
+    const bookmarkLinks = document.querySelectorAll('#manage-tab-modal a');
+    bookmarkLinks.forEach(link => {
+        link.removeEventListener('click', handleBookmarkLinkClick); // 기존 이벤트 리스너 제거
+        link.addEventListener('click', handleBookmarkLinkClick); // 새 이벤트 리스너 추가
+    });
+}
+
 function saveMultipleBookmarkData(bookmarkData) {
     const savePromises = bookmarkData.map(data => saveBookmarkData(data.no, data.bookmarkId));
 
     Promise.all(savePromises)
         .then(results => {
-            console.log('All data saved:', results);
+            // console.log('All data saved:', results);
             alert('모든 데이터가 성공적으로 저장되었습니다.');
             // 필요한 추가 작업 수행
             filterDataByBookmark(bookmarkData[0].bookmarkId); // 예시: 첫 번째 북마크 ID로 필터링
@@ -1373,31 +1501,56 @@ function saveMultipleBookmarkData(bookmarkData) {
         });
 }
 
-
 // 모달을 열고 닫는 함수
 function toggleModal(modalId) {
     const modal = document.getElementById(modalId);
-    if (modal) {
-        if (modal.open) {
-            modal.close();
-            // 모달을 닫을 때 필요한 상태 초기화나 리소스 해제 로직 추가
-            modal.querySelectorAll('input, select').forEach(element => element.value = '');
-            modal.classList.remove('toggle-dialog');
-        } else {
-            modal.showModal();
-            // 모달이 열릴 때 필요한 초기화 작업 추가
-            modal.classList.add('toggle-dialog');
-            const firstInput = modal.querySelector('input, select');
-            if (firstInput) {
-                firstInput.focus();
+
+    if (!modal) {
+        console.error(`Modal with ID ${modalId} not found.`);
+        return;
+    }
+
+    if (modal.open) {
+        console.log('Closing modal');
+        modal.querySelectorAll('input, select').forEach(element => element.value = '');
+        modal.classList.remove('toggle-dialog');
+
+        // 모달을 닫을 때 이전 활성 탭 복원
+        const previouslyActiveTabId = modal.getAttribute('data-active-tab');
+        if (previouslyActiveTabId) {
+            const previouslyActiveTab = document.querySelector(`.tab-item a[data-bookmark-id="${previouslyActiveTabId}"]`);
+            if (previouslyActiveTab) {
+                previouslyActiveTab.classList.add('active');
+                console.log(`Restored active tab: ${previouslyActiveTabId}`);
+            } else {
+                console.log(`Could not find tab with data-bookmark-id: ${previouslyActiveTabId}`);
             }
+        } else {
+            console.log('No previously active tab found');
         }
+        modal.removeAttribute('data-active-tab');
+        modal.close();
     } else {
-        // console.error(`Modal with ID ${modalId} not found.`);
+        console.log('Opening modal');
+        // 현재 활성화된 탭 저장
+        const currentActiveTab = document.querySelector('.tab-item a.active');
+        if (currentActiveTab) {
+            const tabId = currentActiveTab.getAttribute('data-bookmark-id');
+            modal.setAttribute('data-active-tab', tabId);
+            currentActiveTab.classList.remove('active');
+            console.log(`Saved active tab: ${tabId}`);
+        } else {
+            console.log('No active tab found');
+        }
+
+        modal.showModal();
+        modal.classList.add('toggle-dialog');
+        const firstInput = modal.querySelector('input, select');
+        if (firstInput) {
+            firstInput.focus();
+        }
     }
 }
-
-
 
 // 모든 아이템 탭을 활성화하는 함수
 function activateAllItemsTab() {
@@ -1482,17 +1635,3 @@ function deleteBookmarkItems(bookmarkId, dataNos) {
 }
 
 
-
-//////////////////////////////////////////////////////////////////////////////
-
-// 체크박스가 변경될 때마다 선택된 항목의 개수를 업데이트하는 함수
-function updateSelectedCount() {
-    const checkedCheckboxes = document.querySelectorAll('input[type="checkbox"][name="search-checkbox"]:checked');
-    console.log(`Checked checkboxes: ${checkedCheckboxes.length}`); // 로그 추가
-    const countSpan = document.getElementById('count-checked');
-    if (countSpan) {
-        countSpan.textContent = `선택된 항목 ${checkedCheckboxes.length}개`;
-    } else {
-        console.error('count-checked 요소를 찾을 수 없습니다.'); // 에러 로그 추가
-    }
-}

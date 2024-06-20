@@ -25,7 +25,7 @@ require 'db_config.php';
 
 // 데이터베이스 연결 및 `NO`에 해당하는 파일 정보 조회 로직 구현
 // 파일명은 search 테이블의 NAME과 정확히 일치한다.
-$stmt = $pdo->prepare("SELECT NAME FROM search WHERE NO = :no");
+$stmt = $pdo->prepare("SELECT NAME, X1, X2, Y1, Y2 FROM search WHERE NO = :no");
 $stmt->execute([':no' => $no]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -48,17 +48,18 @@ if ($row) {
         exit;
     }
 
-    // 대상 디렉토리에 이미 파일이 존재하는지 확인
-    if (file_exists($destinationPath)) {
-        echo json_encode(['message' => '이미 해당 파일이 대상 디렉토리에 존재합니다.', 'fileName' => $fileNameWithColor]);
-        exit;
-    }
-
     // 파일 이동 로직
     if (!copy($sourcePath, $destinationPath)) {
         echo json_encode(['message' => '파일 복사 실패', 'error' => error_get_last()]);
     } else {
-        echo json_encode(['message' => '파일 복사 성공', 'fileName' => $fileNameWithColor]);
+        echo json_encode([
+            'message' => '파일 복사 성공', 
+            'fileName' => $fileNameWithColor,
+            'X1' => $row['X1'],
+            'X2' => $row['X2'],
+            'Y1' => $row['Y1'],
+            'Y2' => $row['Y2']
+        ]);
     }
 } else {
     echo json_encode(['message' => '해당 번호의 파일을 찾을 수 없습니다.']);
